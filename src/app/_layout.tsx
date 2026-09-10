@@ -3,7 +3,7 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
-import { View } from "react-native";
+import { Platform, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider, initialWindowMetrics } from "react-native-safe-area-context";
 
@@ -46,15 +46,10 @@ export default function KokYerlesim() {
                 headerShown: false,
                 contentStyle: { backgroundColor: C.bg },
                 animation: "slide_from_right",
+                gestureEnabled: Platform.OS === "ios",
+                fullScreenGestureEnabled: Platform.OS === "ios",
               }}
-            >
-              <Stack.Screen name="index" />
-              <Stack.Screen name="parti-oda" options={{ animation: "fade" }} />
-              <Stack.Screen name="parti-platform" options={{ presentation: "modal" }} />
-              <Stack.Screen name="parti-sec" options={{ presentation: "modal" }} />
-              <Stack.Screen name="parti-dogrudan" options={{ presentation: "modal" }} />
-              <Stack.Screen name="parti-profil" options={{ presentation: "modal" }} />
-            </Stack>
+            />
           </View>
         </TemaSaglayici>
       </SafeAreaProvider>
