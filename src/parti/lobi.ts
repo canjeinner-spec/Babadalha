@@ -1,4 +1,5 @@
 import { type RealtimeChannel } from "@supabase/supabase-js";
+import { AppState } from "react-native";
 
 import { supabase } from "@/lib/supabase";
 import { platformDesteklenmiyor, type PlatformKodu } from "@/oda/platform";
@@ -88,6 +89,7 @@ function kanaliSagla(): void {
   hazir = false;
   const k = sb.channel(LOBI, { config: { presence: { key: anahtar } } });
   kanal = k;
+  oneDonusuIzle();
   k.on("presence", { event: "sync" }, yayinlaToplu)
     .on("presence", { event: "join" }, yayinlaToplu)
     .on("presence", { event: "leave" }, yayinlaToplu)
@@ -101,6 +103,26 @@ function kanaliSagla(): void {
     });
 }
 
+let oneDonusAbonesi: { remove: () => void } | null = null;
+
+function oneDonusuIzle(): void {
+  if (oneDonusAbonesi) return;
+  oneDonusAbonesi = AppState.addEventListener("change", (durum) => {
+    if (durum !== "active") return;
+    if (!kanal) return;
+    if (yayinlanan) {
+      yayinlanan = { ...yayinlanan, an: Date.now() };
+      izimiGonder();
+    }
+    yayinla();
+  });
+}
+
+function oneDonusuBirak(): void {
+  oneDonusAbonesi?.remove();
+  oneDonusAbonesi = null;
+}
+
 function belkiKapat(): void {
   if (sayac > 0 || yayinlanan) return;
   const sb = supabase;
@@ -111,6 +133,7 @@ function belkiKapat(): void {
     clearTimeout(yayinZaman);
     yayinZaman = null;
   }
+  oneDonusuBirak();
   if (sb && k) sb.removeChannel(k);
 }
 
