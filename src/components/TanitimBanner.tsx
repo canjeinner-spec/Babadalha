@@ -2,7 +2,6 @@ import { StyleSheet, View } from "react-native";
 
 import { Txt } from "@/components/Txt";
 import { Icon } from "@/icons/Icon";
-import { C } from "@/theme/colors";
 import { Gradient } from "@/theme/Gradient";
 
 const ORAN = 7 / 2;
