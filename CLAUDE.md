@@ -38,10 +38,12 @@ YouTube, Plex, Drive) Android'de çalışıyor.
 
 `belgeler/IOS_NETFLIX_2026-09-10.md`. Özet: iOS'ta `EME=yes`, FairPlay
 kuruluyor, anahtar üretiliyor. Yani Android'deki duvar burada yok. Buna
-rağmen **bazı içerikler oynuyor, bazıları oynamıyor** — aynı oturumda
-`/watch/80126264` ve `/watch/82699336` açıldı, `/watch/70301862`,
-`/watch/81323556`, `/watch/81035908` açılmadı ve ekranda kodsuz hata
-sayfası çıktı, Netflix'in iç hata nesneleri boş geldi.
+rağmen **bazı içerikler oynuyor, bazıları oynamıyor.** Ölçümün ilk hâli
+2 açılan / 3 açılmayan idi; oynatıcı kabı düzeltmesinden sonra (`143fa2a`)
+**6 açılan / 3 açılmayan** oldu — açılmayan sayısı artmadı. Yani
+başarısızlıkların çoğu Netflix'in reddi değil, bizim yanlış video ögesine
+yapışmamızmış. Geriye kalanlarda Netflix'in kodsuz hata sayfası çıkıyor ve
+iç hata nesneleri boş geliyor; onlar gerçek ret.
 
 Sonu `_UA` olan yetenek alanlarının hepsi `maybe`: kimliğimiz
 sınıflandırılamıyor ve sınıflandırılamayan istemciye içerik başına karar

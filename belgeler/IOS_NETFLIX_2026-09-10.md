@@ -50,9 +50,34 @@ nfic: kodsuz olusturmaHatasi={} durum={} yetenek={...} uaDestek={...} oturum={}
 ```
 
 Sonu `_UA` olan alanların hepsi `maybe`: Netflix gönderdiğimiz kimliği
-sınıflandıramıyor. Sınıflandıramadığı istemciye bazı içerikleri veriyor,
-bazılarını vermiyor. **Bu içerik başına verilmiş bir erişim kararıdır ve
-aşılmaya çalışılmaz.**
+sınıflandıramıyor.
+
+## DÜZELTME (aynı gün, Turtle sökümünden sonra)
+
+Yukarıdaki tablodan "Netflix içerik başına ret veriyor" diye hüküm
+vermiştim. **Fazla genişti.** Başarısızlıkların bir kısmı bizim kendi
+hatamızmış: `enBuyukVideo()` sayfadaki en geniş alanlı videoyu seçiyordu
+ve izleme sayfasında bir önceki sayfadan kalan fragman ögesine yapışıp
+kalıyordu. Turtle'ın `isInsideWatchVideoContainer` yaklaşımı alınıp
+oynatıcı kabı testi eklendikten sonra (`143fa2a`) tablo değişti:
+
+| | Düzeltmeden önce | Düzeltmeden sonra |
+|---|---|---|
+| Açılan | 2 | **6** |
+| Açılmayan | 3 | 3 |
+
+Açılan: `80126264`, `80241208`, `81237996`, `81282956`, `81786017`,
+`82699336` — hepsi `hazir=4`, 1383–1890 ms arası.
+Açılmayan: `80014298`, `81035908`, `82716765`.
+
+**Açılmayan sayısı hiç artmadı, açılan sayısı üçe katlandı.** Yani
+"Netflix reddediyor" sandığımız vakaların çoğu bizim yanlış ögeye
+yapışmamızmış.
+
+Geriye kalan üç içerikte Netflix'in kendi kodsuz hata sayfası çıkıyor ve
+iç hata nesneleri boş geliyor; bunlar gerçek ret. **O ret aşılmaya
+çalışılmaz.** Ama "içeriklerin çoğu reddediliyor" demek yanlıştı, kayda
+geçsin.
 
 ## Çürütülen ara hüküm
 
