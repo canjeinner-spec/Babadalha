@@ -3,6 +3,7 @@ import { useCallback, useState } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { BaslatAmblemi } from "@/components/BaslatAmblemi";
 import { Txt } from "@/components/Txt";
 import { Icon } from "@/icons/Icon";
 import { haptic } from "@/lib/haptics";
@@ -91,6 +92,7 @@ export default function PartiDogrudan() {
               disabled={!gecerli}
               style={[styles.dugme, !gecerli && styles.dugmePasif]}
             >
+              {gecerli && <BaslatAmblemi />}
               <Txt weight="extrabold" size={14} color={gecerli ? "#08080C" : C.dim2}>
                 {secim ? "Bu bağlantıya geç" : "Partiyi başlat"}
               </Txt>
@@ -128,7 +130,7 @@ const styles = StyleSheet.create({
     color: "#fff", fontSize: 13, textAlignVertical: "top",
   },
   dugme: {
-    height: 48, borderRadius: 14, alignItems: "center", justifyContent: "center",
+    height: 48, borderRadius: 14, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
     backgroundColor: C.gold2,
   },
   dugmePasif: { backgroundColor: "rgba(255,255,255,.07)" },

@@ -89,3 +89,45 @@ background, centered, 1024x1024.
 
 **Not:** bu iki dosya depoya girecek, yani boyutları küçük tutulacak.
 Kelime markası ~15 KB, amblem ~10 KB civarını hedefliyorum.
+
+---
+
+## 3) "Doğrudan bağlantı" markası
+
+**Nerede duracak:** platform seçicideki ızgarada, Netflix/Prime/Disney+
+logolarının yanında. Şu an orada logo yok; bir daire içinde küre ikonu ve
+düz yazı var, o yüzden diğerlerinin yanında eksik duruyor.
+
+**Teknik**
+
+- 1024 × 512 şeffaf PNG üret (2:1 yatay), ben içeriğe kırpıp yüksekliği
+  138 px'e indireceğim (ızgarada 46 px, 3x için)
+- Diğer platform logolarıyla **aynı ızgarada** duracak: onlar kendi
+  markalarının renkli logoları. Bu yüzden bu da bir **marka gibi**
+  görünmeli — düz ikon değil, kelime + işaret bütünü
+- Zemin koyu (`#08080C` civarı), o yüzden mark açık renkli olmalı
+- Şeffaf zemin, kenarda boşluk bırakma
+
+**Türkçe uyarısı:** yine `İ` harfi riski var ama bu sefer kaçamıyoruz,
+kelimenin kendisi "BAĞLANTI". İki seçenek:
+
+- **Güvenli yol (önerim):** görselde hiç yazı olmasın, yalnız işaret
+  üretilsin; "Doğrudan bağlantı" yazısını uygulamada yazı tipiyle basarım,
+  tıpkı ARON markasında yaptığımız gibi. Aşağıdaki prompt bu yola göre.
+- Yazılı istersen ayrıca söyle, o zaman `Ğ` ve `I` harflerini de ayrı ayrı
+  tarif eden bir prompt yazarım ve çıkanı harf harf kontrol etmen gerekir.
+
+```
+A brand-style emblem representing a direct video link, designed to sit in a
+grid next to streaming service logos on a near-black background. Motif: a
+chain link fused with a play triangle, drawn as one continuous confident
+shape. Cool silver-to-violet gradient (#E6E6F0 to #8B5CF6) with a thin warm
+gold accent line, giving it equal visual weight to colorful brand logos
+around it. Modern, geometric, flat with a subtle inner bevel, not glossy 3D,
+no drop shadow plate, no circle badge behind it, no text, no letters.
+Transparent background, centered, 1024x512.
+```
+
+Varyant: aynı prompt, `chain link fused with a play triangle` yerine
+`a paper-plane arrow passing through a rounded rectangle screen`. İkisini de
+gönder, ızgarada diğer logoların yanında hangisi durur bakarız.

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { FlatList, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { BaslatAmblemi } from "@/components/BaslatAmblemi";
 import { Portrait } from "@/components/Portrait";
 import { TanitimBanner } from "@/components/TanitimBanner";
 import { UstKaplama } from "@/components/UstKaplama";
@@ -51,20 +52,6 @@ function OdaSatiri({ oda, onBas }: { oda: LobiOdasi; onBas: () => void }) {
         <Txt weight="extrabold" size={11.5} color={C.gold2}>{oda.kisi}</Txt>
       </View>
     </Pressable>
-  );
-}
-
-function BaslatAmblemi() {
-  const [hata, setHata] = useState(false);
-  if (hata) return <Icon name="evParty" size={17} color="#241A05" />;
-  return (
-    <Image
-      source={require("@/assets/marka/parti-amblem.webp")}
-      style={{ width: 26, height: 26 }}
-      contentFit="contain"
-      transition={140}
-      onError={() => setHata(true)}
-    />
   );
 }
 
