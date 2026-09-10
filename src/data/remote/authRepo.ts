@@ -45,22 +45,32 @@ export async function changeMyPassword(mevcut: string, yeni: string): Promise<vo
   if (error) throw error;
 }
 
+export type OAuthSaglayici = "google" | "apple";
+
 export async function signInWithGoogle() {
+  return signInWithProvider("google");
+}
+
+export async function signInWithApple() {
+  return signInWithProvider("apple");
+}
+
+export async function signInWithProvider(saglayici: OAuthSaglayici) {
   const sb = requireSupabase();
   const redirectTo = makeRedirectUri();
-  console.log("[auth] Google redirectTo:", redirectTo);
+  console.log(`[auth] ${saglayici} redirectTo:`, redirectTo);
 
   const { data, error } = await sb.auth.signInWithOAuth({
-    provider: "google",
+    provider: saglayici,
     options: { redirectTo, skipBrowserRedirect: true },
   });
   if (error) throw error;
-  if (!data?.url) throw new Error("Google giriş URL'i alınamadı.");
+  if (!data?.url) throw new Error("Giriş adresi alınamadı. Bu sağlayıcı Supabase'de açık olmayabilir.");
 
   const res = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
   if (res.type !== "success" || !res.url) {
     throw new Error(
-      `Google girişi tamamlanamadı. Tarayıcı "${redirectTo}" adresine geri dönmedi. ` +
+      `Giriş tamamlanamadı. Tarayıcı "${redirectTo}" adresine geri dönmedi. ` +
         "Bu adres Supabase → Authentication → URL Configuration → Redirect URLs " +
         "listesinde değilse Supabase Site URL'e (localhost) düşer ve sayfa orada kalır.",
     );
@@ -84,7 +94,7 @@ export async function signInWithGoogle() {
     return sess;
   }
 
-  throw new Error("Google oturum bilgisi alınamadı.");
+  throw new Error("Oturum bilgisi alınamadı.");
 }
 
 function extractParam(rawUrl: string, key: string): string | null {

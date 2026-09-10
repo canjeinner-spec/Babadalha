@@ -10,19 +10,54 @@ import { ElmaIsareti, GoogleIsareti } from "@/components/MarkaIkonlari";
 import { TitrekYazi } from "@/components/TitrekYazi";
 import { Txt } from "@/components/Txt";
 import { KARSILAMA_KARELERI } from "@/data/karsilamaKareleri";
+import { signInWithApple, signInWithGoogle } from "@/data/remote/authRepo";
+import { isSupabaseConfigured } from "@/lib/supabase";
 import { haptic } from "@/lib/haptics";
-import { girisiAtla } from "@/lib/ilkAcilis";
+import { girisEkraniniGec } from "@/lib/ilkAcilis";
 import { C } from "@/theme/colors";
 
 export default function Giris() {
   const router = useRouter();
   const [markaHatasi, setMarkaHatasi] = useState(false);
+  const [mesgul, setMesgul] = useState<"apple" | "google" | "misafir" | null>(null);
+  const [hata, setHata] = useState("");
 
-  const devam = useCallback(async () => {
-    haptic.select();
-    await girisiAtla();
+  const iceGir = useCallback(async () => {
+    await girisEkraniniGec();
     router.replace("/");
   }, [router]);
+
+  const misafir = useCallback(async () => {
+    if (mesgul) return;
+    haptic.select();
+    setMesgul("misafir");
+    await iceGir();
+  }, [mesgul, iceGir]);
+
+  const saglayiciyla = useCallback(async (saglayici: "apple" | "google") => {
+    if (mesgul) return;
+    haptic.select();
+    setHata("");
+    if (!isSupabaseConfigured) {
+      setHata("Sunucu ayarları eksik, şimdilik misafir olarak devam edebilirsin.");
+      return;
+    }
+    setMesgul(saglayici);
+    try {
+      if (saglayici === "google") await signInWithGoogle();
+      else await signInWithApple();
+      await iceGir();
+    } catch (e) {
+      const m = (e as Error)?.message ?? "";
+      setHata(
+        /provider is not enabled|not enabled|Unsupported provider/i.test(m)
+          ? `${saglayici === "google" ? "Google" : "Apple"} girişi sunucuda açık değil.`
+          : m || "Giriş tamamlanamadı, tekrar dene.",
+      );
+    } finally {
+      setMesgul(null);
+    }
+  }, [mesgul, iceGir]);
 
   return (
     <View style={styles.kok}>
@@ -63,14 +98,24 @@ export default function Giris() {
         <View style={{ flex: 1.5 }} />
 
         <View style={styles.dip}>
-          <Pressable style={styles.beyazDugme} onPress={devam}>
+          <Pressable
+            style={[styles.beyazDugme, mesgul && mesgul !== "apple" && styles.sonuk]}
+            onPress={() => saglayiciyla("apple")}
+          >
             <ElmaIsareti size={19} renk="#141018" />
-            <Txt weight="extrabold" size={15.5} color="#141018">Apple ile devam edin</Txt>
+            <Txt weight="extrabold" size={15.5} color="#141018">
+              {mesgul === "apple" ? "Bağlanılıyor…" : "Apple ile devam edin"}
+            </Txt>
           </Pressable>
 
-          <Pressable style={styles.beyazDugme} onPress={devam}>
+          <Pressable
+            style={[styles.beyazDugme, mesgul && mesgul !== "google" && styles.sonuk]}
+            onPress={() => saglayiciyla("google")}
+          >
             <GoogleIsareti size={19} />
-            <Txt weight="extrabold" size={15.5} color="#141018">Google ile devam edin</Txt>
+            <Txt weight="extrabold" size={15.5} color="#141018">
+              {mesgul === "google" ? "Bağlanılıyor…" : "Google ile devam edin"}
+            </Txt>
           </Pressable>
 
           <View style={styles.ayrac}>
@@ -79,9 +124,16 @@ export default function Giris() {
             <View style={styles.cizgi} />
           </View>
 
-          <Pressable style={styles.misafirDugme} onPress={devam}>
+          <Pressable
+            style={[styles.misafirDugme, mesgul && mesgul !== "misafir" && styles.sonuk]}
+            onPress={misafir}
+          >
             <Txt weight="extrabold" size={15.5} color="#fff">Misafir Olarak Devam Et</Txt>
           </Pressable>
+
+          {hata !== "" && (
+            <Txt size={12} color={C.red} align="center" lh={1.45} style={styles.hataYazi}>{hata}</Txt>
+          )}
         </View>
       </SafeAreaView>
     </View>
@@ -119,4 +171,10 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
   },
   cizgi: { flex: 1, height: 1, backgroundColor: "rgba(255,255,255,.28)" },
+  sonuk: { opacity: 0.5 },
+  hataYazi: {
+    marginTop: 2, paddingHorizontal: 8,
+    textShadowColor: "rgba(0,0,0,.8)", textShadowRadius: 8,
+    textShadowOffset: { width: 0, height: 1 },
+  },
 });

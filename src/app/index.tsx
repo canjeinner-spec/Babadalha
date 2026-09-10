@@ -5,7 +5,7 @@ import { FlatList, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Anim } from "@/components/Anim";
-import { girisAtlandi, karsilamaGoruldu } from "@/lib/ilkAcilis";
+import { girisEkraniGecildi, karsilamaGoruldu } from "@/lib/ilkAcilis";
 import { BaslatAmblemi } from "@/components/BaslatAmblemi";
 import { Portrait } from "@/components/Portrait";
 import { TanitimBanner } from "@/components/TanitimBanner";
@@ -70,7 +70,7 @@ export default function PartiAnaEkran() {
           return;
         }
         if (useApp.getState().girisYapildi) return;
-        if (await girisAtlandi()) return;
+        if (await girisEkraniGecildi()) return;
         if (acik) router.replace("/giris");
       })
       .catch(() => {});

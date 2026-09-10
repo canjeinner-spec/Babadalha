@@ -37,12 +37,12 @@ export async function karsilamayiIsaretle(): Promise<void> {
   if (!OTURUMLUK) await yaz(KARSILAMA);
 }
 
-export async function girisAtlandi(): Promise<boolean> {
+export async function girisEkraniGecildi(): Promise<boolean> {
   if (OTURUMLUK) return oturum.giris;
   return oku(GIRIS);
 }
 
-export async function girisiAtla(): Promise<void> {
+export async function girisEkraniniGec(): Promise<void> {
   oturum.giris = true;
   if (!OTURUMLUK) await yaz(GIRIS);
 }
