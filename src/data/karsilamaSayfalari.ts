@@ -1,6 +1,6 @@
 import { type ImageSourcePropType } from "react-native";
 
-export type KarsilamaParagrafi = { metin: string; vurgu?: boolean };
+export type KarsilamaParagrafi = { metin: string; vurgu?: boolean; selam?: boolean };
 
 export type KarsilamaSayfasi = {
   anahtar: string;
@@ -17,12 +17,14 @@ export const KARSILAMA_SAYFALARI: KarsilamaSayfasi[] = [
     altYazi: "Aynı yere bakmak için aynı yerde olmak gerekmiyor.",
     gorsel: require("@/assets/karsilama/kediler.webp"),
     paragraflar: [
+      { metin: "Aron'u ilk kez açtığını görüyorum. O yüzden birkaç satır yazacağım." },
       { metin: "Bu uygulamayı uzak mesafe ilişkisi yaşayan insanlar için yaptım. Sevgililer, aileler, arkadaşlar… Aynı odada olamayan herkes için." },
       { metin: "Sevgilimle ben aynı şehirde değiliz. Sesini duyuyorum, yüzünü görüyorum; yine de yanımda değil. Bir film açalım diyorduk, iki ayrı ekranda iki ayrı saniyede başlıyordu. “Şimdi durdur”, “üç deyince başlıyoruz”… Benim güldüğüm sahneye o daha gelmemiş oluyordu, o ağladığında ben çoktan geçmiş oluyordum. Aynı filmi izliyorduk ama aynı anı yaşamıyorduk." },
       { metin: "Sonra düşündüm: Neden gerçekten aynı odadaymışız gibi olmasın?" },
       { metin: "Aron böyle ortaya çıktı." },
       { metin: "Aron bir film uygulaması değil. Aranızdaki mesafeyi birkaç saatliğine kapatan bir oda." },
       { metin: "Eğer Aron sayesinde bir gün olsun sevdiklerinizle aranızdaki uzaklığı unuttuysanız, benim için amacı gerçekleşmiş demektir.", vurgu: true },
+      { metin: "Aron'a hoş geldin.", selam: true },
     ],
   },
   {

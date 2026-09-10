@@ -19,7 +19,7 @@ export default function Giris() {
 
   const devam = useCallback(() => {
     haptic.select();
-    router.replace("/karsilama");
+    router.replace("/");
   }, [router]);
 
   return (

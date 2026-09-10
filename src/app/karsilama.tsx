@@ -1,4 +1,3 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
@@ -12,9 +11,9 @@ import { YazilanMetin, type YazilanBlok } from "@/components/YazilanMetin";
 import { KARSILAMA_SAYFALARI, type KarsilamaSayfasi } from "@/data/karsilamaSayfalari";
 import { Icon } from "@/icons/Icon";
 import { haptic } from "@/lib/haptics";
+import { karsilamayiIsaretle } from "@/lib/ilkAcilis";
+import { useApp } from "@/store/appStore";
 import { C } from "@/theme/colors";
-
-export const KARSILAMA_ANAHTARI = "aron.karsilama.goruldu";
 
 function Sayfa({
   sayfa,
@@ -44,6 +43,13 @@ function Sayfa({
       );
     }
     const p = sayfa.paragraflar[sira - 1];
+    if (p?.selam) {
+      return (
+        <Txt key={blok.anahtar} weight="displayBold" size={19} color="#fff" align="center" style={styles.selam}>
+          {gorunen}
+        </Txt>
+      );
+    }
     if (p?.vurgu) {
       return (
         <View key={blok.anahtar} style={styles.vurguKutu}>
@@ -91,6 +97,8 @@ function Sayfa({
             bloklar={bloklar}
             etkin={etkin}
             atla={atla}
+            adim={1}
+            araAdim={18}
             onBitti={onBitti}
             onIlerleme={() => akis.current?.scrollToEnd({ animated: false })}
             ciz={ciz}
@@ -123,8 +131,8 @@ export default function Karsilama() {
       akis.current?.scrollTo({ x: hedef * width, animated: true });
       return;
     }
-    try { await AsyncStorage.setItem(KARSILAMA_ANAHTARI, "1"); } catch { /* yoksay */ }
-    router.replace("/");
+    await karsilamayiIsaretle();
+    router.replace(useApp.getState().girisYapildi ? "/" : "/giris");
   }, [son, sayfa, width, router]);
 
   return (
@@ -209,6 +217,7 @@ const styles = StyleSheet.create({
     marginTop: 20, paddingTop: 18, paddingHorizontal: 4,
     borderTopWidth: 1, borderTopColor: "rgba(232,179,65,.22)",
   },
+  selam: { marginTop: 22 },
   dip: { paddingHorizontal: 20, paddingBottom: 12, gap: 16 },
   dugme: {
     flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,

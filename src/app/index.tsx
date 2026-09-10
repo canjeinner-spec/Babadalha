@@ -1,4 +1,3 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -6,7 +5,7 @@ import { FlatList, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Anim } from "@/components/Anim";
-import { KARSILAMA_ANAHTARI } from "@/app/karsilama";
+import { karsilamaGoruldu } from "@/lib/ilkAcilis";
 import { BaslatAmblemi } from "@/components/BaslatAmblemi";
 import { Portrait } from "@/components/Portrait";
 import { TanitimBanner } from "@/components/TanitimBanner";
@@ -63,9 +62,11 @@ export default function PartiAnaEkran() {
 
   useEffect(() => {
     let acik = true;
-    AsyncStorage.getItem(KARSILAMA_ANAHTARI)
-      .then((v) => {
-        if (acik && !v && !useApp.getState().girisYapildi) router.replace("/giris");
+    karsilamaGoruldu()
+      .then((gorulmus) => {
+        if (!acik) return;
+        if (!gorulmus) router.replace("/karsilama");
+        else if (!useApp.getState().girisYapildi) router.replace("/giris");
       })
       .catch(() => {});
     return () => { acik = false; };
