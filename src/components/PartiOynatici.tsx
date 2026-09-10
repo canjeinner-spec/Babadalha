@@ -9,8 +9,8 @@ import { type PlatformKodu } from "@/oda/platform";
 import { KOMUT, kopruBetigi, kullaniciAjani, masaustuIcerikMi, olayCoz, type OynaticiOlayi } from "@/parti/kopru";
 import { C } from "@/theme/colors";
 
-const YOL_BUYUT = "M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7";
-const YOL_KUCULT = "M13 11h6V5M11 13H5v6M20 4l-7 7M4 20l7-7";
+const YOL_BUYUT = "M4 4l6.5 6.5M4 4v6M4 4h6M20 20l-6.5-6.5M20 20v-6M20 20h-6";
+const YOL_KUCULT = "M4 4l6.5 6.5M10.5 4.5v6M4.5 10.5h6M20 20l-6.5-6.5M13.5 19.5v-6M19.5 13.5h-6";
 const YOL_PANEL = "M4 5h16a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V6a1 1 0 011-1zM15 5v14";
 
 export type OynaticiKolu = {
@@ -123,11 +123,11 @@ export const PartiOynatici = forwardRef<OynaticiKolu, {
         <View style={styles.kosuKutusu}>
           {!!onSohbet && tamEkran && (
             <Pressable onPress={onSohbet} hitSlop={10} style={[styles.kosuDugmesi, sohbetAcik && styles.kosuDugmesiAcik]}>
-              <Icon path={YOL_PANEL} size={15} sw={2} color={sohbetAcik ? C.gold2 : "#fff"} />
+              <Icon path={YOL_PANEL} size={19} sw={2.1} color={sohbetAcik ? C.gold2 : "#fff"} />
             </Pressable>
           )}
           <Pressable onPress={onBoyut} hitSlop={10} style={styles.kosuDugmesi}>
-            <Icon path={tamEkran ? YOL_KUCULT : YOL_BUYUT} size={14} sw={2.2} color="#fff" />
+            <Icon path={tamEkran ? YOL_KUCULT : YOL_BUYUT} size={21} sw={2.4} color="#fff" />
           </Pressable>
         </View>
       )}
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
   web: { flex: 1, backgroundColor: "#000" },
   kosuKutusu: { position: "absolute", right: 10, bottom: 10, flexDirection: "row", gap: 8 },
   kosuDugmesi: {
-    width: 30, height: 30,
+    width: 36, height: 36,
     alignItems: "center", justifyContent: "center",
     shadowColor: "#000", shadowOpacity: 0.55, shadowRadius: 6, shadowOffset: { width: 0, height: 1 },
   },

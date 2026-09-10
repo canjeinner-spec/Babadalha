@@ -4,7 +4,6 @@ import { type LayoutChangeEvent, PanResponder, Pressable, StyleSheet, View } fro
 import { Txt } from "@/components/Txt";
 import { Icon } from "@/icons/Icon";
 import { haptic } from "@/lib/haptics";
-import { C } from "@/theme/colors";
 
 const YOL_OYNAT = "M7 4l12 8-12 8V4z";
 const YOL_DURAKLAT = "M8 5v14M16 5v14";
@@ -138,8 +137,8 @@ const styles = StyleSheet.create({
   alt: { position: "absolute", left: 10, right: 10, bottom: 8, flexDirection: "row", alignItems: "center", gap: 8 },
   zaman: { minWidth: 36, textAlign: "center" },
   rayYuva: { flex: 1, height: 28, justifyContent: "center" },
-  ray: { height: 4, borderRadius: 2, backgroundColor: "rgba(255,255,255,.28)", overflow: "hidden" },
-  dolu: { height: "100%", backgroundColor: C.gold2 },
-  tutamac: { position: "absolute", width: 14, height: 14, borderRadius: 7, backgroundColor: C.gold2 },
-  tutamacBuyuk: { width: 18, height: 18, borderRadius: 9, marginLeft: -2 },
+  ray: { height: 7, borderRadius: 4, backgroundColor: "rgba(255,255,255,.22)", overflow: "hidden" },
+  dolu: { height: "100%", borderRadius: 4, backgroundColor: "#fff" },
+  tutamac: { position: "absolute", width: 13, height: 13, borderRadius: 7, backgroundColor: "#fff" },
+  tutamacBuyuk: { width: 17, height: 17, borderRadius: 9, marginLeft: -2 },
 });
