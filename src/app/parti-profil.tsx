@@ -3,14 +3,16 @@ import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { CenterModal } from "@/components/CenterModal";
+import { DilSecici } from "@/components/DilSecici";
 import { OzelIdGosterim } from "@/components/OzelId";
 import { Portrait } from "@/components/Portrait";
 import { RenkliAd } from "@/components/RenkliAd";
 import { Txt } from "@/components/Txt";
 import { gunYaz, partiIstatistiklerim, saatAraligiYaz, sureYaz, type PartiIstatistik } from "@/data/remote/partiRepo";
 import { Icon } from "@/icons/Icon";
+import { haptic } from "@/lib/haptics";
 import { platformBul } from "@/oda/platform";
-import { DilSecici } from "@/components/DilSecici";
 import { useApp } from "@/store/appStore";
 import { C } from "@/theme/colors";
 
@@ -41,6 +43,10 @@ export default function PartiProfil() {
   const ozelIdTip = useApp((s) => s.ozelIdTip);
   const ozelIdTema = useApp((s) => s.ozelIdTema);
   const dbId = useApp((s) => s.dbId);
+  const signOutApp = useApp((s) => s.signOutApp);
+  const [cikisOnayi, setCikisOnayi] = useState(false);
+  const [cikiliyor, setCikiliyor] = useState(false);
+  const [hata, setHata] = useState("");
 
   const [istatistik, setIstatistik] = useState<PartiIstatistik | null>(null);
   useEffect(() => {
@@ -120,15 +126,98 @@ export default function PartiProfil() {
             <View style={styles.ayirac} />
             <Satir etiket="Son oturum" deger={gunYaz(istatistik?.sonOturum ?? null)} />
           </View>
+
+          {session ? (
+            <Pressable
+              style={[styles.hesapDugmesi, styles.cikisDugmesi]}
+              onPress={() => { haptic.select(); setCikisOnayi(true); }}
+            >
+              <Txt weight="extrabold" size={14} color={C.red}>Çıkış yap</Txt>
+            </Pressable>
+          ) : (
+            <Pressable
+              style={[styles.hesapDugmesi, styles.girisDugmesi]}
+              onPress={() => { haptic.select(); router.push("/giris"); }}
+            >
+              <Txt weight="extrabold" size={14} color="#241A05">Giriş yap</Txt>
+            </Pressable>
+          )}
+
+          {!session && (
+            <Txt size={11.5} color={C.dim2} align="center" lh={1.5} style={styles.hesapNotu}>
+              Misafir olarak geziyorsun. Giriş yaparsan partilerin, arkadaşların
+              ve istatistiklerin cihaz değiştirsen de seninle kalır.
+            </Txt>
+          )}
+
+          {hata !== "" && (
+            <Txt size={11.5} color={C.red} align="center" style={styles.hesapNotu}>{hata}</Txt>
+          )}
         </ScrollView>
       </SafeAreaView>
 
+      <CenterModal visible={cikisOnayi} onClose={() => setCikisOnayi(false)}>
+        <View style={styles.uyariKart}>
+          <Txt weight="displayBold" size={16} color="#fff" align="center">Çıkış yap</Txt>
+          <Txt size={13} color={C.dim} align="center" lh={1.45} style={{ marginTop: 8 }}>
+            Hesabından çıkacaksın. Partilerin ve istatistiklerin silinmiyor,
+            tekrar giriş yaptığında yerinde duruyor.
+          </Txt>
+          <View style={styles.uyariDugmeler}>
+            <Pressable style={styles.uyariIkincil} onPress={() => setCikisOnayi(false)}>
+              <Txt weight="extrabold" size={13} color="#fff">Vazgeç</Txt>
+            </Pressable>
+            <Pressable
+              style={[styles.uyariBirincil, cikiliyor && { opacity: 0.5 }]}
+              disabled={cikiliyor}
+              onPress={async () => {
+                setCikiliyor(true);
+                setHata("");
+                try {
+                  await signOutApp();
+                  setCikisOnayi(false);
+                  router.replace("/");
+                } catch {
+                  setCikisOnayi(false);
+                  setHata("Çıkış yapılamadı. İnternetini kontrol edip tekrar dene.");
+                } finally {
+                  setCikiliyor(false);
+                }
+              }}
+            >
+              <Txt weight="extrabold" size={13} color="#fff">
+                {cikiliyor ? "Çıkılıyor..." : "Çıkış yap"}
+              </Txt>
+            </Pressable>
+          </View>
+        </View>
+      </CenterModal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
+  hesapDugmesi: {
+    marginTop: 24, alignItems: "center", justifyContent: "center",
+    paddingVertical: 14, borderRadius: 14,
+  },
+  cikisDugmesi: { backgroundColor: "rgba(248,113,113,.12)", borderWidth: 1, borderColor: "rgba(248,113,113,.28)" },
+  girisDugmesi: { backgroundColor: C.gold2 },
+  hesapNotu: { marginTop: 10, paddingHorizontal: 12 },
+  uyariKart: {
+    backgroundColor: C.card, borderRadius: 18, padding: 20,
+    borderWidth: 1, borderColor: C.line,
+  },
+  uyariDugmeler: { flexDirection: "row", gap: 10, marginTop: 18 },
+  uyariIkincil: {
+    flex: 1, alignItems: "center", justifyContent: "center", paddingVertical: 12,
+    borderRadius: 12, backgroundColor: C.kontrol,
+  },
+  uyariBirincil: {
+    flex: 1, alignItems: "center", justifyContent: "center", paddingVertical: 12,
+    borderRadius: 12, backgroundColor: "#B4372F",
+  },
   baslik: {
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
     paddingHorizontal: 14, paddingTop: 6, paddingBottom: 14,
