@@ -49,6 +49,7 @@ export type OynaticiOlayi =
   | { tur: "tani"; sistemler: Record<string, string>; eskiEme: boolean; mse: string; ajan: string; platform: string; dokunma: number }
   | { tur: "gunluk"; seviye: string; metin: string }
   | { tur: "durum"; adres: string; baslik: string; videoVar: boolean; hazirDurum: string }
+  | { tur: "renk"; renk: string }
   | { tur: "yok" };
 
 function masaustuOrtami(safari: boolean, platformAdi = "MacIntel"): string {
@@ -669,6 +670,47 @@ const ORTAK = `
       izleme: izlemeSayfasi()
     });
   }
+
+  var tuval = null;
+  var tuvalCtx = null;
+  var renkKapali = false;
+  var sonRenk = null;
+
+  function sahneRengi() {
+    if (renkKapali || !video) return;
+    try {
+      if (video.readyState < 2 || video.videoWidth === 0) return;
+      if (!tuval) {
+        tuval = document.createElement('canvas');
+        tuval.width = 8;
+        tuval.height = 5;
+        tuvalCtx = tuval.getContext('2d', { willReadFrequently: true });
+      }
+      if (!tuvalCtx) { renkKapali = true; return; }
+      tuvalCtx.drawImage(video, 0, 0, 8, 5);
+      var d = tuvalCtx.getImageData(0, 0, 8, 5).data;
+      var r = 0, g = 0, b = 0, n = 0;
+      for (var i = 0; i < d.length; i += 4) {
+        var a = d[i + 3];
+        if (a < 8) continue;
+        r += d[i]; g += d[i + 1]; b += d[i + 2]; n++;
+      }
+      if (!n) return;
+      r = r / n; g = g / n; b = b / n;
+      if (sonRenk) {
+        r = sonRenk[0] + (r - sonRenk[0]) * 0.3;
+        g = sonRenk[1] + (g - sonRenk[1]) * 0.3;
+        b = sonRenk[2] + (b - sonRenk[2]) * 0.3;
+      }
+      sonRenk = [r, g, b];
+      var p = function (v) { return ('0' + Math.max(0, Math.min(255, Math.round(v))).toString(16)).slice(-2); };
+      yolla({ tur: 'renk', renk: '#' + p(r) + p(g) + p(b) });
+    } catch (e) {
+      renkKapali = true;
+      yolla({ tur: 'gunluk', seviye: 'renk', metin: 'sahne rengi okunamiyor (korumali icerik olabilir)' });
+    }
+  }
+  setInterval(sahneRengi, 1200);
 
   function tazele() {
     var v = enBuyukVideo();

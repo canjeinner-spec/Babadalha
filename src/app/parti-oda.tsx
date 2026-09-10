@@ -53,6 +53,7 @@ import { haptic } from "@/lib/haptics";
 import { useApp } from "@/store/appStore";
 import { C } from "@/theme/colors";
 import { Gradient } from "@/theme/Gradient";
+import { karart, saydam } from "@/theme/renk";
 
 const AVATAR = 40;
 
@@ -332,6 +333,7 @@ export default function PartiOda() {
   const [kip, setKip] = useState<"gezinme" | "oynatim">("gezinme");
   const [buyuk, setBuyuk] = useState(false);
   const [yanSohbet, setYanSohbet] = useState(false);
+  const [sahneRengi, setSahneRengi] = useState<string | null>(null);
   const [oynatilan, setOynatilan] = useState<{ platform: PlatformKodu; adres: string }>(() => ({
     platform: ilkPlatform,
     adres: dogrudanMi(ilkPlatform)
@@ -406,6 +408,7 @@ export default function PartiOda() {
     setSimdiSecim(s);
     setSimdiki(s.baslik);
     setSimdikiKapak(null);
+    setSahneRengi(null);
     setOynuyor(false);
     setSonKonum(0);
     setEk((e) => [...e, { tur: "simdi", anahtar: "s" + s.anahtar, baslik: s.baslik ?? "Video", platform: s.platform }]);
@@ -636,6 +639,7 @@ export default function PartiOda() {
       }
       return;
     }
+    if (o.tur === "renk") { setSahneRengi(o.renk); return; }
     if (o.tur === "oynat") {
       if (!o.izleme) return;
       setOynuyor(true);
@@ -898,7 +902,11 @@ export default function PartiOda() {
   return (
     <View style={styles.root}>
       <Gradient
-        colors={["#3A2350", "#6B3F63", "#A8613C", "#6E2F35"]}
+        colors={
+          sahneRengi
+            ? [sahneRengi, karart(sahneRengi, 0.32), karart(sahneRengi, 0.62), karart(sahneRengi, 0.85)]
+            : ["#3A2350", "#6B3F63", "#A8613C", "#6E2F35"]
+        }
         deg={165}
         locations={[0, 0.34, 0.68, 1]}
         style={StyleSheet.absoluteFill}
@@ -959,7 +967,13 @@ export default function PartiOda() {
         )}
 
         {kip === "oynatim" && (!buyuk || yanSohbet) && (
-        <View style={buyuk ? styles.yanSutun : { flex: 1 }}>
+        <View
+          style={
+            buyuk
+              ? [styles.yanSutun, { backgroundColor: sahneRengi ? saydam(karart(sahneRengi, 0.55), 0.86) : "rgba(12,10,18,.82)" }]
+              : { flex: 1 }
+          }
+        >
           <ScrollView
             ref={akis}
             style={{ flex: 1 }}
@@ -1038,7 +1052,7 @@ export default function PartiOda() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
   yatayGovde: { flex: 1, flexDirection: "row" },
-  yanSutun: { width: "32%", minWidth: 240, backgroundColor: "rgba(12,10,18,.82)" },
+  yanSutun: { width: "32%", minWidth: 240 },
   ustZemin: { paddingHorizontal: 18 },
   ustBar: {
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
