@@ -1107,14 +1107,21 @@ const YOUTUBE = `
     try { if (n && n.style && typeof n.style.setProperty === 'function') n.style.setProperty(k, v, 'important'); } catch (e) {}
   }
 
+  var sonKap = null;
+  var sonUygulama = 0;
+
   window.__aronSadelestir = function () {
     if (!/\\/watch|\\/shorts/.test(location.pathname)) return;
     stilKur();
-    var oyuncu = document.getElementById('movie_player');
-    var kap = oyuncu
-      || document.getElementById('player-container-id')
-      || document.getElementById('full-bleed-container');
+    var kap = document.getElementById('player-container-id')
+      || document.getElementById('full-bleed-container')
+      || document.getElementById('movie_player');
     if (!kap) return;
+    if (kap !== sonKap && window.__aronYolla) {
+      window.__aronYolla({ tur: 'gunluk', seviye: 'yerlesim', metin: 'kap degisti: ' + (sonKap ? sonKap.id : '-') + ' -> ' + kap.id });
+    }
+    sonKap = kap;
+    sonUygulama = Date.now();
     var kalsin = new Set([kap]);
     kap.querySelectorAll('*').forEach(function (n) { kalsin.add(n); });
     var ust = kap.parentElement;
@@ -1138,18 +1145,65 @@ const YOUTUBE = `
       .forEach(function (kv) { var q = kv.split(':'); gizle(kap, q[0], q[1]); });
     document.documentElement.classList.add('aron-sade');
     try { window.dispatchEvent(new Event('resize')); } catch (e) {}
-    setTimeout(function () {
-      try {
-        var v = kap.querySelector('video');
-        var kr = kap.getBoundingClientRect();
-        var vr = v ? v.getBoundingClientRect() : null;
-        if (window.__aronYolla) window.__aronYolla({ tur: 'gunluk', seviye: 'yerlesim',
-          metin: 'gorunum=' + innerWidth + 'x' + innerHeight
-            + ' oyuncu=' + [kr.left, kr.top, kr.width, kr.height].map(Math.round).join(',')
-            + (vr ? ' video=' + [vr.left, vr.top, vr.width, vr.height].map(Math.round).join(',') : ' video=yok') });
-      } catch (e) {}
-    }, 800);
   };
+
+  function gorunurluk(n) {
+    var zincir = [];
+    var k = n;
+    while (k && k !== document.documentElement && zincir.length < 12) {
+      var cs = getComputedStyle(k);
+      if (cs.display === 'none' || cs.visibility === 'hidden' || Number(cs.opacity) === 0) {
+        zincir.push((k.id ? '#' + k.id : k.tagName.toLowerCase()) + '{' + cs.display + '/' + cs.visibility + '/' + cs.opacity + '}');
+      }
+      k = k.parentElement;
+    }
+    return zincir.length ? zincir.join('>') : 'acik';
+  }
+
+  var sonTani = '';
+  window.__aronYtTani = function (sebep) {
+    try {
+      var v = document.querySelector('video.html5-main-video') || document.querySelector('video');
+      var mp = document.getElementById('movie_player');
+      var kap = document.getElementById('player-container-id') || document.getElementById('full-bleed-container');
+      var vr = v ? v.getBoundingClientRect() : null;
+      var metin = 'sebep=' + sebep
+        + ' video=' + (v ? (v.isConnected ? 'bagli' : 'KOPUK') : 'yok')
+        + ' kare=' + (v ? v.videoWidth + 'x' + v.videoHeight : '-')
+        + ' kutu=' + (vr ? [vr.left, vr.top, vr.width, vr.height].map(Math.round).join(',') : '-')
+        + ' hazir=' + (v ? v.readyState : '-') + ' duraklatildi=' + (v ? v.paused : '-')
+        + ' gorunur=' + (v ? gorunurluk(v) : '-')
+        + ' movie_player=' + (mp ? (mp.isConnected ? 'bagli' : 'KOPUK') : 'yok')
+        + ' kap=' + (kap ? kap.id + (kap === sonKap ? '' : '(YENI)') : 'yok');
+      if (metin === sonTani && sebep === 'dongu') return;
+      sonTani = metin;
+      if (window.__aronYolla) window.__aronYolla({ tur: 'gunluk', seviye: 'yerlesim', metin: metin });
+    } catch (e) {}
+  };
+
+  function hazirOlunca() {
+    if (!/\\/watch|\\/shorts/.test(location.pathname)) return;
+    if (window.__aronSadelestir) window.__aronSadelestir();
+    setTimeout(function () { window.__aronYtTani && window.__aronYtTani('hazir'); }, 600);
+  }
+
+  var bagliVideo = null;
+  function videoyaBagla() {
+    var v = document.querySelector('video.html5-main-video');
+    if (!v || v === bagliVideo) return;
+    bagliVideo = v;
+    ['playing', 'canplay', 'loadedmetadata'].forEach(function (ad) { v.addEventListener(ad, hazirOlunca); });
+    v.addEventListener('pause', function () { setTimeout(function () { window.__aronYtTani && window.__aronYtTani('pause'); }, 300); });
+    if (v.readyState > 0) hazirOlunca();
+  }
+
+  setInterval(function () {
+    videoyaBagla();
+    if (!/\\/watch|\\/shorts/.test(location.pathname)) return;
+    var kap = document.getElementById('player-container-id') || document.getElementById('full-bleed-container');
+    if (kap && kap !== sonKap && window.__aronSadelestir) window.__aronSadelestir();
+    if (window.__aronYtTani) window.__aronYtTani('dongu');
+  }, 1000);
 })();
 `;
 
