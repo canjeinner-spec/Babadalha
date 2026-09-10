@@ -121,13 +121,30 @@ kelimenin kendisi "BAĞLANTI". İki seçenek:
 A brand-style emblem representing a direct video link, designed to sit in a
 grid next to streaming service logos on a near-black background. Motif: a
 chain link fused with a play triangle, drawn as one continuous confident
-shape. Cool silver-to-violet gradient (#E6E6F0 to #8B5CF6) with a thin warm
-gold accent line, giving it equal visual weight to colorful brand logos
-around it. Modern, geometric, flat with a subtle inner bevel, not glossy 3D,
-no drop shadow plate, no circle badge behind it, no text, no letters.
-Transparent background, centered, 1024x512.
+shape. Warm brushed gold body (#E8B341 to #F5CE6E) with a single thin
+turquoise accent line (#2DD4BF) tracing one edge. No purple, no violet, no
+lavender anywhere in the image. Flat vector look with a subtle inner bevel,
+matte finish, NOT glossy, NOT 3D rendered, no reflections, no highlights
+blooming into white. No text, no letters, no circle badge, no drop shadow.
+
+Critical output requirements: fully transparent background, crisp clean
+alpha edges, no white haze, no gray fringe, no semi-transparent halo around
+the shape, no speckles or stray pixels anywhere, no checkerboard artifacts.
+The transparent area must be completely empty. Centered, 1024x512.
 ```
+
+Onceki uretimde iki sorun cikti, prompt'a bu yuzden yukaridaki iki paragraf
+eklendi:
+
+- Sekil parlak 3B render olarak geldi, oysa duz ve mat isteniyordu.
+- Saydam alanda 32.392 hayalet kenar pikseli ve 5.314 beyazimsi artik
+  vardi; olcup temizledim ama temizlik amblemin acik tonlarindan da bir
+  miktar yedi. Bu sefer kaynak temiz gelmeli.
 
 Varyant: aynı prompt, `chain link fused with a play triangle` yerine
 `a paper-plane arrow passing through a rounded rectangle screen`. İkisini de
 gönder, ızgarada diğer logoların yanında hangisi durur bakarız.
+
+**Renk notu:** mor kullanılmıyor. Izgarada Netflix kırmızısı, Prime ve
+Disney+ mavisi, Crunchyroll turuncusu var; altın gövde + turkuaz vurgu
+hem ARON'un kimliğiyle uyuyor hem o dörtlünün yanında ayrışıyor.
