@@ -524,6 +524,26 @@ const ORTAK = `
     }
   }
 
+  var KAP_ONEKLERI = ['watch-video', 'webPlayerContainer', 'atvwebplayersdk', 'btm-media-client'];
+
+  function oynaticiKabinda(v) {
+    var node = v && v.parentElement;
+    var derinlik = 0;
+    while (node && derinlik < 40) {
+      var sinif = node.classList;
+      if (sinif && sinif.length) {
+        for (var i = 0; i < sinif.length; i++) {
+          for (var j = 0; j < KAP_ONEKLERI.length; j++) {
+            if (String(sinif[i]).indexOf(KAP_ONEKLERI[j]) === 0) return true;
+          }
+        }
+      }
+      node = node.parentElement;
+      derinlik++;
+    }
+    return false;
+  }
+
   function enBuyukVideo() {
     var hepsi = [];
     try {
@@ -544,6 +564,11 @@ const ORTAK = `
       try { derinTara(document.documentElement || document, hepsi, 0); } catch (e) {}
     }
     if (!hepsi.length) return null;
+    var kapta = [];
+    for (var q = 0; q < hepsi.length; q++) {
+      try { if (oynaticiKabinda(hepsi[q])) kapta.push(hepsi[q]); } catch (e) {}
+    }
+    if (kapta.length) hepsi = kapta;
     hepsi.sort(function (a, b) {
       var ab = (a.clientWidth || 0) * (a.clientHeight || 0);
       var bb = (b.clientWidth || 0) * (b.clientHeight || 0);
