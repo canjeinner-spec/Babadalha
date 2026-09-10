@@ -85,9 +85,9 @@ export const OynaticiKontrol = memo(function OynaticiKontrol({
     <Pressable style={[StyleSheet.absoluteFill, styles.perde]} onPress={() => setAcik(false)}>
       <View style={styles.orta} pointerEvents="box-none">
         <Pressable onPress={() => atla(-ATLAMA_SN)} hitSlop={10} style={styles.yanDugme}>
-          <Icon path={YOL_GERI} size={36} sw={1.9} color="#fff" />
+          <Icon path={YOL_GERI} size={26} sw={2.1} color="#fff" />
           <View style={styles.yanYaziKutu} pointerEvents="none">
-            <Txt weight="extrabold" size={10.5} color="#fff">{ATLAMA_SN}</Txt>
+            <Txt weight="extrabold" size={8} color="#fff">{ATLAMA_SN}</Txt>
           </View>
         </Pressable>
         <Pressable
@@ -95,12 +95,12 @@ export const OynaticiKontrol = memo(function OynaticiKontrol({
           hitSlop={10}
           style={styles.anaDugme}
         >
-          <Icon path={oynuyor ? YOL_DURAKLAT : YOL_OYNAT} size={34} sw={2.6} color="#fff" fill={oynuyor ? "none" : "#fff"} />
+          <Icon path={oynuyor ? YOL_DURAKLAT : YOL_OYNAT} size={30} sw={2.6} color="#fff" fill={oynuyor ? "none" : "#fff"} />
         </Pressable>
         <Pressable onPress={() => atla(ATLAMA_SN)} hitSlop={10} style={styles.yanDugme}>
-          <Icon path={YOL_ILERI} size={36} sw={1.9} color="#fff" />
+          <Icon path={YOL_ILERI} size={26} sw={2.1} color="#fff" />
           <View style={styles.yanYaziKutu} pointerEvents="none">
-            <Txt weight="extrabold" size={10.5} color="#fff">{ATLAMA_SN}</Txt>
+            <Txt weight="extrabold" size={8} color="#fff">{ATLAMA_SN}</Txt>
           </View>
         </Pressable>
       </View>
@@ -127,12 +127,12 @@ const styles = StyleSheet.create({
   perde: { backgroundColor: "rgba(0,0,0,.12)", justifyContent: "center" },
   orta: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 34 },
   yanDugme: {
-    alignItems: "center", justifyContent: "center", width: 48, height: 48,
+    alignItems: "center", justifyContent: "center", width: 40, height: 40,
     shadowColor: "#000", shadowOpacity: 0.55, shadowRadius: 6, shadowOffset: { width: 0, height: 1 },
   },
-  yanYaziKutu: { position: "absolute", left: 0, right: 0, top: 0, bottom: 0, alignItems: "center", justifyContent: "center", marginTop: 2 },
+  yanYaziKutu: { position: "absolute", left: 0, right: 0, top: 0, bottom: 0, alignItems: "center", justifyContent: "center", marginTop: 1.5 },
   anaDugme: {
-    width: 56, height: 56, alignItems: "center", justifyContent: "center",
+    width: 50, height: 50, alignItems: "center", justifyContent: "center",
     shadowColor: "#000", shadowOpacity: 0.55, shadowRadius: 6, shadowOffset: { width: 0, height: 1 },
   },
   alt: { position: "absolute", left: 10, right: 10, bottom: 8, flexDirection: "row", alignItems: "center", gap: 8 },
