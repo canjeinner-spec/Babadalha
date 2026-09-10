@@ -385,6 +385,7 @@ export default function PartiOda() {
 
   const baslat = useCallback((s: PartiSecim) => {
     setOynatimNo((n) => n + 1);
+    setKip("gezinme");
     setOynatilan({ platform: s.platform, adres: s.adres });
     setSimdiSecim(s);
     setSimdiki(s.baslik);
@@ -397,8 +398,6 @@ export default function PartiOda() {
     setGirisGerekli(girisLazim);
     setDevamHedefi(girisLazim ? { konum: 0, an: Date.now() } : null);
   }, []);
-
-  const gezinenVar = usePartiKuyruk((s) => s.gezinenVar);
 
   useFocusEffect(useCallback(() => {
     const bekleyen = usePartiKuyruk.getState().bekleyen;
@@ -904,12 +903,15 @@ export default function PartiOda() {
           <UstBar
             kisi={kisiler.length}
             onKapat={cik}
-            onGezin={() => router.push({ pathname: "/parti-platform", params: { secim: "1" } })}
+            onGezin={() => {
+              if (kip === "oynatim") { setKip("gezinme"); setSimdiSecim(null); return; }
+              router.push({ pathname: "/parti-platform", params: { secim: "1" } });
+            }}
             onKisiler={() => setKisilerAcik(true)}
           />
         </View>
 
-        {gezinenVar ? null : dogrudanMi(oynatilan.platform) ? (
+        {dogrudanMi(oynatilan.platform) ? (
           <PartiNativeOynatici
             key={`dogrudan-${oynatimNo}`}
             ref={oynatici}

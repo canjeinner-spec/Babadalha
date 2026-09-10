@@ -6,12 +6,17 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Txt } from "@/components/Txt";
 import { Icon } from "@/icons/Icon";
 import { haptic } from "@/lib/haptics";
-import { PLATFORMLAR, platformKilitNotu } from "@/oda/platform";
+import { PLATFORMLAR, platformBul, platformKilitNotu } from "@/oda/platform";
+import { usePartiKuyruk } from "@/parti/kuyruk";
+import { useApp } from "@/store/appStore";
 import { C } from "@/theme/colors";
 
 export default function PartiPlatform() {
   const router = useRouter();
   const { secim } = useLocalSearchParams<{ secim?: string }>();
+  const sec = usePartiKuyruk((s) => s.sec);
+  const userName = useApp((s) => s.userName);
+  const userPhoto = useApp((s) => s.userPhoto);
 
   return (
     <View style={styles.root}>
@@ -37,8 +42,20 @@ export default function PartiPlatform() {
                   disabled={!!kilit}
                   onPress={() => {
                     haptic.select();
-                    if (secim) router.replace({ pathname: "/parti-sec", params: { platform: p.kod } });
-                    else router.replace({ pathname: "/parti-oda", params: { platform: p.kod } });
+                    if (secim) {
+                      const hedef = platformBul(p.kod);
+                      sec({
+                        anahtar: String(Date.now()),
+                        platform: p.kod,
+                        adres: hedef?.adres ?? p.adres,
+                        baslik: null,
+                        secen: userName,
+                        secenFoto: userPhoto ?? undefined,
+                      });
+                      router.back();
+                    } else {
+                      router.replace({ pathname: "/parti-oda", params: { platform: p.kod } });
+                    }
                   }}
                   style={styles.hucre}
                 >
@@ -59,7 +76,8 @@ export default function PartiPlatform() {
           <Pressable
             onPress={() => {
               haptic.select();
-              router.push({ pathname: "/parti-dogrudan", params: secim ? { secim: "1" } : {} });
+              if (secim) router.replace({ pathname: "/parti-dogrudan", params: { secim: "1" } });
+              else router.push({ pathname: "/parti-dogrudan", params: {} });
             }}
             style={styles.dogrudan}
           >
