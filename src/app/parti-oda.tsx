@@ -1,6 +1,7 @@
 import * as Clipboard from "expo-clipboard";
 import { Image } from "expo-image";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import * as EkranYonu from "expo-screen-orientation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -329,6 +330,7 @@ export default function PartiOda() {
   const [sonAdres, setSonAdres] = useState<string | null>(null);
   const [simdikiKapak, setSimdikiKapak] = useState<string | null>(null);
   const [kip, setKip] = useState<"gezinme" | "oynatim">("gezinme");
+  const [buyuk, setBuyuk] = useState(false);
   const [oynatilan, setOynatilan] = useState<{ platform: PlatformKodu; adres: string }>(() => ({
     platform: ilkPlatform,
     adres: dogrudanMi(ilkPlatform)
@@ -382,6 +384,19 @@ export default function PartiOda() {
     if (!id || id === ODAM_ID || id === kendiKimlik) usePartiOdam.getState().kapat();
     router.back();
   }, [id, kendiKimlik, router]);
+
+  const boyutDegistir = useCallback(() => {
+    haptic.select();
+    setBuyuk((onceki) => {
+      const hedef = !onceki;
+      EkranYonu.lockAsync(
+        hedef ? EkranYonu.OrientationLock.LANDSCAPE : EkranYonu.OrientationLock.PORTRAIT_UP,
+      ).catch(() => {});
+      return hedef;
+    });
+  }, []);
+
+  useEffect(() => () => { EkranYonu.unlockAsync().catch(() => {}); }, []);
 
   const baslat = useCallback((s: PartiSecim) => {
     setOynatimNo((n) => n + 1);
@@ -916,7 +931,7 @@ export default function PartiOda() {
             key={`dogrudan-${oynatimNo}`}
             ref={oynatici}
             adres={oynatilan.adres}
-            tamEkran={kip === "gezinme"}
+            tamEkran={buyuk}
             kilitli={!kontrolBende}
             onOlay={olayGeldi}
           />
@@ -926,7 +941,8 @@ export default function PartiOda() {
             ref={oynatici}
             adres={oynatilan.adres}
             platform={oynatilan.platform}
-            tamEkran={kip === "gezinme"}
+            tamEkran={buyuk}
+            onBoyut={boyutDegistir}
             kilitli={!kontrolBende}
             onOlay={olayGeldi}
             ustKatman={girisGerekli && kip === "oynatim" && oynatilanPlatform ? (

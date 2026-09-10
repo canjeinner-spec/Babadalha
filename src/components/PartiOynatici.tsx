@@ -1,12 +1,16 @@
 import { forwardRef, type ReactNode, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Platform, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Platform, Pressable, StyleSheet, View } from "react-native";
 
 import { KopruWeb, type KopruWebKolu } from "@/components/KopruWeb";
 import { OynaticiKontrol } from "@/components/OynaticiKontrol";
 import { Txt } from "@/components/Txt";
+import { Icon } from "@/icons/Icon";
 import { type PlatformKodu } from "@/oda/platform";
 import { KOMUT, kopruBetigi, kullaniciAjani, masaustuIcerikMi, olayCoz, type OynaticiOlayi } from "@/parti/kopru";
 import { C } from "@/theme/colors";
+
+const YOL_BUYUT = "M9 4H4v5M15 4h5v5M15 20h5v-5M9 20H4v-5";
+const YOL_KUCULT = "M4 9h5V4M20 9h-5V4M20 15h-5v5M4 15h5v5";
 
 export type OynaticiKolu = {
   oynat: () => void;
@@ -20,10 +24,11 @@ export const PartiOynatici = forwardRef<OynaticiKolu, {
   adres: string;
   platform: PlatformKodu;
   tamEkran?: boolean;
+  onBoyut?: () => void;
   kilitli?: boolean;
   onOlay?: (o: OynaticiOlayi) => void;
   ustKatman?: ReactNode;
-}>(function PartiOynatici({ adres, platform, tamEkran, kilitli, onOlay, ustKatman }, ref) {
+}>(function PartiOynatici({ adres, platform, tamEkran, onBoyut, kilitli, onOlay, ustKatman }, ref) {
   const betik = useMemo(() => kopruBetigi(platform), [platform]);
   const masaustu = masaustuIcerikMi(platform);
   useEffect(() => { console.warn(`[parti-oynatici] ${Platform.OS} yeni oynatici ${platform} ${adres.slice(0, 70)}`); }, [platform, adres]);
@@ -111,6 +116,12 @@ export const PartiOynatici = forwardRef<OynaticiKolu, {
         />
       )}
 
+      {!!onBoyut && !hata && (
+        <Pressable onPress={onBoyut} hitSlop={10} style={styles.boyutDugmesi}>
+          <Icon path={tamEkran ? YOL_KUCULT : YOL_BUYUT} size={17} sw={2.2} color="#fff" />
+        </Pressable>
+      )}
+
       {ustKatman}
 
       {(yukleniyor || hata) && !ustKatman && (
@@ -130,5 +141,12 @@ const styles = StyleSheet.create({
   yuva: { width: "100%", aspectRatio: 16 / 9, backgroundColor: "#000" },
   yuvaTam: { flex: 1, width: "100%", backgroundColor: "#000" },
   web: { flex: 1, backgroundColor: "#000" },
+  boyutDugmesi: {
+    position: "absolute", right: 10, bottom: 10,
+    width: 34, height: 34, borderRadius: 12,
+    alignItems: "center", justifyContent: "center",
+    backgroundColor: "rgba(0,0,0,.55)",
+    borderWidth: 1, borderColor: "rgba(255,255,255,.18)",
+  },
   perde: { ...StyleSheet.absoluteFill, alignItems: "center", justifyContent: "center", backgroundColor: "#000" },
 });
