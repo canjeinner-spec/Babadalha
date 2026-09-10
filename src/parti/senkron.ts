@@ -79,6 +79,8 @@ export const SAPMA_ESIGI = 1;
 
 export const UZAK_UYGULAMA_SOGUMA = 750;
 
+export const AYRILMA_BEKLEME = 900;
+
 export function beklenenKonum(d: OynatimDurumu, simdi = Date.now(), sapma = 0): number {
   if (!d.oynuyor) return d.konum;
   return d.konum + Math.max(0, (simdi + sapma - d.an) / 1000);
@@ -153,6 +155,20 @@ export function partiKanaliAc({ odaId, ben, onOlay }: Acilis): PartiKanali {
     config: { presence: { key: ben.anahtar }, broadcast: { self: false } },
   });
 
+  const bilinen = new Set<string>();
+  const ayrilmaSaatleri = new Map<string, ReturnType<typeof setTimeout>>();
+
+  const kanaldaVarMi = (anahtar: string): boolean => {
+    const durum = kanal.presenceState<Record<string, unknown>>();
+    for (const girisler of Object.values(durum)) {
+      for (const g of girisler as unknown[]) {
+        const k = kisiCoz(g);
+        if (k?.anahtar === anahtar) return true;
+      }
+    }
+    return false;
+  };
+
   const listeCikar = (): PartiKisi[] => {
     const durum = kanal.presenceState<Record<string, unknown>>();
     const cikti: PartiKisi[] = [];
@@ -173,14 +189,31 @@ export function partiKanaliAc({ odaId, ben, onOlay }: Acilis): PartiKanali {
       if (kapandi) return;
       for (const p of newPresences ?? []) {
         const k = kisiCoz(p);
-        if (k && k.anahtar !== ben.anahtar) onOlay({ tur: "katildi", kisi: k });
+        if (!k || k.anahtar === ben.anahtar) continue;
+        const bekleyen = ayrilmaSaatleri.get(k.anahtar);
+        if (bekleyen) {
+          clearTimeout(bekleyen);
+          ayrilmaSaatleri.delete(k.anahtar);
+        }
+        if (bilinen.has(k.anahtar)) continue;
+        bilinen.add(k.anahtar);
+        onOlay({ tur: "katildi", kisi: k });
       }
     })
     .on("presence", { event: "leave" }, ({ leftPresences }) => {
       if (kapandi) return;
       for (const p of leftPresences ?? []) {
         const k = kisiCoz(p);
-        if (k && k.anahtar !== ben.anahtar) onOlay({ tur: "ayrildi", kisi: k });
+        if (!k || k.anahtar === ben.anahtar) continue;
+        if (!bilinen.has(k.anahtar)) continue;
+        if (ayrilmaSaatleri.has(k.anahtar)) continue;
+        const saat = setTimeout(() => {
+          ayrilmaSaatleri.delete(k.anahtar);
+          if (kapandi || kanaldaVarMi(k.anahtar)) return;
+          bilinen.delete(k.anahtar);
+          onOlay({ tur: "ayrildi", kisi: k });
+        }, AYRILMA_BEKLEME);
+        ayrilmaSaatleri.set(k.anahtar, saat);
       }
     })
     .on("broadcast", { event: "oynatim" }, ({ payload }) => {
@@ -256,6 +289,8 @@ export function partiKanaliAc({ odaId, ben, onOlay }: Acilis): PartiKanali {
     kapat: () => {
       if (kapandi) return;
       kapandi = true;
+      for (const saat of ayrilmaSaatleri.values()) clearTimeout(saat);
+      ayrilmaSaatleri.clear();
       try {
         kanal.untrack().catch(() => {});
       } catch {
