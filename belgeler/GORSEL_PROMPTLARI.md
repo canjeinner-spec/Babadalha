@@ -148,3 +148,41 @@ gönder, ızgarada diğer logoların yanında hangisi durur bakarız.
 **Renk notu:** mor kullanılmıyor. Izgarada Netflix kırmızısı, Prime ve
 Disney+ mavisi, Crunchyroll turuncusu var; altın gövde + turkuaz vurgu
 hem ARON'un kimliğiyle uyuyor hem o dörtlünün yanında ayrışıyor.
+
+### 3b) İkinci deneme — neden değiştiriyoruz
+
+İlk iki üretim ızgarada sırıttı. Sebep renk ya da kalite değil, **tür
+farkı**: ızgaradaki diğerlerinin hepsi kelime markası (Netflix, prime
+video, Disney+, Crunchyroll) — yatay, düz, yazı ağırlıklı, hacimsiz.
+Bizimki ise kompakt ve hacimli bir amblemdi. Aynı yükseklikte bile farklı
+bir tür olduğu için yabancı duruyor.
+
+Bu yüzden hedef değişti: **amblem değil, kelime markası gibi duran yatay
+ve düz bir işaret** üretilecek.
+
+Türkçe harf sorunu hâlâ var (`BAĞLANTI` içinde `Ğ` ve `I`). Çözüm: markanın
+kendisi Latin harfleriyle güvenli olan **`LINK`** kelimesi olsun; altında
+uygulamanın bastığı "Doğrudan bağlantı" yazısı zaten duruyor, anlamı o
+veriyor. Böylece hem ızgaradaki türe uyuyor hem harf riski sıfır.
+
+**Teknik:** 1536 × 512 (3:1 yatay), şeffaf PNG. Ben kırpıp 168 px
+yüksekliğe indireceğim (ızgarada 56 px, 3x).
+
+```
+A flat wordmark logo for a streaming brand, the single word "LINK" in
+uppercase, horizontal, sitting alone on a fully transparent background.
+Style must match how Netflix, Disney+ and Prime Video wordmarks look: flat,
+two-dimensional, no depth, no bevel, no 3D extrusion, no glow, no shadow,
+no reflections, no background plate. Clean geometric sans-serif letterforms,
+medium weight, slightly wide letter spacing, confident and modern. Solid
+warm gold color (#E8B341), with one small solid turquoise (#2DD4BF) play
+triangle placed immediately to the left of the word as a compact mark, the
+same height as the capital letters. No purple, no violet, no lavender.
+
+Critical output requirements: pure flat vector rendering, sharp clean edges,
+completely empty transparent background with no haze, no halo, no fringe, no
+speckles, no stray pixels. Centered, 1536x512.
+```
+
+Varyant: `LINK` yerine `ARON LINK` da denenebilir; ızgarada marka bağı
+kurar ama daha dar görünür, ikisini karşılaştırmak lazım.
