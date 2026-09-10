@@ -675,6 +675,7 @@ const ORTAK = `
   var tuvalCtx = null;
   var renkKapali = false;
   var renkBildirildi = false;
+  var renkHata = 0;
   var renkSayaci = 0;
   var sonRenk = null;
 
@@ -716,9 +717,16 @@ const ORTAK = `
         yolla({ tur: 'gunluk', seviye: 'renk', metin: 'ornek ' + renkSayaci + ' -> ' + kod });
       }
       yolla({ tur: 'renk', renk: kod });
+      renkHata = 0;
     } catch (e) {
-      renkKapali = true;
-      yolla({ tur: 'gunluk', seviye: 'renk', metin: 'sahne rengi okunamiyor (korumali icerik olabilir)' });
+      renkHata++;
+      if (renkHata === 1) {
+        yolla({ tur: 'gunluk', seviye: 'renk', metin: 'sahne rengi su an okunamiyor, denemeye devam' });
+      }
+      if (renkHata >= 12) {
+        renkKapali = true;
+        yolla({ tur: 'gunluk', seviye: 'renk', metin: 'sahne rengi 12 denemede okunamadi, birakildi' });
+      }
     }
   }
   setInterval(sahneRengi, 1200);
