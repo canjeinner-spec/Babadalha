@@ -35,26 +35,18 @@ export default function Giris() {
           {markaHatasi ? (
             <Txt weight="displayBold" size={28} color={C.gold2}>Aron</Txt>
           ) : (
-            <View style={styles.kilit}>
-              <Image
-                source={require("@/assets/marka/aron-amblem.webp")}
-                style={styles.amblem}
-                contentFit="contain"
-                transition={160}
-              />
-              <Image
-                source={require("@/assets/marka/aron-marka.webp")}
-                style={styles.marka}
-                contentFit="contain"
-                transition={160}
-                onError={() => setMarkaHatasi(true)}
-              />
-            </View>
+            <Image
+              source={require("@/assets/marka/aron-marka.webp")}
+              style={styles.marka}
+              contentFit="contain"
+              transition={160}
+              onError={() => setMarkaHatasi(true)}
+            />
           )}
           <DilSecici />
         </View>
 
-        <View style={{ flex: 1 }} />
+        <View style={{ flex: 0.85 }} />
 
         <View style={styles.orta}>
           <TitrekYazi
@@ -69,6 +61,8 @@ export default function Giris() {
             Netflix, Disney+, Prime Video, YouTube ve daha fazlası.
           </Txt>
         </View>
+
+        <View style={{ flex: 1.5 }} />
 
         <View style={styles.dip}>
           <Pressable style={styles.beyazDugme} onPress={devam}>
@@ -99,10 +93,8 @@ export default function Giris() {
 const styles = StyleSheet.create({
   kok: { flex: 1, backgroundColor: C.bg },
   tepe: { alignItems: "center", paddingTop: 12, gap: 16 },
-  kilit: { flexDirection: "row", alignItems: "center", gap: 11 },
-  amblem: { width: 40, height: 35 },
-  marka: { width: 132, height: 31 },
-  orta: { paddingHorizontal: 26, paddingBottom: 28 },
+  marka: { width: 148, height: 35 },
+  orta: { paddingHorizontal: 26 },
   altYazi: { marginTop: 16, paddingHorizontal: 8 },
   dip: { paddingHorizontal: 20, paddingBottom: 16, gap: 12 },
   beyazDugme: {
