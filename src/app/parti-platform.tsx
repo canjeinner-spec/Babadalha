@@ -3,7 +3,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { DogrudanMarka } from "@/components/DogrudanMarka";
+import { DogrudanLogo } from "@/components/DogrudanMarka";
 import { Txt } from "@/components/Txt";
 import { Icon } from "@/icons/Icon";
 import { haptic } from "@/lib/haptics";
@@ -81,9 +81,7 @@ export default function PartiPlatform() {
             }}
             style={styles.hucre}
           >
-            <View style={styles.dogrudanLogo}>
-              <DogrudanMarka boyut={30} />
-            </View>
+            <DogrudanLogo />
             <Txt size={10} color={C.dim} align="center" style={styles.dogrudanYazi}>
               Doğrudan bağlantı
             </Txt>
@@ -104,7 +102,6 @@ const styles = StyleSheet.create({
   geri: { width: 30, height: 30, alignItems: "center", justifyContent: "center" },
   izgara: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 30 },
   hucre: { width: "46%", height: 66, alignItems: "center", justifyContent: "center" },
-  dogrudanLogo: { width: "100%", height: 56, alignItems: "center", justifyContent: "center" },
   dogrudanYazi: { marginTop: 2 },
   logo: { width: "100%", height: 46 },
   logoKilitli: { opacity: 0.28 },

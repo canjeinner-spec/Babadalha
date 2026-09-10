@@ -1,3 +1,5 @@
+import { Image } from "expo-image";
+import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 
 import { Txt } from "@/components/Txt";
@@ -25,4 +27,26 @@ export function DogrudanMarka({ boyut = 30 }: { boyut?: number }) {
 const styles = StyleSheet.create({
   sar: { flexDirection: "row", alignItems: "center", gap: 7 },
   yazi: { letterSpacing: 1.5 },
+  yuva: { width: "100%", height: 56, alignItems: "center", justifyContent: "center" },
+  gorsel: { width: "100%", height: 56 },
 });
+
+export function DogrudanLogo() {
+  const [hata, setHata] = useState(false);
+  if (hata) {
+    return (
+      <View style={styles.yuva}>
+        <DogrudanMarka boyut={30} />
+      </View>
+    );
+  }
+  return (
+    <Image
+      source={require("@/assets/marka/dogrudan-marka.webp")}
+      style={styles.gorsel}
+      contentFit="contain"
+      transition={0}
+      onError={() => setHata(true)}
+    />
+  );
+}
