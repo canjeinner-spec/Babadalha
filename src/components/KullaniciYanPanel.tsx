@@ -28,6 +28,8 @@ export type YanPanelYetkileri = {
   onYetki: (kisi: YanPanelKisisi, yeniRol: PartiRol) => void;
   onAt: (kisi: YanPanelKisisi) => void;
   onMikrofon: (kisi: YanPanelKisisi, acik: boolean) => void;
+  otomatikDevir?: boolean;
+  onOtomatikDevir?: (acik: boolean) => void;
 };
 
 const SURE = 280;
@@ -95,6 +97,25 @@ export function KullaniciYanPanel({ acik, kisiler, onKapat, ustPay = 0, yetkiler
             <Icon name="x" size={22} sw={2.2} color={METIN} />
           </Pressable>
         </View>
+
+        {yetkiler?.onOtomatikDevir && (
+          <Pressable
+            style={styles.devirSatiri}
+            onPress={() => yetkiler.onOtomatikDevir?.(!yetkiler.otomatikDevir)}
+          >
+            <View style={{ flex: 1 }}>
+              <Txt weight="extrabold" size={12.5} color={METIN}>Sahiplik devri</Txt>
+              <Txt size={10.5} color="rgba(23,20,31,.6)" style={{ marginTop: 2 }}>
+                {yetkiler.otomatikDevir
+                  ? "Çıkarsan parti odadaki birine geçer"
+                  : "Çıkarsan parti kimseye geçmez"}
+              </Txt>
+            </View>
+            <View style={[styles.anahtar, yetkiler.otomatikDevir && styles.anahtarAcik]}>
+              <View style={[styles.topuz, yetkiler.otomatikDevir && styles.topuzAcik]} />
+            </View>
+          </Pressable>
+        )}
 
         <ScrollView contentContainerStyle={styles.liste} showsVerticalScrollIndicator={false}>
           {sahipler.map((x) => <Satir key={x.anahtar} kisi={x} onBasili={yetkiler ? () => setSecili(x) : undefined} />)}
@@ -194,6 +215,19 @@ function Satir({ kisi, onBasili }: { kisi: YanPanelKisisi; onBasili?: () => void
 }
 
 const styles = StyleSheet.create({
+  devirSatiri: {
+    flexDirection: "row", alignItems: "center", gap: 10,
+    marginHorizontal: 14, marginBottom: 8,
+    paddingVertical: 10, paddingHorizontal: 12,
+    borderRadius: 12, backgroundColor: "rgba(23,20,31,.06)",
+  },
+  anahtar: {
+    width: 38, height: 22, borderRadius: 11, padding: 3,
+    justifyContent: "center", backgroundColor: "rgba(23,20,31,.18)",
+  },
+  anahtarAcik: { backgroundColor: ALTIN },
+  topuz: { width: 16, height: 16, borderRadius: 8, backgroundColor: "#fff" },
+  topuzAcik: { alignSelf: "flex-end" },
   perde: { backgroundColor: "rgba(0,0,0,.35)" },
   menuSarmal: { ...StyleSheet.absoluteFill, alignItems: "center", justifyContent: "center" },
   menu: {

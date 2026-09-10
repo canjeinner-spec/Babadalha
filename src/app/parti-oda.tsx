@@ -26,6 +26,7 @@ import { DOGRUDAN_ADI, dogrudanMi, girisSayfasiMi, platformBul, type PlatformKod
 import {
   atabilirMi,
   mikrofonAcabilirMi,
+  odaAyariCoz,
   rolVerebilirMi,
   sohbetYazabilirMi,
   yetkiVar,
@@ -33,6 +34,12 @@ import {
   type OdaAyari,
   type PartiRol,
 } from "@/parti/yetki";
+import {
+  devirKarari,
+  devirZamanlayiciAc,
+  devralanBenMiyim,
+  type DevirZamanlayici,
+} from "@/parti/devir";
 import { usePartiGiris } from "@/parti/giris";
 import { usePartiIzleme } from "@/parti/izleme";
 import { odayiLobideYayinla, type LobiYayini } from "@/parti/lobi";
@@ -385,6 +392,11 @@ export default function PartiOda() {
   const sonKonumRef = useRef(0);
   const oynuyorRef = useRef(false);
   const benSahipRef = useRef(false);
+  const [sahipAnahtari, setSahipAnahtari] = useState<string | null>(null);
+  const sahipAnahtariRef = useRef<string | null>(null);
+  const agKisileriRef = useRef<PartiKisi[]>([]);
+  const devirRef = useRef<DevirZamanlayici | null>(null);
+  const bekleyenAyrilanRef = useRef<string | null>(null);
   const [dbRol, setDbRol] = useState<PartiRol | null>(null);
   const [canliRol, setCanliRol] = useState<PartiRol | null>(null);
   const [odaAyari, setOdaAyari] = useState<OdaAyari>(VARSAYILAN_ODA_AYARI);
@@ -456,11 +468,12 @@ export default function PartiOda() {
     }
   }, [baslat]));
 
-  const benSahip = !id || id === ODAM_ID || id === kendiKimlik;
+  const benimAnahtar = myDbId != null ? `u${myDbId}` : `konuk-${oda.id}`;
+
+  const temelSahip = !id || id === ODAM_ID || id === kendiKimlik;
+  const benSahip = sahipAnahtari === null ? temelSahip : sahipAnahtari === benimAnahtar;
   const benimRol: PartiRol = benSahip ? "sahip" : (canliRol ?? dbRol ?? "uye");
   const kontrolBende = benSahip || yetkiVar(benimRol, "oynatimKontrol");
-
-  const benimAnahtar = myDbId != null ? `u${myDbId}` : `konuk-${oda.id}`;
   const mikAcilir = mikrofonAcabilirMi(benimRol, odaAyari, !!mikrofonIzinleri[benimAnahtar]);
   const mikYayinda = mikIstek && mikAcilir;
 
@@ -528,13 +541,44 @@ export default function PartiOda() {
   useEffect(() => { sonKonumRef.current = sonKonum; }, [sonKonum]);
   useEffect(() => { oynuyorRef.current = oynuyor; }, [oynuyor]);
   useEffect(() => { benSahipRef.current = benSahip; }, [benSahip]);
+  useEffect(() => { sahipAnahtariRef.current = sahipAnahtari; }, [sahipAnahtari]);
+  useEffect(() => { agKisileriRef.current = agKisileri; }, [agKisileri]);
+
+  const devriUstlen = useCallback((ayrilanAnahtar: string) => {
+    const karar = devirKarari(
+      agKisileriRef.current.map((k) => ({ anahtar: k.anahtar, rol: k.rol })),
+      ayrilanAnahtar,
+      odaAyariRef.current.otomatikDevir,
+    );
+    if (!devralanBenMiyim(karar, benimAnahtarRef.current)) return;
+    sahipAnahtariRef.current = benimAnahtarRef.current;
+    setSahipAnahtari(benimAnahtarRef.current);
+    setCanliRol("sahip");
+    setBildirim("Parti sahipliği sana geçti");
+    kanalRef.current?.devirYayinla(ayrilanAnahtar, benimAnahtarRef.current);
+  }, []);
 
   const senkronOlay = useCallback((o: SenkronOlay) => {
     if (o.tur === "kisiler") {
       setAgKisileri(o.kisiler);
     } else if (o.tur === "katildi") {
+      if (bekleyenAyrilanRef.current === o.kisi.anahtar) {
+        devirRef.current?.iptal();
+        bekleyenAyrilanRef.current = null;
+      }
       setEk((e) => [...e, { tur: "katilim", anahtar: `g${o.kisi.anahtar}-${Date.now()}`, kisi: o.kisi.ad, foto: o.kisi.foto, ozelIdTip: o.kisi.ozelIdTip ?? null, ozelIdTema: o.kisi.ozelIdTema ?? null }]);
     } else if (o.tur === "ayrildi") {
+      const sahipAyrildi = sahipAnahtariRef.current === null
+        ? o.kisi.sahip
+        : sahipAnahtariRef.current === o.kisi.anahtar;
+      if (sahipAyrildi && o.kisi.anahtar !== benimAnahtarRef.current) {
+        bekleyenAyrilanRef.current = o.kisi.anahtar;
+        devirRef.current?.basla(() => {
+          const ayrilan = bekleyenAyrilanRef.current;
+          bekleyenAyrilanRef.current = null;
+          if (ayrilan) devriUstlen(ayrilan);
+        });
+      }
       setEk((e) => [...e, { tur: "katilim", anahtar: `c${o.kisi.anahtar}-${Date.now()}`, kisi: o.kisi.ad, foto: o.kisi.foto, ozelIdTip: o.kisi.ozelIdTip ?? null, ozelIdTema: o.kisi.ozelIdTema ?? null, ayrildi: true }]);
     } else if (o.tur === "sohbet") {
       setEk((e) => [...e, {
@@ -546,6 +590,24 @@ export default function PartiOda() {
     } else if (o.tur === "durumSor") {
       durumYayinla(true);
       if (yetkiVar(benimRolRef.current, "sohbetKilit")) kanalRef.current?.odaAyariYayinla(odaAyariRef.current);
+      if (sahipAnahtariRef.current === benimAnahtarRef.current) {
+        kanalRef.current?.devirYayinla("", benimAnahtarRef.current);
+      }
+    } else if (o.tur === "devir") {
+      if (bekleyenAyrilanRef.current) {
+        devirRef.current?.iptal();
+        bekleyenAyrilanRef.current = null;
+      }
+      sahipAnahtariRef.current = o.yeniSahip;
+      setSahipAnahtari(o.yeniSahip);
+      saatRef.current?.basla();
+      if (o.yeniSahip === benimAnahtarRef.current) {
+        setCanliRol("sahip");
+        setBildirim("Parti sahipliği sana geçti");
+      } else {
+        const yeni = agKisileriRef.current.find((k) => k.anahtar === o.yeniSahip);
+        setBildirim(yeni ? `${yeni.ad} parti sahibi oldu` : "Parti sahibi değişti");
+      }
     } else if (o.tur === "saatIstek") {
       if (benSahipRef.current) kanalRef.current?.saatYanitYolla(o.soran, o.t0, Date.now());
     } else if (o.tur === "saatYanit") {
@@ -564,7 +626,7 @@ export default function PartiOda() {
         setAgKisileri((liste) => liste.filter((k) => k.anahtar !== o.anahtar));
       }
     } else if (o.tur === "odaAyari") {
-      setOdaAyari(o.ayar);
+      setOdaAyari(odaAyariCoz(o.ayar));
     } else if (o.tur === "mikrofonIzin") {
       setMikrofonIzinleri((m) => ({ ...m, [o.anahtar]: o.acik }));
       if (o.anahtar === benimAnahtarRef.current) {
@@ -579,13 +641,11 @@ export default function PartiOda() {
               foto: userPhoto ?? undefined, ozelIdTip, ozelIdTema,
             }]
       ));
-      if (!benSahip) {
-        kanalRef.current?.durumIste();
-        setTimeout(() => kanalRef.current?.durumIste(), 1200);
-        setTimeout(() => kanalRef.current?.durumIste(), 3500);
-      }
+      kanalRef.current?.durumIste();
+      setTimeout(() => kanalRef.current?.durumIste(), 1200);
+      setTimeout(() => kanalRef.current?.durumIste(), 3500);
     }
-  }, [durumUygula, durumYayinla, userName, userPhoto, ozelIdTip, ozelIdTema, benSahip]);
+  }, [durumUygula, durumYayinla, devriUstlen, userName, userPhoto, ozelIdTip, ozelIdTema]);
 
   const senkronOlayRef = useRef(senkronOlay);
   useEffect(() => { senkronOlayRef.current = senkronOlay; }, [senkronOlay]);
@@ -612,6 +672,16 @@ export default function PartiOda() {
       kanalRef.current = null;
     };
   }, [kanalOdaId, benimAnahtar, userName, userPhoto, benSahip, myDbId, ozelIdTip, ozelIdTema]);
+
+  useEffect(() => {
+    const z = devirZamanlayiciAc();
+    devirRef.current = z;
+    return () => {
+      z.durdur();
+      devirRef.current = null;
+      bekleyenAyrilanRef.current = null;
+    };
+  }, [kanalOdaId]);
 
   useEffect(() => {
     if (benSahip) return;
@@ -1130,6 +1200,10 @@ export default function PartiOda() {
             const hedef = agKisileri.find((x) => x.anahtar === k.anahtar);
             if (hedef) mikrofonIzniDegistir(hedef, acik);
           },
+          otomatikDevir: odaAyari.otomatikDevir,
+          onOtomatikDevir: benSahip
+            ? (acik: boolean) => odaAyariDegistir({ otomatikDevir: acik })
+            : undefined,
         }}
       />
 

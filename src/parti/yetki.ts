@@ -55,12 +55,25 @@ export type MikrofonKipi = "herkes" | "izinli" | "kapali";
 export type OdaAyari = {
   sohbetKilit: boolean;
   mikrofonKipi: MikrofonKipi;
+  otomatikDevir: boolean;
 };
 
 export const VARSAYILAN_ODA_AYARI: OdaAyari = {
   sohbetKilit: false,
   mikrofonKipi: "herkes",
+  otomatikDevir: true,
 };
+
+export function odaAyariCoz(ham: unknown): OdaAyari {
+  if (!ham || typeof ham !== "object") return VARSAYILAN_ODA_AYARI;
+  const a = ham as Partial<OdaAyari>;
+  return {
+    sohbetKilit: !!a.sohbetKilit,
+    mikrofonKipi:
+      a.mikrofonKipi === "izinli" || a.mikrofonKipi === "kapali" ? a.mikrofonKipi : "herkes",
+    otomatikDevir: a.otomatikDevir !== false,
+  };
+}
 
 export function sohbetYazabilirMi(rol: PartiRol | null | undefined, ayar: OdaAyari): boolean {
   if (!ayar.sohbetKilit) return true;

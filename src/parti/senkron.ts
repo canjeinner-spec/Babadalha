@@ -54,6 +54,7 @@ export type SenkronOlay =
   | { tur: "atildi"; anahtar: string }
   | { tur: "odaAyari"; ayar: OdaAyari }
   | { tur: "mikrofonIzin"; anahtar: string; acik: boolean }
+  | { tur: "devir"; eskiSahip: string; yeniSahip: string }
   | { tur: "saatIstek"; soran: string; t0: number }
   | { tur: "saatYanit"; t0: number; t1: number }
   | { tur: "baglanti"; acik: boolean };
@@ -67,6 +68,7 @@ export type PartiKanali = {
   atmaYayinla: (anahtar: string) => void;
   odaAyariYayinla: (ayar: OdaAyari) => void;
   mikrofonIzniYayinla: (anahtar: string, acik: boolean) => void;
+  devirYayinla: (eskiSahip: string, yeniSahip: string) => void;
   saatIsteYolla: (soran: string, t0: number) => void;
   saatYanitYolla: (soran: string, t0: number, t1: number) => void;
   kendiniGuncelle: (kisi: PartiKisi) => void;
@@ -133,6 +135,7 @@ export function partiKanaliAc({ odaId, ben, onOlay }: Acilis): PartiKanali {
       atmaYayinla: () => {},
       odaAyariYayinla: () => {},
       mikrofonIzniYayinla: () => {},
+      devirYayinla: () => {},
       saatIsteYolla: () => {},
       saatYanitYolla: () => {},
       kendiniGuncelle: () => {},
@@ -198,6 +201,12 @@ export function partiKanaliAc({ odaId, ben, onOlay }: Acilis): PartiKanali {
     .on("broadcast", { event: "odaAyari" }, ({ payload }) => {
       if (!kapandi && payload) onOlay({ tur: "odaAyari", ayar: payload as OdaAyari });
     })
+    .on("broadcast", { event: "devir" }, ({ payload }) => {
+      const p = payload as { eskiSahip?: string; yeniSahip?: string } | null;
+      if (!kapandi && p?.yeniSahip) {
+        onOlay({ tur: "devir", eskiSahip: String(p.eskiSahip ?? ""), yeniSahip: String(p.yeniSahip) });
+      }
+    })
     .on("broadcast", { event: "saatIstek" }, ({ payload }) => {
       const p = payload as { soran?: string; t0?: number } | null;
       if (!kapandi && p?.soran && typeof p.t0 === "number") {
@@ -250,6 +259,7 @@ export function partiKanaliAc({ odaId, ben, onOlay }: Acilis): PartiKanali {
     atmaYayinla: (anahtar) => gonder("atildi", { anahtar }),
     odaAyariYayinla: (ayar) => gonder("odaAyari", ayar),
     mikrofonIzniYayinla: (anahtar, acik) => gonder("mikrofonIzin", { anahtar, acik }),
+    devirYayinla: (eskiSahip, yeniSahip) => gonder("devir", { eskiSahip, yeniSahip }),
     saatIsteYolla: (soran, t0) => gonder("saatIstek", { soran, t0 }),
     saatYanitYolla: (soran, t0, t1) => gonder("saatYanit", { soran, t0, t1 }),
     kendiniGuncelle: (kisi) => {

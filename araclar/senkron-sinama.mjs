@@ -27,6 +27,7 @@ function modulYukle(dosya) {
 
 const S = modulYukle("src/parti/senkron.ts");
 const K = modulYukle("src/parti/saat.ts");
+const D = modulYukle("src/parti/devir.ts");
 
 let gecen = 0;
 let kalan = 0;
@@ -138,6 +139,79 @@ console.log("yanki penceresi");
   ol("pencere icinde yayin kapali", S.yankiPenceresinde(bitis, 1400) === true);
   ol("pencere bitince yayin acik", S.yankiPenceresinde(bitis, 1751) === false);
   ol("soguma suresi 750 ms", S.UZAK_UYGULAMA_SOGUMA === 750);
+}
+
+console.log("sahiplik devri karari");
+{
+  const a = (anahtar, rol) => ({ anahtar, rol });
+
+  ol("sayi eki sayisal karsilastiriliyor", D.anahtarKarsilastir("u9", "u10") < 0);
+  ol("ayni sayi esit", D.anahtarKarsilastir("u7", "u7") === 0);
+  ol("farkli onek sozlukte", D.anahtarKarsilastir("konuk-a", "u1") < 0);
+
+  ol(
+    "otomatik devir kapaliysa atlaniyor",
+    JSON.stringify(D.devirKarari([a("u2", "uye")], "u1", false))
+      === JSON.stringify({ tur: "atla", sebep: "otomatikKapali" }),
+  );
+  ol(
+    "aday yoksa atlaniyor",
+    JSON.stringify(D.devirKarari([a("u1", "sahip")], "u1", true))
+      === JSON.stringify({ tur: "atla", sebep: "adayYok" }),
+  );
+
+  const roster = [a("u1", "sahip"), a("u5", "uye"), a("u3", "yardimci"), a("u12", "uye")];
+  const karar = D.devirKarari(roster, "u1", true);
+  ol("yardimci uyenin onunde", karar.tur === "devret" && karar.anahtar === "u3", JSON.stringify(karar));
+
+  const yardimcisiz = [a("u1", "sahip"), a("u12", "uye"), a("u5", "uye")];
+  const k2 = D.devirKarari(yardimcisiz, "u1", true);
+  ol("yardimci yoksa en kucuk numara", k2.anahtar === "u5", JSON.stringify(k2));
+
+  const kucukSayi = [a("u1", "sahip"), a("u10", "uye"), a("u9", "uye")];
+  ol("sozluk degil sayi siralamasi", D.devirKarari(kucukSayi, "u1", true).anahtar === "u9");
+
+  const karisik = [...roster].reverse();
+  ol(
+    "siralama girdi duzeninden bagimsiz",
+    D.devirKarari(karisik, "u1", true).anahtar === D.devirKarari(roster, "u1", true).anahtar,
+  );
+
+  ol("ayrilan aday olamaz", D.devirKarari([a("u3", "yardimci"), a("u5", "uye")], "u3", true).anahtar === "u5");
+  ol("devralan ben miyim dogru", D.devralanBenMiyim(karar, "u3") === true);
+  ol("devralan ben miyim yanlis", D.devralanBenMiyim(karar, "u5") === false);
+  ol("atlanan kararda devralan yok", D.devralanBenMiyim({ tur: "atla", sebep: "adayYok" }, "u5") === false);
+}
+
+console.log("devir zamanlayicisi");
+{
+  let bekleyen = null;
+  let sayac = 0;
+  const kur = (f) => { bekleyen = f; return ++sayac; };
+  const boz = () => { bekleyen = null; };
+  const z = D.devirZamanlayiciAc(D.DEVIR_GECIKMESI, kur, boz);
+
+  let calisti = 0;
+  ol("bosken bekleyen yok", z.bekliyorMu() === false);
+  z.basla(() => { calisti += 1; });
+  ol("baslayinca bekliyor", z.bekliyorMu() === true);
+  z.basla(() => { calisti += 100; });
+  ol("bekleyen varken ikinci basla yok sayiliyor", sayac === 1);
+
+  ol("iptal true donuyor", z.iptal() === true);
+  ol("iptalden sonra beklemiyor", z.bekliyorMu() === false);
+  ol("iptal edilen is calismadi", calisti === 0);
+  ol("bos iptal false", z.iptal() === false);
+
+  z.basla(() => { calisti += 1; });
+  bekleyen();
+  ol("suresi dolunca calisiyor", calisti === 1);
+  ol("calistiktan sonra beklemiyor", z.bekliyorMu() === false);
+
+  z.durdur();
+  z.basla(() => { calisti += 1; });
+  ol("durdurulunca yeni is alinmiyor", z.bekliyorMu() === false && calisti === 1);
+  ol("gecikme 8 sn", D.DEVIR_GECIKMESI === 8000);
 }
 
 console.log(`\n${gecen} gecti, ${kalan} kaldi`);
