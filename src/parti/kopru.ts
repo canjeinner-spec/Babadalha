@@ -674,6 +674,8 @@ const ORTAK = `
   var tuval = null;
   var tuvalCtx = null;
   var renkKapali = false;
+  var renkBildirildi = false;
+  var renkSayaci = 0;
   var sonRenk = null;
 
   function sahneRengi() {
@@ -704,7 +706,16 @@ const ORTAK = `
       }
       sonRenk = [r, g, b];
       var p = function (v) { return ('0' + Math.max(0, Math.min(255, Math.round(v))).toString(16)).slice(-2); };
-      yolla({ tur: 'renk', renk: '#' + p(r) + p(g) + p(b) });
+      var kod = '#' + p(r) + p(g) + p(b);
+      if (!renkBildirildi) {
+        renkBildirildi = true;
+        yolla({ tur: 'gunluk', seviye: 'renk', metin: 'sahne rengi okunuyor, ilk deger ' + kod });
+      }
+      renkSayaci++;
+      if (renkSayaci % 25 === 0) {
+        yolla({ tur: 'gunluk', seviye: 'renk', metin: 'ornek ' + renkSayaci + ' -> ' + kod });
+      }
+      yolla({ tur: 'renk', renk: kod });
     } catch (e) {
       renkKapali = true;
       yolla({ tur: 'gunluk', seviye: 'renk', metin: 'sahne rengi okunamiyor (korumali icerik olabilir)' });
