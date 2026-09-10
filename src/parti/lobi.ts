@@ -1,7 +1,7 @@
 import { type RealtimeChannel } from "@supabase/supabase-js";
 
 import { supabase } from "@/lib/supabase";
-import { type PlatformKodu } from "@/oda/platform";
+import { platformDesteklenmiyor, type PlatformKodu } from "@/oda/platform";
 
 export type LobiOdasi = {
   odaId: string;
@@ -51,7 +51,8 @@ function listeCikar(): LobiOdasi[] {
   for (const girisler of Object.values(durum)) {
     for (const g of girisler as unknown[]) {
       const o = odaCoz(g);
-      if (o && !cikti.some((x) => x.odaId === o.odaId)) cikti.push(o);
+      if (!o || platformDesteklenmiyor(o.platform)) continue;
+      if (!cikti.some((x) => x.odaId === o.odaId)) cikti.push(o);
     }
   }
   return cikti.sort((a, b) => b.kisi - a.kisi || b.an - a.an);
