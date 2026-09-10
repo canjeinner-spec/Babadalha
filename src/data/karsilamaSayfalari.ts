@@ -18,7 +18,7 @@ export const KARSILAMA_SAYFALARI: KarsilamaSayfasi[] = [
     gorsel: require("@/assets/karsilama/kediler.webp"),
     paragraflar: [
       { metin: "Bu uygulamayı uzak mesafe ilişkisi yaşayan insanlar için yaptım. Sevgililer, aileler, arkadaşlar… Aynı odada olamayan herkes için." },
-      { metin: "Sevgilimle ben aynı şehirde değiliz. Görüntülü konuşurken bile bir şey hep eksik kalıyordu: aynı anda aynı şeyi izlemek. “Şimdi durdur”, “üç deyince başlıyoruz” derken birlikte film izlemek bile küçük bir koordinasyona dönüşüyordu." },
+      { metin: "Sevgilimle ben aynı şehirde değiliz. Sesini duyuyorum, yüzünü görüyorum; yine de yanımda değil. Bir film açalım diyorduk, iki ayrı ekranda iki ayrı saniyede başlıyordu. “Şimdi durdur”, “üç deyince başlıyoruz”… Benim güldüğüm sahneye o daha gelmemiş oluyordu, o ağladığında ben çoktan geçmiş oluyordum. Aynı filmi izliyorduk ama aynı anı yaşamıyorduk." },
       { metin: "Sonra düşündüm: Neden gerçekten aynı odadaymışız gibi olmasın?" },
       { metin: "Aron böyle ortaya çıktı." },
       { metin: "Aron bir film uygulaması değil. Aranızdaki mesafeyi birkaç saatliğine kapatan bir oda." },
