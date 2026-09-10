@@ -331,6 +331,7 @@ export default function PartiOda() {
   const [simdikiKapak, setSimdikiKapak] = useState<string | null>(null);
   const [kip, setKip] = useState<"gezinme" | "oynatim">("gezinme");
   const [buyuk, setBuyuk] = useState(false);
+  const [yanSohbet, setYanSohbet] = useState(false);
   const [oynatilan, setOynatilan] = useState<{ platform: PlatformKodu; adres: string }>(() => ({
     platform: ilkPlatform,
     adres: dogrudanMi(ilkPlatform)
@@ -911,6 +912,7 @@ export default function PartiOda() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={0}
       >
+        {!buyuk && (
         <View
           style={[styles.ustZemin, { paddingTop: insets.top }]}
           onLayout={(e) => setUstYukseklik(e.nativeEvent.layout.height)}
@@ -925,7 +927,9 @@ export default function PartiOda() {
             onKisiler={() => setKisilerAcik(true)}
           />
         </View>
+        )}
 
+        <View style={buyuk ? styles.yatayGovde : { flex: 1 }}>
         {dogrudanMi(oynatilan.platform) ? (
           <PartiNativeOynatici
             key={`dogrudan-${oynatimNo}`}
@@ -943,6 +947,8 @@ export default function PartiOda() {
             platform={oynatilan.platform}
             tamEkran={kip === "gezinme" || buyuk}
             onBoyut={boyutDegistir}
+            onSohbet={() => setYanSohbet((v) => !v)}
+            sohbetAcik={yanSohbet}
             kilitli={!kontrolBende}
             onOlay={olayGeldi}
             ustKatman={girisGerekli && kip === "oynatim" && oynatilanPlatform ? (
@@ -954,8 +960,8 @@ export default function PartiOda() {
           />
         )}
 
-        {kip === "oynatim" && (
-        <View style={{ flex: 1 }}>
+        {kip === "oynatim" && (!buyuk || yanSohbet) && (
+        <View style={buyuk ? styles.yanSutun : { flex: 1 }}>
           <ScrollView
             ref={akis}
             style={{ flex: 1 }}
@@ -992,6 +998,7 @@ export default function PartiOda() {
           />
         </View>
         )}
+        </View>
       </KeyboardAvoidingView>
 
       {oda.kapak && (
@@ -1032,6 +1039,8 @@ export default function PartiOda() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
+  yatayGovde: { flex: 1, flexDirection: "row" },
+  yanSutun: { width: "32%", minWidth: 240, backgroundColor: "rgba(12,10,18,.82)" },
   ustZemin: { paddingHorizontal: 18 },
   ustBar: {
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",

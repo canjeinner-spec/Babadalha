@@ -25,10 +25,12 @@ export const PartiOynatici = forwardRef<OynaticiKolu, {
   platform: PlatformKodu;
   tamEkran?: boolean;
   onBoyut?: () => void;
+  onSohbet?: () => void;
+  sohbetAcik?: boolean;
   kilitli?: boolean;
   onOlay?: (o: OynaticiOlayi) => void;
   ustKatman?: ReactNode;
-}>(function PartiOynatici({ adres, platform, tamEkran, onBoyut, kilitli, onOlay, ustKatman }, ref) {
+}>(function PartiOynatici({ adres, platform, tamEkran, onBoyut, onSohbet, sohbetAcik, kilitli, onOlay, ustKatman }, ref) {
   const betik = useMemo(() => kopruBetigi(platform), [platform]);
   const masaustu = masaustuIcerikMi(platform);
   useEffect(() => { console.warn(`[parti-oynatici] ${Platform.OS} yeni oynatici ${platform} ${adres.slice(0, 70)}`); }, [platform, adres]);
@@ -117,9 +119,16 @@ export const PartiOynatici = forwardRef<OynaticiKolu, {
       )}
 
       {!!onBoyut && !hata && (
-        <Pressable onPress={onBoyut} hitSlop={10} style={styles.boyutDugmesi}>
-          <Icon path={tamEkran ? YOL_KUCULT : YOL_BUYUT} size={17} sw={2.2} color="#fff" />
-        </Pressable>
+        <View style={styles.kosuKutusu}>
+          {!!onSohbet && tamEkran && (
+            <Pressable onPress={onSohbet} hitSlop={10} style={[styles.kosuDugmesi, sohbetAcik && styles.kosuDugmesiAcik]}>
+              <Icon name="chat" size={17} sw={2.2} color={sohbetAcik ? C.gold2 : "#fff"} />
+            </Pressable>
+          )}
+          <Pressable onPress={onBoyut} hitSlop={10} style={styles.kosuDugmesi}>
+            <Icon path={tamEkran ? YOL_KUCULT : YOL_BUYUT} size={17} sw={2.2} color="#fff" />
+          </Pressable>
+        </View>
       )}
 
       {ustKatman}
@@ -141,12 +150,13 @@ const styles = StyleSheet.create({
   yuva: { width: "100%", aspectRatio: 16 / 9, backgroundColor: "#000" },
   yuvaTam: { flex: 1, width: "100%", backgroundColor: "#000" },
   web: { flex: 1, backgroundColor: "#000" },
-  boyutDugmesi: {
-    position: "absolute", right: 10, bottom: 10,
+  kosuKutusu: { position: "absolute", right: 10, bottom: 10, flexDirection: "row", gap: 8 },
+  kosuDugmesi: {
     width: 34, height: 34, borderRadius: 12,
     alignItems: "center", justifyContent: "center",
     backgroundColor: "rgba(0,0,0,.55)",
     borderWidth: 1, borderColor: "rgba(255,255,255,.18)",
   },
+  kosuDugmesiAcik: { borderColor: C.gold + "88", backgroundColor: "rgba(0,0,0,.7)" },
   perde: { ...StyleSheet.absoluteFill, alignItems: "center", justifyContent: "center", backgroundColor: "#000" },
 });
