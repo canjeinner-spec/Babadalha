@@ -501,6 +501,14 @@ export default function PartiOda() {
 
   const saatSapmasi = useCallback(() => saatRef.current?.sapma() ?? 0, []);
 
+  const gunluk = useCallback((olay: string, ayrinti?: Record<string, unknown>) => {
+    if (!__DEV__) return;
+    const ek = ayrinti
+      ? " " + Object.entries(ayrinti).map(([k, v]) => `${k}=${typeof v === "number" ? Math.round(v * 100) / 100 : v}`).join(" ")
+      : "";
+    console.log(`[senkron] ${olay}${ek}`);
+  }, []);
+
   const suankiDurum = useCallback((): OynatimDurumu => {
     siraRef.current += 1;
     return {
@@ -524,12 +532,20 @@ export default function PartiOda() {
     if (!kanalRef.current || !kontrolBende) return;
     if (!zorla && !yayinlayabilirMi()) return;
     sonYayinRef.current = Date.now();
-    kanalRef.current.oynatimYayinla(suankiDurum());
-  }, [kontrolBende, suankiDurum, yayinlayabilirMi]);
+    const d = suankiDurum();
+    gunluk("yayin", { sira: d.sira ?? -1, konum: d.konum, oynuyor: d.oynuyor, zorla });
+    kanalRef.current.oynatimYayinla(d);
+  }, [kontrolBende, suankiDurum, yayinlayabilirMi, gunluk]);
 
   const durumUygula = useCallback((d: OynatimDurumu) => {
-    if (askidaRef.current) return;
-    if (eskiPaketMi(sonPaketRef.current, d)) return;
+    if (askidaRef.current) {
+      gunluk("askida-yoksayildi", { kaynak: d.kaynak ?? "-", sira: d.sira ?? -1 });
+      return;
+    }
+    if (eskiPaketMi(sonPaketRef.current, d)) {
+      gunluk("eski-paket-elendi", { kaynak: d.kaynak ?? "-", sira: d.sira ?? -1, sonSira: sonPaketRef.current?.sira ?? -1 });
+      return;
+    }
     const kimlik = paketKimligi(d);
     if (kimlik) sonPaketRef.current = kimlik;
     uzakBitisRef.current = Date.now() + UZAK_UYGULAMA_SOGUMA;
@@ -546,11 +562,17 @@ export default function PartiOda() {
       return;
     }
     const hedef = beklenenKonum(d, Date.now(), saatSapmasi());
-    if (Math.abs(hedef - sonKonum) > SAPMA_ESIGI) oynatici.current?.atla(hedef);
+    const fark = hedef - sonKonum;
+    gunluk("uygula", {
+      kaynak: d.kaynak ?? "-", sira: d.sira ?? -1, oynuyor: d.oynuyor,
+      hedef, bende: sonKonum, fark, sapma: saatSapmasi(),
+      duzeltme: Math.abs(fark) > SAPMA_ESIGI ? "atla" : "yok",
+    });
+    if (Math.abs(fark) > SAPMA_ESIGI) oynatici.current?.atla(hedef);
     if (d.oynuyor && !oynuyor) oynatici.current?.oynat();
     if (!d.oynuyor && oynuyor) oynatici.current?.duraklat();
     if (d.baslik && d.baslik !== simdiki) setSimdiki(d.baslik);
-  }, [oynatilan, sonKonum, oynuyor, simdiki, saatSapmasi]);
+  }, [oynatilan, sonKonum, oynuyor, simdiki, saatSapmasi, gunluk]);
 
   const benimRolRef = useRef<PartiRol>("uye");
   const odaAyariRef = useRef(odaAyari);
@@ -572,13 +594,14 @@ export default function PartiOda() {
       ayrilanAnahtar,
       odaAyariRef.current.otomatikDevir,
     );
+    gunluk("devir-karari", { tur: karar.tur, hedef: karar.tur === "devret" ? karar.anahtar : karar.sebep, ben: benimAnahtarRef.current });
     if (!devralanBenMiyim(karar, benimAnahtarRef.current)) return;
     sahipAnahtariRef.current = benimAnahtarRef.current;
     setSahipAnahtari(benimAnahtarRef.current);
     setCanliRol("sahip");
     setBildirim("Parti sahipliği sana geçti");
     kanalRef.current?.devirYayinla(ayrilanAnahtar, benimAnahtarRef.current);
-  }, []);
+  }, [gunluk]);
 
   const sistemKisi = useCallback((k: PartiKisi): SistemKisi => ({
     anahtar: k.anahtar,
@@ -745,6 +768,7 @@ export default function PartiOda() {
     if (benSahip) return;
     const esleyici = saatEsleyiciAc({
       yollaIstek: (t0) => kanalRef.current?.saatIsteYolla(benimAnahtar, t0),
+      onDegisim: (sapma, ornek) => gunluk("saat", { sapma, ornek }),
     });
     saatRef.current = esleyici;
     esleyici.basla();
@@ -752,7 +776,7 @@ export default function PartiOda() {
       esleyici.durdur();
       saatRef.current = null;
     };
-  }, [benSahip, benimAnahtar, kanalOdaId]);
+  }, [benSahip, benimAnahtar, kanalOdaId, gunluk]);
 
   useEffect(() => {
     const abone = AppState.addEventListener("change", (durum) => {
@@ -760,6 +784,7 @@ export default function PartiOda() {
         if (askidaRef.current) return;
         askidaRef.current = true;
         askiKaydiRef.current = { konum: sonKonumRef.current, oynuyor: oynuyorRef.current, an: Date.now() };
+        gunluk("askiya-alindi", { konum: sonKonumRef.current, oynuyor: oynuyorRef.current });
         return;
       }
       if (!askidaRef.current) return;
@@ -772,12 +797,14 @@ export default function PartiOda() {
         kanalRef.current?.durumIste();
         return;
       }
+      const gecen = kayit ? (Date.now() - kayit.an) / 1000 : 0;
+      gunluk("askidan-donuldu", { gecen, oynuyordu: kayit?.oynuyor ?? false, sahip: benSahipRef.current });
       if (!kayit?.oynuyor) return;
-      oynatici.current?.atla(kayit.konum + (Date.now() - kayit.an) / 1000);
+      oynatici.current?.atla(kayit.konum + gecen);
       oynatici.current?.oynat();
     });
     return () => abone.remove();
-  }, []);
+  }, [gunluk]);
 
   useEffect(() => {
     if (!benSahip) return;
