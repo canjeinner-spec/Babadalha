@@ -153,11 +153,10 @@ const styles = StyleSheet.create({
   web: { flex: 1, backgroundColor: "#000" },
   kosuKutusu: { position: "absolute", right: 10, bottom: 10, flexDirection: "row", gap: 8 },
   kosuDugmesi: {
-    width: 34, height: 34, borderRadius: 12,
+    width: 34, height: 34,
     alignItems: "center", justifyContent: "center",
-    backgroundColor: "rgba(0,0,0,.55)",
-    borderWidth: 1, borderColor: "rgba(255,255,255,.18)",
+    shadowColor: "#000", shadowOpacity: 0.55, shadowRadius: 6, shadowOffset: { width: 0, height: 1 },
   },
-  kosuDugmesiAcik: { borderColor: C.gold + "88", backgroundColor: "rgba(0,0,0,.7)" },
+  kosuDugmesiAcik: {},
   perde: { ...StyleSheet.absoluteFill, alignItems: "center", justifyContent: "center", backgroundColor: "#000" },
 });

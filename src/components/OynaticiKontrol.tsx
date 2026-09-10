@@ -93,7 +93,7 @@ export const OynaticiKontrol = memo(function OynaticiKontrol({
           hitSlop={10}
           style={styles.anaDugme}
         >
-          <Icon path={oynuyor ? YOL_DURAKLAT : YOL_OYNAT} size={30} sw={2.6} color="#0A0910" fill={oynuyor ? "none" : "#0A0910"} />
+          <Icon path={oynuyor ? YOL_DURAKLAT : YOL_OYNAT} size={34} sw={2.6} color="#fff" fill={oynuyor ? "none" : "#fff"} />
         </Pressable>
         <Pressable onPress={() => atla(ATLAMA_SN)} hitSlop={10} style={styles.yanDugme}>
           <Icon path={YOL_ILERI} size={30} sw={2.4} color="#fff" />
@@ -120,11 +120,17 @@ export const OynaticiKontrol = memo(function OynaticiKontrol({
 });
 
 const styles = StyleSheet.create({
-  perde: { backgroundColor: "rgba(0,0,0,.28)", justifyContent: "center" },
+  perde: { backgroundColor: "rgba(0,0,0,.12)", justifyContent: "center" },
   orta: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 34 },
-  yanDugme: { alignItems: "center", justifyContent: "center", width: 44, height: 44 },
+  yanDugme: {
+    alignItems: "center", justifyContent: "center", width: 44, height: 44,
+    shadowColor: "#000", shadowOpacity: 0.55, shadowRadius: 6, shadowOffset: { width: 0, height: 1 },
+  },
   yanYazi: { position: "absolute", bottom: 2 },
-  anaDugme: { width: 56, height: 56, borderRadius: 28, backgroundColor: "#fff", alignItems: "center", justifyContent: "center" },
+  anaDugme: {
+    width: 56, height: 56, alignItems: "center", justifyContent: "center",
+    shadowColor: "#000", shadowOpacity: 0.55, shadowRadius: 6, shadowOffset: { width: 0, height: 1 },
+  },
   alt: { position: "absolute", left: 10, right: 10, bottom: 8, flexDirection: "row", alignItems: "center", gap: 8 },
   zaman: { minWidth: 36, textAlign: "center" },
   rayYuva: { flex: 1, height: 28, justifyContent: "center" },
