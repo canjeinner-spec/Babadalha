@@ -447,6 +447,27 @@ const ORTAK = `
   var t0 = 0;
   var tVideo = 0;
   var tOynat = 0;
+  var izlemeBekci = 0;
+  var IZLEME_BEKLE = 4500;
+
+  function bekciDurdur() {
+    if (izlemeBekci) { clearTimeout(izlemeBekci); izlemeBekci = 0; }
+  }
+
+  function bekciKur() {
+    bekciDurdur();
+    izlemeBekci = setTimeout(function () {
+      izlemeBekci = 0;
+      if (tVideo || !izlemeSayfasi()) return;
+      var su = location.href;
+      var onceki = null;
+      try { onceki = sessionStorage.getItem('__aronTamYukleme'); } catch (e) {}
+      if (onceki === su) { zaman('izleme-video-yok yeniden-denendi'); return; }
+      try { sessionStorage.setItem('__aronTamYukleme', su); } catch (e) {}
+      zaman('izleme-video-yok tam-yuklemeye-geciliyor');
+      try { location.replace(su); } catch (e) { try { location.reload(); } catch (e2) {} }
+    }, IZLEME_BEKLE);
+  }
 
   function simdi() { try { return performance.now(); } catch (e) { return Date.now(); } }
   function zaman(asama) {
@@ -604,7 +625,7 @@ const ORTAK = `
     var baslik = ozel ? b0.baslik : (document.title || '');
     if (!ozel && sonOzel && adres === sonAdres) return;
     if (adres === sonAdres && baslik === sonBaslik) return;
-    if (adres !== sonAdres && izlemeSayfasi() && !video) { t0 = simdi(); tVideo = 0; tOynat = 0; zaman('izleme-adresi'); }
+    if (adres !== sonAdres && izlemeSayfasi()) { t0 = simdi(); tVideo = 0; tOynat = 0; zaman('izleme-adresi' + (video ? ' eski-video-var' : '')); bekciKur(); }
     sonAdres = adres;
     sonBaslik = baslik;
     sonOzel = ozel;
@@ -627,6 +648,7 @@ const ORTAK = `
     if (v !== video) {
       video = v;
       izlemeBildirildi = false;
+      bekciDurdur();
       if (!tVideo) { tVideo = simdi(); zaman('video-bulundu hazir=' + v.readyState); }
       bagla(v);
       sesiAc();
