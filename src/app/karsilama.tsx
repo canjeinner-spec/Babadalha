@@ -1,7 +1,7 @@
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -24,15 +24,23 @@ function Sayfa({
   sayfa: KarsilamaSayfasi;
   genislik: number;
   etkin: boolean;
-  onBitti: () => void;
+  onBitti: (anahtar: string) => void;
 }) {
   const akis = useRef<ScrollView>(null);
   const [atla, setAtla] = useState(false);
+  const yazarak = !!sayfa.yazarak;
+
+  useEffect(() => {
+    if (!yazarak && etkin) onBitti(sayfa.anahtar);
+  }, [yazarak, etkin, onBitti, sayfa.anahtar]);
 
   const bloklar: YazilanBlok[] = [
     { anahtar: "baslik", metin: sayfa.baslik },
     ...sayfa.paragraflar.map((p, i) => ({ anahtar: `p${i}`, metin: p.metin })),
   ];
+
+  const bittiBildir = useCallback(() => onBitti(sayfa.anahtar), [onBitti, sayfa.anahtar]);
+  const enAltaKay = useCallback(() => akis.current?.scrollToEnd({ animated: false }), []);
 
   const ciz = (blok: YazilanBlok, gorunen: string, sira: number) => {
     if (sira === 0) {
@@ -96,16 +104,20 @@ function Sayfa({
         )}
 
         <View style={styles.kart}>
-          <YazilanMetin
-            bloklar={bloklar}
-            etkin={etkin}
-            atla={atla}
-            adim={1}
-            araAdim={18}
-            onBitti={onBitti}
-            onIlerleme={() => akis.current?.scrollToEnd({ animated: false })}
-            ciz={ciz}
-          />
+          {yazarak ? (
+            <YazilanMetin
+              bloklar={bloklar}
+              etkin={etkin}
+              atla={atla}
+              adim={1}
+              araAdim={18}
+              onBitti={bittiBildir}
+              onIlerleme={enAltaKay}
+              ciz={ciz}
+            />
+          ) : (
+            <View>{bloklar.map((b, i) => ciz(b, b.metin, i))}</View>
+          )}
         </View>
       </ScrollView>
     </Pressable>
@@ -161,7 +173,7 @@ export default function Karsilama() {
               sayfa={s}
               genislik={width}
               etkin={i === sayfa}
-              onBitti={() => bittiIsaretle(s.anahtar)}
+              onBitti={bittiIsaretle}
             />
           ))}
         </ScrollView>
@@ -170,7 +182,7 @@ export default function Karsilama() {
             sayfa={KARSILAMA_SAYFALARI[0]}
             genislik={width}
             etkin
-            onBitti={() => bittiIsaretle(KARSILAMA_SAYFALARI[0].anahtar)}
+            onBitti={bittiIsaretle}
           />
         )}
 

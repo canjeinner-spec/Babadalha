@@ -30,6 +30,12 @@ export function YazilanMetin({
   const titre = useSharedValue(0);
   const bittiRef = useRef(false);
   const sayacRef = useRef(0);
+  const bittiCagriRef = useRef(onBitti);
+  const ilerlemeCagriRef = useRef(onIlerleme);
+  useEffect(() => {
+    bittiCagriRef.current = onBitti;
+    ilerlemeCagriRef.current = onIlerleme;
+  }, [onBitti, onIlerleme]);
 
   useEffect(() => {
     if (!etkin || toplam === 0) return;
@@ -38,27 +44,27 @@ export function YazilanMetin({
       n = Math.min(toplam, n + adim);
       setYazilan(n);
       sayacRef.current += 1;
-      if (sayacRef.current % 8 === 0) onIlerleme?.();
+      if (sayacRef.current % 8 === 0) ilerlemeCagriRef.current?.();
       titre.value = withSequence(withTiming(1, { duration: 26 }), withTiming(0, { duration: 80 }));
       if (n >= toplam) {
         clearInterval(saat);
         if (!bittiRef.current) {
           bittiRef.current = true;
-          onIlerleme?.();
-          onBitti?.();
+          ilerlemeCagriRef.current?.();
+          bittiCagriRef.current?.();
         }
       }
     }, araAdim);
     return () => clearInterval(saat);
-  }, [etkin, toplam, adim, araAdim, titre, onBitti, onIlerleme]);
+  }, [etkin, toplam, adim, araAdim, titre]);
 
   useEffect(() => {
     if (!atla || bittiRef.current) return;
     bittiRef.current = true;
     setYazilan(toplam);
-    onIlerleme?.();
-    onBitti?.();
-  }, [atla, toplam, onBitti, onIlerleme]);
+    ilerlemeCagriRef.current?.();
+    bittiCagriRef.current?.();
+  }, [atla, toplam]);
 
   const stil = useAnimatedStyle(() => ({
     transform: [{ translateY: titre.value * -1.4 }],

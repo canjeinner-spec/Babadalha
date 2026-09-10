@@ -8,6 +8,7 @@ export type KarsilamaSayfasi = {
   altYazi?: string;
   gorsel?: ImageSourcePropType;
   atlanamaz?: boolean;
+  yazarak?: boolean;
   paragraflar: KarsilamaParagrafi[];
 };
 
@@ -18,6 +19,7 @@ export const KARSILAMA_SAYFALARI: KarsilamaSayfasi[] = [
     altYazi: "Aynı yere bakmak için aynı yerde olmak gerekmiyor.",
     gorsel: require("@/assets/karsilama/kediler.webp"),
     atlanamaz: true,
+    yazarak: true,
     paragraflar: [
       { metin: "Aron'u ilk kez açtığını görüyorum. O yüzden birkaç satır yazacağım." },
       { metin: "Bu uygulamayı uzak mesafe ilişkisi yaşayan insanlar için yaptım. Sevgililer, aileler, arkadaşlar… Aynı odada olamayan herkes için." },
