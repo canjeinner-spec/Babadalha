@@ -120,7 +120,7 @@ export const PartiOynatici = forwardRef<OynaticiKolu, {
       )}
 
       {!!onBoyut && !hata && (
-        <View style={styles.kosuKutusu}>
+        <View style={[styles.kosuKutusu, !tamEkran && styles.kosuKutusuUst]}>
           {!!onSohbet && tamEkran && (
             <Pressable onPress={onSohbet} hitSlop={10} style={[styles.kosuDugmesi, sohbetAcik && styles.kosuDugmesiAcik]}>
               <Icon path={YOL_PANEL} size={19} sw={2.1} color={sohbetAcik ? C.gold2 : "#fff"} />
@@ -152,6 +152,7 @@ const styles = StyleSheet.create({
   yuvaTam: { flex: 1, width: "100%", backgroundColor: "#000" },
   web: { flex: 1, backgroundColor: "#000" },
   kosuKutusu: { position: "absolute", right: 10, bottom: 10, flexDirection: "row", gap: 8 },
+  kosuKutusuUst: { bottom: 42 },
   kosuDugmesi: {
     width: 36, height: 36,
     alignItems: "center", justifyContent: "center",
