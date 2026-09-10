@@ -85,6 +85,22 @@ const YOL_AT = "M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 
 const YOL_GORSEL = "M3 5h18v14H3zM3 16l5-5 4 4 3-3 6 6";
 const YOL_ARAMA_OYNAT = "M11 4a7 7 0 100 14 7 7 0 000-14zM20.5 20.5L16 16M9.5 8.5l4 2.5-4 2.5z";
 
+function MarkaYazisi() {
+  const [hata, setHata] = useState(false);
+  if (hata) {
+    return <Txt weight="displayBold" size={23} color="#fff" numberOfLines={1}>Aron</Txt>;
+  }
+  return (
+    <Image
+      source={require("@/assets/marka/aron-marka.webp")}
+      style={{ width: 111, height: 26 }}
+      contentFit="contain"
+      transition={160}
+      onError={() => setHata(true)}
+    />
+  );
+}
+
 function UstBar({ kisi, onKapat, onGezin, onKisiler }: { kisi: number; onKapat: () => void; onGezin: () => void; onKisiler: () => void }) {
   return (
     <View style={styles.ustBar}>
@@ -95,7 +111,7 @@ function UstBar({ kisi, onKapat, onGezin, onKisiler }: { kisi: number; onKapat: 
         <Icon name="gear" size={29} sw={2.3} color="#fff" />
       </Pressable>
 
-      <Txt weight="displayBold" size={23} color="#fff" numberOfLines={1}>Aron</Txt>
+      <MarkaYazisi />
 
       <Pressable onPress={onGezin} hitSlop={12} style={styles.ustDugme}>
         <Icon path={YOL_ARAMA_OYNAT} size={29} sw={2.3} color="#fff" />

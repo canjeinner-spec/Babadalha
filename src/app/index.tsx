@@ -54,6 +54,20 @@ function OdaSatiri({ oda, onBas }: { oda: LobiOdasi; onBas: () => void }) {
   );
 }
 
+function BaslatAmblemi() {
+  const [hata, setHata] = useState(false);
+  if (hata) return <Icon name="evParty" size={17} color="#241A05" />;
+  return (
+    <Image
+      source={require("@/assets/marka/parti-amblem.webp")}
+      style={{ width: 26, height: 26 }}
+      contentFit="contain"
+      transition={140}
+      onError={() => setHata(true)}
+    />
+  );
+}
+
 export default function PartiAnaEkran() {
   const router = useRouter();
   const userPhoto = useApp((s) => s.userPhoto);
@@ -136,7 +150,7 @@ export default function PartiAnaEkran() {
 
       <Pressable onPress={partiBaslat} style={[styles.baslatSar, { bottom: altPay + 16 }]}>
         <Gradient colors={[C.gold2, "#C8922B"]} deg={135} style={styles.baslat}>
-          <Icon name="evParty" size={17} color="#241A05" />
+          <BaslatAmblemi />
           <Txt weight="extrabold" size={14} color="#241A05">Parti başlat</Txt>
         </Gradient>
       </Pressable>
