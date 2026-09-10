@@ -597,6 +597,12 @@ const ORTAK = `
   function bagla(v) {
     if (!v || v.__aronDinleniyor) return;
     v.__aronDinleniyor = true;
+    try { v.disablePictureInPicture = true; } catch (e) {}
+    try { v.setAttribute('disablepictureinpicture', ''); } catch (e) {}
+    v.addEventListener('enterpictureinpicture', function () {
+      zaman('pip-acildi kapatiliyor');
+      try { if (document.exitPictureInPicture) document.exitPictureInPicture(); } catch (e) {}
+    });
     v.addEventListener('play', function () {
       var iz = izlemeSayfasi();
       izlemeBildirildi = iz;
