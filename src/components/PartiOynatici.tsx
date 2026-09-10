@@ -9,8 +9,9 @@ import { type PlatformKodu } from "@/oda/platform";
 import { KOMUT, kopruBetigi, kullaniciAjani, masaustuIcerikMi, olayCoz, type OynaticiOlayi } from "@/parti/kopru";
 import { C } from "@/theme/colors";
 
-const YOL_BUYUT = "M9 4H4v5M15 4h5v5M15 20h5v-5M9 20H4v-5";
-const YOL_KUCULT = "M4 9h5V4M20 9h-5V4M20 15h-5v5M4 15h5v5";
+const YOL_BUYUT = "M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7";
+const YOL_KUCULT = "M13 11h6V5M11 13H5v6M20 4l-7 7M4 20l7-7";
+const YOL_PANEL = "M4 5h16a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V6a1 1 0 011-1zM15 5v14";
 
 export type OynaticiKolu = {
   oynat: () => void;
@@ -122,7 +123,7 @@ export const PartiOynatici = forwardRef<OynaticiKolu, {
         <View style={styles.kosuKutusu}>
           {!!onSohbet && tamEkran && (
             <Pressable onPress={onSohbet} hitSlop={10} style={[styles.kosuDugmesi, sohbetAcik && styles.kosuDugmesiAcik]}>
-              <Icon name="chat" size={17} sw={2.2} color={sohbetAcik ? C.gold2 : "#fff"} />
+              <Icon path={YOL_PANEL} size={17} sw={2.1} color={sohbetAcik ? C.gold2 : "#fff"} />
             </Pressable>
           )}
           <Pressable onPress={onBoyut} hitSlop={10} style={styles.kosuDugmesi}>
