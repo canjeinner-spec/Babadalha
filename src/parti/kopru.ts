@@ -729,7 +729,70 @@ const ORTAK = `
       }
     }
   }
-  setInterval(sahneRengi, 1200);
+  var kapakDenendi = '';
+  var kapakBildirildi = false;
+
+  function ortalamaCiz(kaynak) {
+    if (!tuval) {
+      tuval = document.createElement('canvas');
+      tuval.width = 8;
+      tuval.height = 5;
+      tuvalCtx = tuval.getContext('2d', { willReadFrequently: true });
+    }
+    if (!tuvalCtx) return null;
+    tuvalCtx.drawImage(kaynak, 0, 0, 8, 5);
+    var d = tuvalCtx.getImageData(0, 0, 8, 5).data;
+    var r = 0, g = 0, b = 0, n = 0;
+    for (var i = 0; i < d.length; i += 4) {
+      if (d[i + 3] < 8) continue;
+      r += d[i]; g += d[i + 1]; b += d[i + 2]; n++;
+    }
+    if (!n) return null;
+    return [r / n, g / n, b / n];
+  }
+
+  function renkKodu(c) {
+    var p = function (v) { return ('0' + Math.max(0, Math.min(255, Math.round(v))).toString(16)).slice(-2); };
+    return '#' + p(c[0]) + p(c[1]) + p(c[2]);
+  }
+
+  function kapakRengi() {
+    if (!renkKapali) return;
+    var u = null;
+    try { u = kapakBul(); } catch (e) { u = null; }
+    if (!u || u === kapakDenendi) return;
+    kapakDenendi = u;
+    try {
+      var im = new Image();
+      im.crossOrigin = 'anonymous';
+      im.onload = function () {
+        try {
+          var c = ortalamaCiz(im);
+          if (!c) return;
+          var kod = renkKodu(c);
+          yolla({ tur: 'renk', renk: kod });
+          if (!kapakBildirildi) {
+            kapakBildirildi = true;
+            yolla({ tur: 'gunluk', seviye: 'renk', metin: 'kapak gorselinden renk alindi ' + kod });
+          }
+        } catch (e) {
+          if (!kapakBildirildi) {
+            kapakBildirildi = true;
+            yolla({ tur: 'gunluk', seviye: 'renk', metin: 'kapak rengi okunamadi (cors)' });
+          }
+        }
+      };
+      im.onerror = function () {
+        if (!kapakBildirildi) {
+          kapakBildirildi = true;
+          yolla({ tur: 'gunluk', seviye: 'renk', metin: 'kapak gorseli yuklenemedi' });
+        }
+      };
+      im.src = u;
+    } catch (e) {}
+  }
+
+  setInterval(function () { sahneRengi(); kapakRengi(); }, 1200);
 
   function tazele() {
     var v = enBuyukVideo();
