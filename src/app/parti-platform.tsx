@@ -71,7 +71,6 @@ export default function PartiPlatform() {
                 </Pressable>
               );
             })}
-          </View>
 
           <Pressable
             onPress={() => {
@@ -79,19 +78,19 @@ export default function PartiPlatform() {
               if (secim) router.replace({ pathname: "/parti-dogrudan", params: { secim: "1" } });
               else router.push({ pathname: "/parti-dogrudan", params: {} });
             }}
-            style={styles.dogrudan}
+            style={styles.hucre}
           >
-            <View style={styles.dogrudanSimge}>
-              <Icon name="globe2" size={18} color={C.teal} />
-            </View>
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Txt weight="extrabold" size={13} color="#fff">Doğrudan bağlantı</Txt>
-              <Txt size={11} color={C.dim} style={{ marginTop: 2 }}>
-                Kendi video adresin · eşzamanlı izleme
-              </Txt>
-            </View>
-            <Icon name="chev" size={15} color={C.dim2} />
+            <Image
+              source={require("@/assets/marka/dogrudan-marka.webp")}
+              style={styles.logo}
+              contentFit="contain"
+              transition={0}
+            />
+            <Txt size={10} color={C.dim} align="center" style={styles.dogrudanYazi}>
+              Doğrudan bağlantı
+            </Txt>
           </Pressable>
+          </View>
         </ScrollView>
       </SafeAreaView>
     </View>
@@ -107,16 +106,8 @@ const styles = StyleSheet.create({
   geri: { width: 30, height: 30, alignItems: "center", justifyContent: "center" },
   izgara: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 30 },
   hucre: { width: "46%", height: 66, alignItems: "center", justifyContent: "center" },
+  dogrudanYazi: { marginTop: 2 },
   logo: { width: "100%", height: 46 },
   logoKilitli: { opacity: 0.28 },
-  dogrudan: {
-    flexDirection: "row", alignItems: "center", gap: 12, marginTop: 30,
-    padding: 14, borderRadius: 14,
-    backgroundColor: "rgba(255,255,255,.04)", borderWidth: 1, borderColor: C.line,
-  },
-  dogrudanSimge: {
-    width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center",
-    backgroundColor: "rgba(94,234,212,.10)", borderWidth: 1, borderColor: "rgba(94,234,212,.24)",
-  },
   kilitNotu: { marginTop: 4 },
 });
