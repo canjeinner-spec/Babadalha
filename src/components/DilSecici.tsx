@@ -22,8 +22,12 @@ export function DilSecici({ bicim = "kapsul" }: { bicim?: Bicim }) {
     <>
       {bicim === "kapsul" ? (
         <Pressable style={styles.kapsul} onPress={ac} hitSlop={8}>
+          <Txt weight="extrabold" size={14.5} color="#fff">{dil.ad}</Txt>
           <Txt size={15}>{dil.bayrak}</Txt>
-          <Txt weight="extrabold" size={12.5} color="#fff">{dil.kod.slice(0, 2).toUpperCase()}</Txt>
+          <View style={{ flex: 1 }} />
+          <View style={{ transform: [{ rotate: "90deg" }] }}>
+            <Icon name="chev" size={17} sw={2.2} color="rgba(255,255,255,.7)" />
+          </View>
         </Pressable>
       ) : (
         <Pressable style={styles.satir} onPress={ac}>
@@ -63,10 +67,10 @@ export function DilSecici({ bicim = "kapsul" }: { bicim?: Bicim }) {
 
 const styles = StyleSheet.create({
   kapsul: {
-    flexDirection: "row", alignItems: "center", gap: 6,
-    paddingVertical: 7, paddingHorizontal: 12, borderRadius: 20,
-    borderWidth: 1, borderColor: "rgba(255,255,255,.2)",
-    backgroundColor: "rgba(10,10,16,.5)",
+    flexDirection: "row", alignItems: "center", gap: 8,
+    paddingVertical: 10, paddingHorizontal: 20, borderRadius: 24,
+    borderWidth: 1, borderColor: "rgba(255,255,255,.24)",
+    backgroundColor: "rgba(10,10,16,.5)", minWidth: 210,
   },
   satir: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 12 },
   kart: {

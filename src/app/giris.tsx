@@ -1,9 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Image } from "expo-image";
-import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import { Pressable, StyleSheet, View, useWindowDimensions } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AkanDuvar } from "@/components/AkanDuvar";
@@ -17,12 +16,8 @@ import { C } from "@/theme/colors";
 
 export const KARSILAMA_ANAHTARI = "aron.karsilama.goruldu";
 
-const DUVAR_ORANI = 0.54;
-const ERIME = 260;
-
 export default function Giris() {
   const router = useRouter();
-  const { height } = useWindowDimensions();
   const [markaHatasi, setMarkaHatasi] = useState(false);
 
   const devam = useCallback(async () => {
@@ -31,42 +26,14 @@ export default function Giris() {
     router.replace("/");
   }, [router]);
 
-  const duvarYuksekligi = Math.round(height * DUVAR_ORANI);
-
   return (
     <View style={styles.kok}>
-      <View style={[styles.duvarYuvasi, { height: duvarYuksekligi }]}>
-        <AkanDuvar gorseller={KARSILAMA_KARELERI} sutunSayisi={3} karartma={0.6} doldur={false} />
-        <LinearGradient
-          colors={["rgba(8,8,12,0)", "rgba(8,8,12,.45)", "rgba(8,8,12,.88)", C.bg]}
-          locations={[0.18, 0.52, 0.8, 0.97]}
-          style={StyleSheet.absoluteFill}
-          pointerEvents="none"
-        />
-      </View>
-
-      <View
-        style={[styles.dikis, { top: duvarYuksekligi - ERIME / 2, height: ERIME }]}
-        pointerEvents="none"
-      >
-        <LinearGradient
-          colors={[
-            "rgba(232,179,65,0)",
-            "rgba(232,179,65,.035)",
-            "rgba(232,179,65,.085)",
-            "rgba(232,179,65,.045)",
-            "rgba(232,179,65,0)",
-          ]}
-          locations={[0, 0.34, 0.5, 0.66, 1]}
-          style={StyleSheet.absoluteFill}
-        />
-      </View>
+      <AkanDuvar gorseller={KARSILAMA_KARELERI} sutunSayisi={3} karartma={0.66} doldur={false} />
 
       <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
         <View style={styles.tepe}>
-          <View style={{ width: 62 }} />
           {markaHatasi ? (
-            <Txt weight="displayBold" size={26} color="#fff">Aron</Txt>
+            <Txt weight="displayBold" size={28} color="#fff">Aron</Txt>
           ) : (
             <Image
               source={require("@/assets/marka/aron-marka.webp")}
@@ -76,9 +43,7 @@ export default function Giris() {
               onError={() => setMarkaHatasi(true)}
             />
           )}
-          <View style={{ width: 62, alignItems: "flex-end" }}>
-            <DilSecici />
-          </View>
+          <DilSecici />
         </View>
 
         <View style={{ flex: 1 }} />
@@ -92,24 +57,30 @@ export default function Giris() {
             size={25}
             style={{ textAlign: "center", lineHeight: 34 }}
           />
-          <Txt size={13.5} color="rgba(255,255,255,.66)" align="center" lh={1.5} style={styles.altYazi}>
+          <Txt size={13.5} color="rgba(255,255,255,.72)" align="center" lh={1.5} style={styles.altYazi}>
             Netflix, Disney+, Prime Video, YouTube ve daha fazlası.
           </Txt>
         </View>
 
         <View style={styles.dip}>
-          <Pressable style={[styles.dugme, styles.elma]} onPress={devam}>
-            <ElmaIsareti size={18} renk="#fff" />
-            <Txt weight="extrabold" size={15} color="#fff">Apple ile devam et</Txt>
+          <Pressable style={styles.beyazDugme} onPress={devam}>
+            <ElmaIsareti size={19} renk="#141018" />
+            <Txt weight="extrabold" size={15.5} color="#141018">Apple ile devam edin</Txt>
           </Pressable>
 
-          <Pressable style={[styles.dugme, styles.google]} onPress={devam}>
-            <GoogleIsareti size={18} />
-            <Txt weight="extrabold" size={15} color="#1F1F1F">Google ile devam et</Txt>
+          <Pressable style={styles.beyazDugme} onPress={devam}>
+            <GoogleIsareti size={19} />
+            <Txt weight="extrabold" size={15.5} color="#141018">Google ile devam edin</Txt>
           </Pressable>
 
-          <Pressable style={styles.misafir} onPress={devam} hitSlop={8}>
-            <Txt weight="extrabold" size={14} color={C.gold2}>Misafir olarak devam et</Txt>
+          <View style={styles.ayrac}>
+            <View style={styles.cizgi} />
+            <Txt weight="bold" size={13} color="rgba(255,255,255,.72)">veya</Txt>
+            <View style={styles.cizgi} />
+          </View>
+
+          <Pressable style={styles.misafirDugme} onPress={devam}>
+            <Txt weight="extrabold" size={15.5} color="#fff">Misafir Olarak Devam Et</Txt>
           </Pressable>
         </View>
       </SafeAreaView>
@@ -119,21 +90,20 @@ export default function Giris() {
 
 const styles = StyleSheet.create({
   kok: { flex: 1, backgroundColor: C.bg },
-  duvarYuvasi: { position: "absolute", top: 0, left: 0, right: 0, overflow: "hidden" },
-  dikis: { position: "absolute", left: 0, right: 0 },
-  tepe: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    paddingTop: 10, paddingHorizontal: 16,
-  },
-  marka: { width: 128, height: 30 },
-  orta: { paddingHorizontal: 26, paddingBottom: 30 },
-  altYazi: { marginTop: 16, paddingHorizontal: 6 },
-  dip: { paddingHorizontal: 20, paddingBottom: 14, gap: 11 },
-  dugme: {
+  tepe: { alignItems: "center", paddingTop: 12, gap: 16 },
+  marka: { width: 140, height: 33 },
+  orta: { paddingHorizontal: 26, paddingBottom: 28 },
+  altYazi: { marginTop: 16, paddingHorizontal: 8 },
+  dip: { paddingHorizontal: 20, paddingBottom: 16, gap: 12 },
+  beyazDugme: {
     flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10,
-    paddingVertical: 15, borderRadius: 15,
+    paddingVertical: 16, borderRadius: 16, backgroundColor: "#F2F1EC",
   },
-  elma: { backgroundColor: "#0B0B10", borderWidth: 1, borderColor: "rgba(255,255,255,.22)" },
-  google: { backgroundColor: "#FFFFFF" },
-  misafir: { alignItems: "center", justifyContent: "center", paddingVertical: 12 },
+  misafirDugme: {
+    alignItems: "center", justifyContent: "center", paddingVertical: 16,
+    borderRadius: 16, borderWidth: 1, borderColor: "rgba(255,255,255,.26)",
+    backgroundColor: "rgba(10,10,16,.42)",
+  },
+  ayrac: { flexDirection: "row", alignItems: "center", gap: 14, paddingVertical: 2 },
+  cizgi: { flex: 1, height: 1, backgroundColor: "rgba(255,255,255,.2)" },
 });
