@@ -931,7 +931,7 @@ export default function PartiOda() {
             key={`dogrudan-${oynatimNo}`}
             ref={oynatici}
             adres={oynatilan.adres}
-            tamEkran={buyuk}
+            tamEkran={kip === "gezinme" || buyuk}
             kilitli={!kontrolBende}
             onOlay={olayGeldi}
           />
@@ -941,7 +941,7 @@ export default function PartiOda() {
             ref={oynatici}
             adres={oynatilan.adres}
             platform={oynatilan.platform}
-            tamEkran={buyuk}
+            tamEkran={kip === "gezinme" || buyuk}
             onBoyut={boyutDegistir}
             kilitli={!kontrolBende}
             onOlay={olayGeldi}
