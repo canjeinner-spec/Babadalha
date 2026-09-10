@@ -17,7 +17,7 @@ const VARSAYILAN_SUZULME = 14;
 const VARSAYILAN_PERDE = 0.28;
 const DONGU_MS = 26000;
 const KESIN_DURAK = [0, 0.85, 1] as const;
-const YUMUSAK_DURAK = [0, 0.45, 1] as const;
+const YUMUSAK_DURAK = [0, 0.22, 1] as const;
 
 type Props = {
   uzat?: number;
