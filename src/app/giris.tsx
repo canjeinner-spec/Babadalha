@@ -1,4 +1,3 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useCallback, useState } from "react";
@@ -14,16 +13,13 @@ import { KARSILAMA_KARELERI } from "@/data/karsilamaKareleri";
 import { haptic } from "@/lib/haptics";
 import { C } from "@/theme/colors";
 
-export const KARSILAMA_ANAHTARI = "aron.karsilama.goruldu";
-
 export default function Giris() {
   const router = useRouter();
   const [markaHatasi, setMarkaHatasi] = useState(false);
 
-  const devam = useCallback(async () => {
+  const devam = useCallback(() => {
     haptic.select();
-    try { await AsyncStorage.setItem(KARSILAMA_ANAHTARI, "1"); } catch { /* yoksay */ }
-    router.replace("/");
+    router.replace("/karsilama");
   }, [router]);
 
   return (

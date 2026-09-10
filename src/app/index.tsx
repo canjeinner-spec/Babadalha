@@ -6,7 +6,7 @@ import { FlatList, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Anim } from "@/components/Anim";
-import { KARSILAMA_ANAHTARI } from "@/app/giris";
+import { KARSILAMA_ANAHTARI } from "@/app/karsilama";
 import { BaslatAmblemi } from "@/components/BaslatAmblemi";
 import { Portrait } from "@/components/Portrait";
 import { TanitimBanner } from "@/components/TanitimBanner";
