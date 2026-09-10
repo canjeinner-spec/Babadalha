@@ -74,7 +74,10 @@ function Sayfa({
   };
 
   return (
-    <Pressable style={{ width: genislik }} onPress={() => setAtla(true)}>
+    <Pressable
+      style={{ width: genislik }}
+      onPress={() => { if (!sayfa.atlanamaz) setAtla(true); }}
+    >
       <ScrollView
         ref={akis}
         contentContainerStyle={styles.sayfa}
@@ -183,7 +186,9 @@ export default function Karsilama() {
             </Animated.View>
           ) : (
             <View style={styles.dugmeYeri}>
-              <Txt size={12} color={C.dim2}>dokunarak geç</Txt>
+              {!KARSILAMA_SAYFALARI[sayfa]?.atlanamaz && (
+                <Txt size={12} color={C.dim2}>dokunarak geç</Txt>
+              )}
             </View>
           )}
 
