@@ -8,8 +8,8 @@ import { C } from "@/theme/colors";
 
 const YOL_OYNAT = "M7 4l12 8-12 8V4z";
 const YOL_DURAKLAT = "M8 5v14M16 5v14";
-const YOL_GERI = "M11 17l-5-5 5-5M18 17l-5-5 5-5";
-const YOL_ILERI = "M13 17l5-5-5-5M6 17l5-5-5-5";
+const YOL_GERI = "M1.6 4.4v6h6M4.1 15a9 9 0 1 0 2.13-9.36L1.6 10";
+const YOL_ILERI = "M22.4 4.4v6h-6M19.9 15a9 9 0 1 1-2.13-9.36L22.4 10";
 const ATLAMA_SN = 10;
 const GIZLENME_MS = 3200;
 
@@ -85,8 +85,10 @@ export const OynaticiKontrol = memo(function OynaticiKontrol({
     <Pressable style={[StyleSheet.absoluteFill, styles.perde]} onPress={() => setAcik(false)}>
       <View style={styles.orta} pointerEvents="box-none">
         <Pressable onPress={() => atla(-ATLAMA_SN)} hitSlop={10} style={styles.yanDugme}>
-          <Icon path={YOL_GERI} size={30} sw={2.4} color="#fff" />
-          <Txt weight="extrabold" size={9.5} color="#fff" style={styles.yanYazi}>{ATLAMA_SN}</Txt>
+          <Icon path={YOL_GERI} size={36} sw={1.9} color="#fff" />
+          <View style={styles.yanYaziKutu} pointerEvents="none">
+            <Txt weight="extrabold" size={10.5} color="#fff">{ATLAMA_SN}</Txt>
+          </View>
         </Pressable>
         <Pressable
           onPress={() => { haptic.select(); (oynuyor ? onDuraklat : onOynat)(); setAcik(true); }}
@@ -96,8 +98,10 @@ export const OynaticiKontrol = memo(function OynaticiKontrol({
           <Icon path={oynuyor ? YOL_DURAKLAT : YOL_OYNAT} size={34} sw={2.6} color="#fff" fill={oynuyor ? "none" : "#fff"} />
         </Pressable>
         <Pressable onPress={() => atla(ATLAMA_SN)} hitSlop={10} style={styles.yanDugme}>
-          <Icon path={YOL_ILERI} size={30} sw={2.4} color="#fff" />
-          <Txt weight="extrabold" size={9.5} color="#fff" style={styles.yanYazi}>{ATLAMA_SN}</Txt>
+          <Icon path={YOL_ILERI} size={36} sw={1.9} color="#fff" />
+          <View style={styles.yanYaziKutu} pointerEvents="none">
+            <Txt weight="extrabold" size={10.5} color="#fff">{ATLAMA_SN}</Txt>
+          </View>
         </Pressable>
       </View>
 
@@ -123,10 +127,10 @@ const styles = StyleSheet.create({
   perde: { backgroundColor: "rgba(0,0,0,.12)", justifyContent: "center" },
   orta: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 34 },
   yanDugme: {
-    alignItems: "center", justifyContent: "center", width: 44, height: 44,
+    alignItems: "center", justifyContent: "center", width: 48, height: 48,
     shadowColor: "#000", shadowOpacity: 0.55, shadowRadius: 6, shadowOffset: { width: 0, height: 1 },
   },
-  yanYazi: { position: "absolute", bottom: 2 },
+  yanYaziKutu: { position: "absolute", left: 0, right: 0, top: 0, bottom: 0, alignItems: "center", justifyContent: "center", marginTop: 2 },
   anaDugme: {
     width: 56, height: 56, alignItems: "center", justifyContent: "center",
     shadowColor: "#000", shadowOpacity: 0.55, shadowRadius: 6, shadowOffset: { width: 0, height: 1 },
