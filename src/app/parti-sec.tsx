@@ -23,11 +23,17 @@ export default function PartiSec() {
   const userName = useApp((s) => s.userName);
   const userPhoto = useApp((s) => s.userPhoto);
   const sec = usePartiKuyruk((s) => s.sec);
+  const gezinenAyarla = usePartiKuyruk((s) => s.gezinenAyarla);
   const oynatici = useRef<OynaticiKolu>(null);
   const [sonBilgi, setSonBilgi] = useState<{ adres: string; baslik: string | null } | null>(null);
   const [secimAni, setSecimAni] = useState(0);
   const [izlemeAni, setIzlemeAni] = useState(0);
   const [acilmadi, setAcilmadi] = useState<string | null>(null);
+
+  useEffect(() => {
+    gezinenAyarla(true);
+    return () => gezinenAyarla(false);
+  }, [gezinenAyarla]);
 
   const olayGeldi = useCallback((o: OynaticiOlayi) => {
     if (o.tur === "bilgi") {
