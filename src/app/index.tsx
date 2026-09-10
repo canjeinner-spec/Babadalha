@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -5,6 +6,7 @@ import { FlatList, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Anim } from "@/components/Anim";
+import { KARSILAMA_ANAHTARI } from "@/app/giris";
 import { BaslatAmblemi } from "@/components/BaslatAmblemi";
 import { Portrait } from "@/components/Portrait";
 import { TanitimBanner } from "@/components/TanitimBanner";
@@ -58,6 +60,17 @@ function OdaSatiri({ oda, onBas }: { oda: LobiOdasi; onBas: () => void }) {
 
 export default function PartiAnaEkran() {
   const router = useRouter();
+
+  useEffect(() => {
+    let acik = true;
+    AsyncStorage.getItem(KARSILAMA_ANAHTARI)
+      .then((v) => {
+        if (acik && !v && !useApp.getState().girisYapildi) router.replace("/giris");
+      })
+      .catch(() => {});
+    return () => { acik = false; };
+  }, [router]);
+
   const userPhoto = useApp((s) => s.userPhoto);
   const userName = useApp((s) => s.userName);
   const [odalar, setOdalar] = useState<LobiOdasi[]>([]);
