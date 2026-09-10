@@ -398,11 +398,16 @@ export default function PartiOda() {
     setDevamHedefi(girisLazim ? { konum: 0, an: Date.now() } : null);
   }, []);
 
+  const [odakta, setOdakta] = useState(true);
+
   useFocusEffect(useCallback(() => {
+    setOdakta(true);
     const bekleyen = usePartiKuyruk.getState().bekleyen;
-    if (!bekleyen) return;
-    usePartiKuyruk.getState().tuket();
-    baslat(bekleyen);
+    if (bekleyen) {
+      usePartiKuyruk.getState().tuket();
+      baslat(bekleyen);
+    }
+    return () => setOdakta(false);
   }, [baslat]));
 
   const benSahip = !id || id === ODAM_ID || id === kendiKimlik;
@@ -906,7 +911,7 @@ export default function PartiOda() {
           />
         </View>
 
-        {dogrudanMi(oynatilan.platform) ? (
+        {!odakta ? null : dogrudanMi(oynatilan.platform) ? (
           <PartiNativeOynatici
             key={`dogrudan-${oynatimNo}`}
             ref={oynatici}
