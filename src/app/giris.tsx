@@ -77,7 +77,7 @@ export default function Giris() {
 
           <View style={styles.ayrac}>
             <View style={styles.cizgi} />
-            <Txt weight="bold" size={13} color="rgba(255,255,255,.72)">veya</Txt>
+            <Txt weight="bold" size={13} color="rgba(255,255,255,.85)" style={styles.ayracYazi}>veya</Txt>
             <View style={styles.cizgi} />
           </View>
 
@@ -105,16 +105,20 @@ const styles = StyleSheet.create({
     textShadowColor: "rgba(0,0,0,.8)", textShadowRadius: 10,
     textShadowOffset: { width: 0, height: 1 },
   },
-  dip: { paddingHorizontal: 20, paddingBottom: 16, gap: 12 },
+  dip: { paddingHorizontal: 20, paddingBottom: 46, gap: 12 },
   beyazDugme: {
     flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10,
     paddingVertical: 16, borderRadius: 16, backgroundColor: "#F2F1EC",
   },
   misafirDugme: {
     alignItems: "center", justifyContent: "center", paddingVertical: 16,
-    borderRadius: 16, borderWidth: 1, borderColor: "rgba(255,255,255,.26)",
-    backgroundColor: "rgba(10,10,16,.42)",
+    borderRadius: 16, borderWidth: 1, borderColor: "rgba(255,255,255,.34)",
+    backgroundColor: "rgba(255,255,255,.07)",
   },
   ayrac: { flexDirection: "row", alignItems: "center", gap: 14, paddingVertical: 2 },
-  cizgi: { flex: 1, height: 1, backgroundColor: "rgba(255,255,255,.2)" },
+  ayracYazi: {
+    textShadowColor: "rgba(0,0,0,.8)", textShadowRadius: 8,
+    textShadowOffset: { width: 0, height: 1 },
+  },
+  cizgi: { flex: 1, height: 1, backgroundColor: "rgba(255,255,255,.28)" },
 });

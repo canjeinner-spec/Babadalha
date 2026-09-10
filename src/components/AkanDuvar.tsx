@@ -142,14 +142,13 @@ export function AkanDuvar({
       <View style={[StyleSheet.absoluteFill, { backgroundColor: C.bg, opacity: karartma }]} />
       <LinearGradient
         colors={[
-          "rgba(8,8,12,.72)",
+          "rgba(8,8,12,.74)",
           "rgba(8,8,12,.10)",
-          "rgba(8,8,12,.30)",
-          "rgba(8,8,12,.82)",
-          "rgba(8,8,12,.97)",
-          C.bg,
+          "rgba(8,8,12,.26)",
+          "rgba(8,8,12,.52)",
+          "rgba(8,8,12,.62)",
         ]}
-        locations={[0, 0.2, 0.5, 0.76, 0.9, 1]}
+        locations={[0, 0.2, 0.5, 0.8, 1]}
         style={StyleSheet.absoluteFill}
       />
     </View>
