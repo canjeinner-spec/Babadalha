@@ -7,6 +7,7 @@ import { Platform, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider, initialWindowMetrics } from "react-native-safe-area-context";
 
+import { useDil } from "@/lib/dil";
 import { useApp } from "@/store/appStore";
 import { C } from "@/theme/colors";
 import { fontMap } from "@/theme/fonts";
@@ -23,11 +24,13 @@ if (!__DEV__) {
 export default function KokYerlesim() {
   const [yazilarHazir] = useFonts(fontMap);
   const initAuth = useApp((s) => s.initAuth);
+  const dilYukle = useDil((s) => s.yukle);
   const bootstrapped = useApp((s) => s.bootstrapped);
 
   useEffect(() => {
     initAuth();
-  }, [initAuth]);
+    dilYukle();
+  }, [initAuth, dilYukle]);
 
   useEffect(() => {
     if (yazilarHazir && bootstrapped) SplashScreen.hideAsync().catch(() => {});

@@ -10,6 +10,7 @@ import { Txt } from "@/components/Txt";
 import { gunYaz, partiIstatistiklerim, saatAraligiYaz, sureYaz, type PartiIstatistik } from "@/data/remote/partiRepo";
 import { Icon } from "@/icons/Icon";
 import { platformBul } from "@/oda/platform";
+import { DilSecici } from "@/components/DilSecici";
 import { useApp } from "@/store/appStore";
 import { C } from "@/theme/colors";
 
@@ -92,6 +93,8 @@ export default function PartiProfil() {
             <Satir etiket="Kayıt tarihi" deger={tarihYaz(session?.user?.created_at)} />
             <View style={styles.ayirac} />
             <Satir etiket="Hesap" deger={session ? "Doğrulanmış" : "Misafir"} />
+            <View style={styles.ayirac} />
+            <DilSecici bicim="satir" />
           </View>
 
           <Txt weight="extrabold" size={12} color={C.dim2} style={styles.bolumBaslik}>

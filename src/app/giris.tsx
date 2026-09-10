@@ -1,29 +1,27 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View, useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AkanDuvar } from "@/components/AkanDuvar";
+import { DilSecici } from "@/components/DilSecici";
+import { ElmaIsareti, GoogleIsareti } from "@/components/MarkaIkonlari";
 import { TitrekYazi } from "@/components/TitrekYazi";
 import { Txt } from "@/components/Txt";
 import { KARSILAMA_KARELERI } from "@/data/karsilamaKareleri";
-import { Icon } from "@/icons/Icon";
 import { haptic } from "@/lib/haptics";
 import { C } from "@/theme/colors";
 
 export const KARSILAMA_ANAHTARI = "aron.karsilama.goruldu";
 
-const DILLER = [
-  { kod: "tr", ad: "Türkçe", bayrak: "🇹🇷" },
-  { kod: "en", ad: "English", bayrak: "🇬🇧" },
-];
+const DUVAR_ORANI = 0.54;
 
 export default function Giris() {
   const router = useRouter();
-  const [dilAcik, setDilAcik] = useState(false);
-  const [dil, setDil] = useState(DILLER[0]);
+  const { height } = useWindowDimensions();
   const [markaHatasi, setMarkaHatasi] = useState(false);
 
   const devam = useCallback(async () => {
@@ -32,14 +30,38 @@ export default function Giris() {
     router.replace("/");
   }, [router]);
 
+  const duvarYuksekligi = Math.round(height * DUVAR_ORANI);
+
   return (
     <View style={styles.kok}>
-      <AkanDuvar gorseller={KARSILAMA_KARELERI} sutunSayisi={3} />
+      <View style={[styles.duvarYuvasi, { height: duvarYuksekligi }]}>
+        <AkanDuvar gorseller={KARSILAMA_KARELERI} sutunSayisi={3} karartma={0.6} />
+        <LinearGradient
+          colors={["rgba(8,8,12,0)", "rgba(8,8,12,.75)", C.bg]}
+          locations={[0.45, 0.82, 1]}
+          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
+        />
+      </View>
+
+      <View style={[styles.dikis, { top: duvarYuksekligi - 1 }]} pointerEvents="none">
+        <LinearGradient
+          colors={["rgba(232,179,65,0)", C.gold, "rgba(232,179,65,0)"]}
+          start={{ x: 0, y: 0.5 }}
+          end={{ x: 1, y: 0.5 }}
+          style={styles.dikisCizgi}
+        />
+        <LinearGradient
+          colors={["rgba(232,179,65,.16)", "rgba(232,179,65,0)"]}
+          style={styles.dikisIsik}
+        />
+      </View>
 
       <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
         <View style={styles.tepe}>
+          <View style={{ width: 62 }} />
           {markaHatasi ? (
-            <Txt weight="displayBold" size={30} color="#fff">Aron</Txt>
+            <Txt weight="displayBold" size={26} color="#fff">Aron</Txt>
           ) : (
             <Image
               source={require("@/assets/marka/aron-marka.webp")}
@@ -49,67 +71,41 @@ export default function Giris() {
               onError={() => setMarkaHatasi(true)}
             />
           )}
-
-          <Pressable
-            style={styles.dilKapsul}
-            onPress={() => { haptic.select(); setDilAcik((v) => !v); }}
-          >
-            <Txt weight="extrabold" size={14} color="#fff">{dil.ad}</Txt>
-            <Txt size={14} color="#fff">{dil.bayrak}</Txt>
-            <View style={{ flex: 1 }} />
-            <View style={{ transform: [{ rotate: "90deg" }] }}>
-              <Icon name="chev" size={18} sw={2.2} color="rgba(255,255,255,.75)" />
-            </View>
-          </Pressable>
-
-          {dilAcik && (
-            <View style={styles.dilListe}>
-              {DILLER.map((d) => (
-                <Pressable
-                  key={d.kod}
-                  style={styles.dilSatiri}
-                  onPress={() => { haptic.select(); setDil(d); setDilAcik(false); }}
-                >
-                  <Txt size={14} color="#fff">{d.bayrak}  {d.ad}</Txt>
-                </Pressable>
-              ))}
-            </View>
-          )}
+          <View style={{ width: 62, alignItems: "flex-end" }}>
+            <DilSecici />
+          </View>
         </View>
+
+        <View style={{ flex: 1 }} />
 
         <View style={styles.orta}>
           <TitrekYazi
             parcalar={[
-              { metin: "Her yerden birlikte\n", renk: C.gold2 },
-              { metin: "film izleyin ", renk: "#fff" },
-              { metin: "❤️", renk: "#fff" },
+              { metin: "Arada ne kadar yol varsa,\n", renk: "#fff" },
+              { metin: "film aynı saniyede başlar", renk: C.gold2 },
             ]}
-            size={31}
-            style={{ textAlign: "center", lineHeight: 40 }}
+            size={25}
+            style={{ textAlign: "center", lineHeight: 34 }}
           />
-          <Txt size={14} color="rgba(255,255,255,.72)" align="center" lh={1.45} style={styles.altYazi}>
-            Netflix, Disney+, Prime Video, YouTube ve daha fazlasını en sevdiğin
-            kişilerle aynı saniyede izle.
+          <Txt size={13.5} color="rgba(255,255,255,.66)" align="center" lh={1.5} style={styles.altYazi}>
+            Netflix, Disney+, Prime Video, YouTube ve daha fazlası.
+            Sen aç, o açsın, geri kalanı Aron halleder.
           </Txt>
         </View>
 
         <View style={styles.dip}>
-          <Pressable style={styles.birincil} onPress={devam}>
-            <Txt weight="extrabold" size={15} color="#141018">Apple ile devam et</Txt>
+          <Pressable style={[styles.dugme, styles.elma]} onPress={devam}>
+            <ElmaIsareti size={18} renk="#fff" />
+            <Txt weight="extrabold" size={15} color="#fff">Apple ile devam et</Txt>
           </Pressable>
 
-          <Pressable style={styles.birincil} onPress={devam}>
-            <Txt weight="extrabold" size={15} color="#141018">Google ile devam et</Txt>
+          <Pressable style={[styles.dugme, styles.google]} onPress={devam}>
+            <GoogleIsareti size={18} />
+            <Txt weight="extrabold" size={15} color="#1F1F1F">Google ile devam et</Txt>
           </Pressable>
 
-          <View style={styles.ayrac}>
-            <View style={styles.cizgi} />
-            <Txt size={12.5} color="rgba(255,255,255,.6)">veya</Txt>
-            <View style={styles.cizgi} />
-          </View>
-
-          <Pressable style={styles.ikincil} onPress={devam}>
-            <Txt weight="extrabold" size={15} color="#fff">Misafir olarak devam et</Txt>
+          <Pressable style={styles.misafir} onPress={devam} hitSlop={8}>
+            <Txt weight="extrabold" size={14} color={C.gold2}>Misafir olarak devam et</Txt>
           </Pressable>
         </View>
       </SafeAreaView>
@@ -119,32 +115,23 @@ export default function Giris() {
 
 const styles = StyleSheet.create({
   kok: { flex: 1, backgroundColor: C.bg },
-  tepe: { alignItems: "center", paddingTop: 18, gap: 14 },
-  marka: { width: 148, height: 35 },
-  dilKapsul: {
-    flexDirection: "row", alignItems: "center", gap: 8,
-    paddingVertical: 9, paddingHorizontal: 18, borderRadius: 22,
-    borderWidth: 1, borderColor: "rgba(255,255,255,.22)",
-    backgroundColor: "rgba(10,10,16,.45)", minWidth: 186,
+  duvarYuvasi: { position: "absolute", top: 0, left: 0, right: 0, overflow: "hidden" },
+  dikis: { position: "absolute", left: 0, right: 0, height: 60 },
+  dikisCizgi: { height: 1, opacity: 0.5 },
+  dikisIsik: { height: 58 },
+  tepe: {
+    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+    paddingTop: 10, paddingHorizontal: 16,
   },
-  dilListe: {
-    borderRadius: 14, overflow: "hidden", minWidth: 186,
-    borderWidth: 1, borderColor: "rgba(255,255,255,.14)",
-    backgroundColor: "rgba(14,14,20,.94)",
-  },
-  dilSatiri: { paddingVertical: 12, paddingHorizontal: 18 },
-  orta: { flex: 1, justifyContent: "flex-end", paddingHorizontal: 26, paddingBottom: 26 },
-  altYazi: { marginTop: 14 },
-  dip: { paddingHorizontal: 20, paddingBottom: 10, gap: 10 },
-  birincil: {
+  marka: { width: 128, height: 30 },
+  orta: { paddingHorizontal: 26, paddingBottom: 30 },
+  altYazi: { marginTop: 16, paddingHorizontal: 6 },
+  dip: { paddingHorizontal: 20, paddingBottom: 14, gap: 11 },
+  dugme: {
     flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10,
-    paddingVertical: 15, borderRadius: 15, backgroundColor: "#F2F1EC",
+    paddingVertical: 15, borderRadius: 15,
   },
-  ikincil: {
-    alignItems: "center", justifyContent: "center", paddingVertical: 15,
-    borderRadius: 15, borderWidth: 1, borderColor: "rgba(255,255,255,.24)",
-    backgroundColor: "rgba(10,10,16,.4)",
-  },
-  ayrac: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 4 },
-  cizgi: { flex: 1, height: 1, backgroundColor: "rgba(255,255,255,.16)" },
+  elma: { backgroundColor: "#0B0B10", borderWidth: 1, borderColor: "rgba(255,255,255,.22)" },
+  google: { backgroundColor: "#FFFFFF" },
+  misafir: { alignItems: "center", justifyContent: "center", paddingVertical: 12 },
 });

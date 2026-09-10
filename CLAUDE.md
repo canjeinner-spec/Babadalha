@@ -98,6 +98,28 @@ certificate` — o satır göründüğünde iOS Expo Go manifest imzasını
 doğrulayamıyor. Başlattıktan sonra o satırın **olmadığını** doğrula.
 Token depo dışında: `~/.aron-expo-token`. **Depoya yazılmaz.**
 
+### `expo-dev-client` kurulmaz
+
+10 Eylül 2026: EAS Update hazırlığı diye Aron'daki modüller toplu kurulurken
+`expo-dev-client` de kuruldu. Bu paket `dependencies`'te olunca `npx expo
+start` geliştirme derlemesi kipine geçiyor ve `Waiting on` satırı
+`exp+aron-parti://...` oluyor. Expo Go o pakete bağlanınca yerel modül
+köprüsünü hiç kuramıyor:
+
+```
+WARN  No native ExponentConstants module found...
+ERROR [runtime not ready]: Cannot find native module 'ExpoAsset'
+ERROR [runtime not ready]: Invariant Violation: "main" has not been registered.
+```
+
+Paket kaldırıldı, `Waiting on http://...` geri geldi. `expo-dev-client`
+gerçekten dev build alınacağı gün kurulur; KURAL 3 gereği telefona tek
+bağlanma yolu Expo Go olduğu sürece depoda durmaz.
+
+Genel kural: yeni bir yerel modül kurduktan sonra Metro'yu yeniden başlat ve
+logda `Cannot find native module` var mı diye bak. Expo Go'nun içinde
+olmayan bir modül eklemişsen uygulama hiç açılmıyor.
+
 ### `pkill -f` ile kendi kabuğunu öldürme
 
 `pkill -f <kalıp>` tam komut satırına bakar; çağıran kabuk kendini eşleştirip
