@@ -1,0 +1,95 @@
+package expo.modules.aronplayer
+
+import android.media.MediaDrm
+import android.os.Build
+import android.os.Handler
+import android.os.Looper
+import androidx.media3.common.C
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.drm.FrameworkMediaDrm
+import expo.modules.kotlin.modules.Module
+import expo.modules.kotlin.modules.ModuleDefinition
+
+@androidx.annotation.OptIn(UnstableApi::class)
+class AronPlayerModule : Module() {
+  private val elci = Handler(Looper.getMainLooper())
+
+  override fun definition() = ModuleDefinition {
+    Name("AronPlayer")
+
+    AsyncFunction("drmDestegi") {
+      val destek = try {
+        FrameworkMediaDrm.isCryptoSchemeSupported(C.WIDEVINE_UUID)
+      } catch (e: Throwable) {
+        false
+      }
+      val bilgi = mutableMapOf<String, Any>(
+        "sema" to "widevine",
+        "var" to destek,
+        "androidSurum" to Build.VERSION.SDK_INT
+      )
+      if (destek) {
+        try {
+          val drm = MediaDrm(C.WIDEVINE_UUID)
+          bilgi["seviye"] = ozellik(drm, "securityLevel")
+          bilgi["vendor"] = ozellik(drm, "vendor")
+          bilgi["surum"] = ozellik(drm, "version")
+          bilgi["hdcp"] = ozellik(drm, "maxHdcpLevel")
+          bilgi["oturumSiniri"] = ozellik(drm, "maxNumberOfSessions")
+          kapat(drm)
+        } catch (e: Throwable) {
+          bilgi["hata"] = e.javaClass.simpleName
+        }
+      }
+      bilgi
+    }
+
+    OnActivityEntersBackground {
+      elci.post { AronPlayerView.hepsi().forEach { it.onArkaPlan() } }
+    }
+
+    OnActivityEntersForeground {
+      elci.post { AronPlayerView.hepsi().forEach { it.onOnPlan() } }
+    }
+
+    OnDestroy {
+      elci.post { AronPlayerView.hepsi().forEach { it.yokEt() } }
+    }
+
+    View(AronPlayerView::class) {
+      Events("onDurum", "onIlerleme", "onHata", "onBoyut", "onDrm")
+
+      Prop("kaynak") { view: AronPlayerView, json: String? -> view.yapilandir(json) }
+      Prop("oranKipi") { view: AronPlayerView, kip: String? -> view.oranKipi(kip) }
+      Prop("ses") { view: AronPlayerView, deger: Float? -> view.sesSeviyesi(deger ?: 1f) }
+      Prop("hizi") { view: AronPlayerView, deger: Float? -> view.hiz(deger ?: 1f) }
+
+      AsyncFunction("yukle") { view: AronPlayerView, json: String -> view.yapilandir(json) }
+      AsyncFunction("oynat") { view: AronPlayerView -> view.oynat() }
+      AsyncFunction("duraklat") { view: AronPlayerView -> view.duraklat() }
+      AsyncFunction("ara") { view: AronPlayerView, ms: Double -> view.ara(ms.toLong()) }
+      AsyncFunction("durdur") { view: AronPlayerView -> view.durdur() }
+      AsyncFunction("birak") { view: AronPlayerView -> view.birak() }
+      AsyncFunction("sesSeviyesi") { view: AronPlayerView, deger: Double -> view.sesSeviyesi(deger.toFloat()) }
+      AsyncFunction("hiz") { view: AronPlayerView, deger: Double -> view.hiz(deger.toFloat()) }
+      AsyncFunction("konum") { view: AronPlayerView -> view.konumBilgisi() }
+
+      OnViewDestroys { view: AronPlayerView -> view.yokEt() }
+    }
+  }
+
+  private fun ozellik(drm: MediaDrm, ad: String): String {
+    return try {
+      drm.getPropertyString(ad)
+    } catch (e: Throwable) {
+      "-"
+    }
+  }
+
+  private fun kapat(drm: MediaDrm) {
+    try {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) drm.close() else @Suppress("DEPRECATION") drm.release()
+    } catch (e: Throwable) {
+    }
+  }
+}
