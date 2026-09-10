@@ -22,12 +22,11 @@ function Sayfa({ sayfa, genislik }: { sayfa: KarsilamaSayfasi; genislik: number 
       showsVerticalScrollIndicator={false}
       nestedScrollEnabled
     >
-      <Image
-        source={require("@/assets/karsilama/kediler.webp")}
-        style={styles.foto}
-        contentFit="cover"
-        transition={220}
-      />
+      {sayfa.gorsel ? (
+        <Image source={sayfa.gorsel} style={styles.foto} contentFit="cover" transition={220} />
+      ) : (
+        <View style={styles.gorselsizPay} />
+      )}
       {!!sayfa.altYazi && (
         <Txt weight="bold" size={12.5} color={C.dim} align="center" style={styles.fotoAlti}>
           {sayfa.altYazi}
@@ -135,6 +134,7 @@ const styles = StyleSheet.create({
   sayfa: { paddingHorizontal: 22, paddingTop: 18, paddingBottom: 26, alignItems: "center" },
   foto: { width: "66%", aspectRatio: 1, borderRadius: 24, backgroundColor: C.card },
   fotoAlti: { marginTop: 12, paddingHorizontal: 26 },
+  gorselsizPay: { height: 26 },
   kart: {
     marginTop: 32, width: "100%", borderRadius: 22, paddingVertical: 22, paddingHorizontal: 20,
     backgroundColor: "rgba(255,255,255,.05)", borderWidth: 1, borderColor: "rgba(255,255,255,.08)",
