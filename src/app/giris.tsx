@@ -18,6 +18,7 @@ import { C } from "@/theme/colors";
 export const KARSILAMA_ANAHTARI = "aron.karsilama.goruldu";
 
 const DUVAR_ORANI = 0.54;
+const ERIME = 260;
 
 export default function Giris() {
   const router = useRouter();
@@ -35,25 +36,29 @@ export default function Giris() {
   return (
     <View style={styles.kok}>
       <View style={[styles.duvarYuvasi, { height: duvarYuksekligi }]}>
-        <AkanDuvar gorseller={KARSILAMA_KARELERI} sutunSayisi={3} karartma={0.6} />
+        <AkanDuvar gorseller={KARSILAMA_KARELERI} sutunSayisi={3} karartma={0.6} doldur={false} />
         <LinearGradient
-          colors={["rgba(8,8,12,0)", "rgba(8,8,12,.75)", C.bg]}
-          locations={[0.45, 0.82, 1]}
+          colors={["rgba(8,8,12,0)", "rgba(8,8,12,.45)", "rgba(8,8,12,.88)", C.bg]}
+          locations={[0.18, 0.52, 0.8, 0.97]}
           style={StyleSheet.absoluteFill}
           pointerEvents="none"
         />
       </View>
 
-      <View style={[styles.dikis, { top: duvarYuksekligi - 1 }]} pointerEvents="none">
+      <View
+        style={[styles.dikis, { top: duvarYuksekligi - ERIME / 2, height: ERIME }]}
+        pointerEvents="none"
+      >
         <LinearGradient
-          colors={["rgba(232,179,65,0)", C.gold, "rgba(232,179,65,0)"]}
-          start={{ x: 0, y: 0.5 }}
-          end={{ x: 1, y: 0.5 }}
-          style={styles.dikisCizgi}
-        />
-        <LinearGradient
-          colors={["rgba(232,179,65,.16)", "rgba(232,179,65,0)"]}
-          style={styles.dikisIsik}
+          colors={[
+            "rgba(232,179,65,0)",
+            "rgba(232,179,65,.035)",
+            "rgba(232,179,65,.085)",
+            "rgba(232,179,65,.045)",
+            "rgba(232,179,65,0)",
+          ]}
+          locations={[0, 0.34, 0.5, 0.66, 1]}
+          style={StyleSheet.absoluteFill}
         />
       </View>
 
@@ -89,7 +94,6 @@ export default function Giris() {
           />
           <Txt size={13.5} color="rgba(255,255,255,.66)" align="center" lh={1.5} style={styles.altYazi}>
             Netflix, Disney+, Prime Video, YouTube ve daha fazlası.
-            Sen aç, o açsın, geri kalanı Aron halleder.
           </Txt>
         </View>
 
@@ -116,9 +120,7 @@ export default function Giris() {
 const styles = StyleSheet.create({
   kok: { flex: 1, backgroundColor: C.bg },
   duvarYuvasi: { position: "absolute", top: 0, left: 0, right: 0, overflow: "hidden" },
-  dikis: { position: "absolute", left: 0, right: 0, height: 60 },
-  dikisCizgi: { height: 1, opacity: 0.5 },
-  dikisIsik: { height: 58 },
+  dikis: { position: "absolute", left: 0, right: 0 },
   tepe: {
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
     paddingTop: 10, paddingHorizontal: 16,

@@ -186,3 +186,150 @@ speckles, no stray pixels. Centered, 1536x512.
 
 Varyant: `LINK` yerine `ARON LINK` da denenebilir; ızgarada marka bağı
 kurar ama daha dar görünür, ikisini karşılaştırmak lazım.
+
+---
+
+## 4) Karşılama duvarı kareleri (20 adet)
+
+**Nerede duracak:** `giris.tsx` üstündeki `AkanDuvar`. Üç sütun, sütunlar ters
+yönde kayıyor. Kareler ekranda **çok karartılıyor** (`karartma` 0.6 + üstüne
+gradyan), yani ayrıntı değil siluet ve renk görünüyor.
+
+**Teknik**
+
+- 900 × 1350 (2:3), JPG ya da PNG, ben WebP'ye çevirip `assets/karsilama/`
+  altına koyacağım
+- **Koyu tabanlı** üret. Açık zeminli kare karartma altında gri lekeye
+  dönüyor
+- Her karede paletten **tek baskın renk** olsun: altın `#E8B341`, turkuaz
+  `#2DD4BF`, mor `#8B5CF6`. Yirmi karenin dağılımı kabaca 8 altın, 7 turkuaz,
+  5 mor
+- **Yazı yok.** Üreticiler harfleri bozuyor, Türkçe harfleri hiç beceremiyor
+- **Tanınabilir film, dizi, karakter, afiş yok.** Duvarın varlık sebebi bu:
+  stüdyo görseli taşımadan aynı hissi vermek
+
+**Konu listesi** (her biri bir kare, 20 tane):
+
+1. Karanlık odada kanepede iki siluet, tek ışık kaynağı karşıdaki ekran
+2. Gece penceresinden şehir ışıkları, cam üstünde ekran yansıması
+3. Boş sinema koltuk sırası, üstten sıcak spot
+4. Perde aralığından sızan altın ışık huzmesi
+5. Battaniye ve iki fincan, yakın plan, arkada ekran parıltısı
+6. Gece uçağı penceresinden bulut ve şehir, uzak mesafe hissi
+7. Elde tutulan telefon, ekranından yüze vuran turkuaz ışık
+8. Yağmurlu cam, arkasında bulanık ekran ışığı
+9. Uzun pozlama araba farları, gece yolu
+10. İki farklı saat dilimi gösteren duvar saatleri, karanlık duvar
+11. Projeksiyon huzmesindeki toz zerrecikleri
+12. Karanlıkta yan yana iki kulaklık, tek kablo
+13. Yatak odasında tavana vuran ekran ışığı dalgaları
+14. Uzaktan görünen tek ışıklı pencere, karanlık bina cephesi
+15. Gece denizi ve ufuktaki tek ışık
+16. Ses dalgası biçiminde ışık çizgileri, koyu zemin
+17. Kanepe koluna bırakılmış kumanda, arkada bulanık ekran
+18. İki el, aralarında mesafe, ikisine de aynı ışık düşüyor
+19. Karanlık koridorun sonunda açık kapıdan gelen ışık
+20. Gece haritası gibi ışık noktaları ve aralarındaki ince bağlantı çizgileri
+
+```
+Cinematic vertical still, 2:3, very dark low-key photograph.
+<KONU BURAYA>.
+Single dominant accent colour <RENK>, everything else near-black.
+Deep shadows, soft volumetric light, filmic grain, shallow depth of field.
+Moody, intimate, quiet. No people's faces, no readable text, no logos,
+no movie posters, no recognisable characters or franchises.
+No borders, no frame, no watermark. 900x1350.
+```
+
+`<RENK>` yerine sırayla: `warm gold #E8B341`, `teal #2DD4BF`,
+`violet #8B5CF6`.
+
+**Bittiğinde:** `assets/karsilama/01.webp` … `20.webp` olarak koyacağım,
+`src/data/karsilamaKareleri.ts` tek dosya değişikliğiyle o listeye geçecek.
+Şu an oraya platform logoları bağlı, geçici.
+
+---
+
+## 5) Aron amblemi (logo) — üç aday
+
+Karar verilmedi. Üçünü de ürettir, yan yana koyup seçelim.
+
+**Teknik (üçü için ortak)**
+
+- 1024 × 1024 şeffaf PNG
+- Tek renkli hâli de çalışmalı; ambleme gölge, kabartma, cam efekti koyma
+- 16 pikselde okunacak: ince çizgi, küçük boşluk, ayrıntı yok
+- Kare içine sığdır, kenarlarda %12 boşluk bırak
+
+### 5-A · "A" harfinin boşluğu oynat üçgeni
+
+```
+Minimal geometric app logo mark. A single uppercase letter "A" built from
+clean geometric strokes. The triangular counter inside the letter A is
+rotated to read as a play button triangle pointing right. One idea, no
+extra elements. Solid warm gold #E8B341 on transparent background.
+Flat vector, sharp edges, no gradient, no shadow, no bevel, no 3D,
+no outline box, no text. Balanced optical weight, readable at 16 pixels.
+1024x1024, centered, 12% padding.
+```
+
+### 5-B · İki daire, kesişimde oynat üçgeni
+
+```
+Minimal geometric app logo mark. Two equal circles overlapping side by
+side, like a Venn diagram. The lens-shaped overlap is filled and contains
+a small play triangle pointing right. Left circle warm gold #E8B341,
+right circle teal #2DD4BF, the overlap a lighter blend. Flat vector,
+sharp edges, no gradient, no shadow, no 3D, no text, no frame.
+Readable at 16 pixels. 1024x1024, centered, 12% padding.
+```
+
+### 5-C · Buluşan iki uç
+
+```
+Minimal geometric app logo mark. Two short horizontal strokes approaching
+each other from left and right; where they meet, the gap forms a play
+triangle pointing right. Suggests two distant points meeting at one
+moment. Solid warm gold #E8B341 on transparent background. Flat vector,
+sharp edges, no gradient, no shadow, no text, no frame. Readable at
+16 pixels. 1024x1024, centered, 12% padding.
+```
+
+---
+
+## 6) Uygulama simgesi
+
+Amblem seçildikten **sonra** üretilir, aynı ambleme dayanır.
+
+**Teknik**
+
+- 1024 × 1024, **şeffaflık yok** (App Store şeffaf simge kabul etmiyor)
+- Köşe yuvarlatma koyma, mağazalar kendisi yapıyor
+- Amblem karenin %58'ini kaplasın, fazla büyütme
+
+```
+App icon, 1024x1024, no transparency, no rounded corners.
+Centered <SECILEN AMBLEM> mark in warm gold #E8B341 on a near-black
+background #08080C with a very subtle radial warm glow behind the mark.
+Flat, clean, high contrast. No text, no border, no gloss, no 3D bevel.
+```
+
+---
+
+## 7) Açılış ekranı (splash)
+
+**Teknik**
+
+- 1284 × 2778 PNG, zemin düz `#08080C` (app.json'daki `backgroundColor`
+  ile birebir aynı olmalı, yoksa açılışta renk sıçraması oluyor)
+- Amblem dikey ortanın **biraz üstünde**, genişliği tuvalin %34'ü
+- Kenarlara hiçbir şey koyma; farklı telefon oranlarında kırpılıyor
+
+```
+Mobile splash screen, 1284x2778, flat near-black background #08080C.
+A single centered <SECILEN AMBLEM> mark in warm gold #E8B341, placed
+slightly above the vertical centre, width about 34% of the canvas.
+A very soft warm radial glow behind it, fading to pure background well
+before the edges. Nothing else in the frame: no text, no tagline,
+no pattern, no vignette, no border.
+```

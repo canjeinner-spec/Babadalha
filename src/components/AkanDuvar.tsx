@@ -22,6 +22,7 @@ type Props = {
   sutunSayisi?: number;
   turSuresi?: number;
   karartma?: number;
+  doldur?: boolean;
 };
 
 function Sutun({
@@ -31,6 +32,7 @@ function Sutun({
   sure,
   yukari,
   canli,
+  doldur,
 }: {
   gorseller: ImageSourcePropType[];
   genislik: number;
@@ -38,6 +40,7 @@ function Sutun({
   sure: number;
   yukari: boolean;
   canli: boolean;
+  doldur: boolean;
 }) {
   const seritYuksekligi = gorseller.length * (kareYuksekligi + ARALIK);
   const kayma = useSharedValue(yukari ? 0 : -seritYuksekligi);
@@ -78,7 +81,7 @@ function Sutun({
                 borderRadius: 14,
                 backgroundColor: C.card,
               }}
-              contentFit="cover"
+              contentFit={doldur ? "cover" : "contain"}
               transition={0}
             />
           )),
@@ -93,6 +96,7 @@ export function AkanDuvar({
   sutunSayisi = 3,
   turSuresi = 42000,
   karartma = 0.72,
+  doldur = true,
 }: Props) {
   const { width, height } = useWindowDimensions();
   const canli = useCanli();
@@ -124,6 +128,7 @@ export function AkanDuvar({
             sure={turSuresi + i * 6000}
             yukari={i % 2 === 0}
             canli={canli}
+            doldur={doldur}
           />
         ))}
       </View>
