@@ -946,6 +946,7 @@ export default function PartiOda() {
             onBoyut={boyutDegistir}
             onSohbet={() => setYanSohbet((v) => !v)}
             sohbetAcik={yanSohbet}
+            kontrolVar={kip === "oynatim"}
             kilitli={!kontrolBende}
             onOlay={olayGeldi}
             ustKatman={girisGerekli && kip === "oynatim" && oynatilanPlatform ? (

@@ -28,10 +28,11 @@ export const PartiOynatici = forwardRef<OynaticiKolu, {
   onBoyut?: () => void;
   onSohbet?: () => void;
   sohbetAcik?: boolean;
+  kontrolVar?: boolean;
   kilitli?: boolean;
   onOlay?: (o: OynaticiOlayi) => void;
   ustKatman?: ReactNode;
-}>(function PartiOynatici({ adres, platform, tamEkran, onBoyut, onSohbet, sohbetAcik, kilitli, onOlay, ustKatman }, ref) {
+}>(function PartiOynatici({ adres, platform, tamEkran, onBoyut, onSohbet, sohbetAcik, kontrolVar, kilitli, onOlay, ustKatman }, ref) {
   const betik = useMemo(() => kopruBetigi(platform), [platform]);
   const masaustu = masaustuIcerikMi(platform);
   useEffect(() => { console.warn(`[parti-oynatici] ${Platform.OS} yeni oynatici ${platform} ${adres.slice(0, 70)}`); }, [platform, adres]);
@@ -108,7 +109,7 @@ export const PartiOynatici = forwardRef<OynaticiKolu, {
 
       {kilitli && <View style={StyleSheet.absoluteFill} />}
 
-      {!tamEkran && videoVar && !hata && !kilitli && (
+      {kontrolVar && videoVar && !hata && !kilitli && (
         <OynaticiKontrol
           konum={konum}
           sure={sure}
