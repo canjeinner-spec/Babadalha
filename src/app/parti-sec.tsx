@@ -40,7 +40,7 @@ export default function PartiSec() {
       }
     } else if (o.tur === "engel") {
       setIzlemeAni(0);
-      setAcilmadi(o.sebep);
+      setAcilmadi(null);
     } else if (o.tur === "oynat" && o.izleme) {
       oynatici.current?.duraklat();
       setIzlemeAni(0);
