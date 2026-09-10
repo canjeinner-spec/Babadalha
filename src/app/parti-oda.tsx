@@ -395,6 +395,8 @@ export default function PartiOda() {
   const [bildirim, setBildirim] = useState("");
   const [atilma, setAtilma] = useState<PartiRol | null>(null);
   const [cikisOnayi, setCikisOnayi] = useState(false);
+  const [ilkDurumBekleniyor, setIlkDurumBekleniyor] = useState(false);
+  const [beklenenOda, setBeklenenOda] = useState<string | null>(null);
   const akis = useRef<ScrollView>(null);
   const [kisilerAcik, setKisilerAcik] = useState(false);
   const [ustYukseklik, setUstYukseklik] = useState(0);
@@ -539,6 +541,7 @@ export default function PartiOda() {
   }, [kontrolBende, suankiDurum, yayinlayabilirMi, gunluk]);
 
   const durumUygula = useCallback((d: OynatimDurumu) => {
+    setIlkDurumBekleniyor(false);
     if (askidaRef.current) {
       gunluk("askida-yoksayildi", { kaynak: d.kaynak ?? "-", sira: d.sira ?? -1 });
       return;
@@ -754,6 +757,17 @@ export default function PartiOda() {
       kanalRef.current = null;
     };
   }, [kanalOdaId, benimAnahtar, userName, userPhoto, benSahip, myDbId, ozelIdTip, ozelIdTema]);
+
+  if (!benSahip && beklenenOda !== kanalOdaId) {
+    setBeklenenOda(kanalOdaId);
+    setIlkDurumBekleniyor(true);
+  }
+
+  useEffect(() => {
+    if (!ilkDurumBekleniyor) return;
+    const t = setTimeout(() => setIlkDurumBekleniyor(false), ILK_DURUM_TAVANI);
+    return () => clearTimeout(t);
+  }, [ilkDurumBekleniyor]);
 
   useEffect(() => {
     const z = devirZamanlayiciAc();
@@ -1185,7 +1199,11 @@ export default function PartiOda() {
         )}
 
         <View style={buyuk ? styles.yatayGovde : { flex: 1 }}>
-        {dogrudanMi(oynatilan.platform) ? (
+        {ilkDurumBekleniyor ? (
+          <View style={styles.oynatici}>
+            <Txt size={13} color={C.dim}>Partiye bağlanılıyor…</Txt>
+          </View>
+        ) : dogrudanMi(oynatilan.platform) ? (
           <PartiNativeOynatici
             key={`dogrudan-${oynatimNo}`}
             ref={oynatici}
@@ -1343,6 +1361,8 @@ export default function PartiOda() {
     </View>
   );
 }
+
+const ILK_DURUM_TAVANI = 6000;
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
