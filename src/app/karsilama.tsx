@@ -3,10 +3,12 @@ import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useCallback, useRef, useState } from "react";
+import Animated, { FadeIn } from "react-native-reanimated";
 import { Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Txt } from "@/components/Txt";
+import { YazilanMetin, type YazilanBlok } from "@/components/YazilanMetin";
 import { KARSILAMA_SAYFALARI, type KarsilamaSayfasi } from "@/data/karsilamaSayfalari";
 import { Icon } from "@/icons/Icon";
 import { haptic } from "@/lib/haptics";
@@ -14,51 +16,88 @@ import { C } from "@/theme/colors";
 
 export const KARSILAMA_ANAHTARI = "aron.karsilama.goruldu";
 
-function Sayfa({ sayfa, genislik }: { sayfa: KarsilamaSayfasi; genislik: number }) {
-  return (
-    <ScrollView
-      style={{ width: genislik }}
-      contentContainerStyle={styles.sayfa}
-      showsVerticalScrollIndicator={false}
-      nestedScrollEnabled
-    >
-      {sayfa.gorsel ? (
-        <Image source={sayfa.gorsel} style={styles.foto} contentFit="cover" transition={220} />
-      ) : (
-        <View style={styles.gorselsizPay} />
-      )}
-      {!!sayfa.altYazi && (
-        <Txt weight="bold" size={12.5} color={C.dim} align="center" style={styles.fotoAlti}>
-          {sayfa.altYazi}
-        </Txt>
-      )}
+function Sayfa({
+  sayfa,
+  genislik,
+  etkin,
+  onBitti,
+}: {
+  sayfa: KarsilamaSayfasi;
+  genislik: number;
+  etkin: boolean;
+  onBitti: () => void;
+}) {
+  const akis = useRef<ScrollView>(null);
+  const [atla, setAtla] = useState(false);
 
-      <View style={styles.kart}>
-        <Txt weight="displayBold" size={22} color="#fff" align="center" style={styles.baslik}>
-          {sayfa.baslik}
+  const bloklar: YazilanBlok[] = [
+    { anahtar: "baslik", metin: sayfa.baslik },
+    ...sayfa.paragraflar.map((p, i) => ({ anahtar: `p${i}`, metin: p.metin })),
+  ];
+
+  const ciz = (blok: YazilanBlok, gorunen: string, sira: number) => {
+    if (sira === 0) {
+      return (
+        <Txt key={blok.anahtar} weight="displayBold" size={22} color="#fff" align="center" style={styles.baslik}>
+          {gorunen}
         </Txt>
-        {sayfa.paragraflar.map((p, i) =>
-          p.vurgu ? (
-            <View key={i} style={styles.vurguKutu}>
-              <Txt weight="extrabold" size={15} color={C.gold2} align="center" lh={1.58}>
-                {p.metin}
-              </Txt>
-            </View>
-          ) : (
-            <Txt
-              key={i}
-              size={14}
-              color="rgba(255,255,255,.82)"
-              align="center"
-              lh={1.62}
-              style={styles.paragraf}
-            >
-              {p.metin}
-            </Txt>
-          ),
+      );
+    }
+    const p = sayfa.paragraflar[sira - 1];
+    if (p?.vurgu) {
+      return (
+        <View key={blok.anahtar} style={styles.vurguKutu}>
+          <Txt weight="extrabold" size={15} color={C.gold2} align="center" lh={1.58}>
+            {gorunen}
+          </Txt>
+        </View>
+      );
+    }
+    return (
+      <Txt
+        key={blok.anahtar}
+        size={14}
+        color="rgba(255,255,255,.82)"
+        align="center"
+        lh={1.62}
+        style={styles.paragraf}
+      >
+        {gorunen}
+      </Txt>
+    );
+  };
+
+  return (
+    <Pressable style={{ width: genislik }} onPress={() => setAtla(true)}>
+      <ScrollView
+        ref={akis}
+        contentContainerStyle={styles.sayfa}
+        showsVerticalScrollIndicator={false}
+        nestedScrollEnabled
+      >
+        {sayfa.gorsel ? (
+          <Image source={sayfa.gorsel} style={styles.foto} contentFit="cover" transition={220} />
+        ) : (
+          <View style={styles.gorselsizPay} />
         )}
-      </View>
-    </ScrollView>
+        {!!sayfa.altYazi && (
+          <Txt weight="bold" size={12.5} color={C.dim} align="center" style={styles.fotoAlti}>
+            {sayfa.altYazi}
+          </Txt>
+        )}
+
+        <View style={styles.kart}>
+          <YazilanMetin
+            bloklar={bloklar}
+            etkin={etkin}
+            atla={atla}
+            onBitti={onBitti}
+            onIlerleme={() => akis.current?.scrollToEnd({ animated: false })}
+            ciz={ciz}
+          />
+        </View>
+      </ScrollView>
+    </Pressable>
   );
 }
 
@@ -69,6 +108,12 @@ export default function Karsilama() {
   const [sayfa, setSayfa] = useState(0);
   const son = sayfa >= KARSILAMA_SAYFALARI.length - 1;
   const cokSayfa = KARSILAMA_SAYFALARI.length > 1;
+  const [yazildi, setYazildi] = useState<Record<string, boolean>>({});
+  const buSayfaHazir = !!yazildi[KARSILAMA_SAYFALARI[sayfa]?.anahtar];
+  const bittiIsaretle = useCallback(
+    (anahtar: string) => setYazildi((o) => (o[anahtar] ? o : { ...o, [anahtar]: true })),
+    [],
+  );
 
   const ileri = useCallback(async () => {
     haptic.select();
@@ -99,21 +144,40 @@ export default function Karsilama() {
           showsHorizontalScrollIndicator={false}
           onMomentumScrollEnd={(e) => setSayfa(Math.round(e.nativeEvent.contentOffset.x / width))}
         >
-          {KARSILAMA_SAYFALARI.map((s) => (
-            <Sayfa key={s.anahtar} sayfa={s} genislik={width} />
+          {KARSILAMA_SAYFALARI.map((s, i) => (
+            <Sayfa
+              key={s.anahtar}
+              sayfa={s}
+              genislik={width}
+              etkin={i === sayfa}
+              onBitti={() => bittiIsaretle(s.anahtar)}
+            />
           ))}
         </ScrollView>
         ) : (
-          <Sayfa sayfa={KARSILAMA_SAYFALARI[0]} genislik={width} />
+          <Sayfa
+            sayfa={KARSILAMA_SAYFALARI[0]}
+            genislik={width}
+            etkin
+            onBitti={() => bittiIsaretle(KARSILAMA_SAYFALARI[0].anahtar)}
+          />
         )}
 
         <View style={styles.dip}>
-          <Pressable style={styles.dugme} onPress={ileri}>
-            <Txt weight="extrabold" size={15.5} color="#241A05">
-              {son ? "Devam et" : "İleri"}
-            </Txt>
-            <Icon name="chev" size={19} sw={2.4} color="#241A05" />
-          </Pressable>
+          {buSayfaHazir ? (
+            <Animated.View entering={FadeIn.duration(240)}>
+              <Pressable style={styles.dugme} onPress={ileri}>
+                <Txt weight="extrabold" size={15.5} color="#241A05">
+                  {son ? "Devam et" : "İleri"}
+                </Txt>
+                <Icon name="chev" size={19} sw={2.4} color="#241A05" />
+              </Pressable>
+            </Animated.View>
+          ) : (
+            <View style={styles.dugmeYeri}>
+              <Txt size={12} color={C.dim2}>dokunarak geç</Txt>
+            </View>
+          )}
 
           {cokSayfa && (
             <View style={styles.noktalar}>
@@ -150,6 +214,7 @@ const styles = StyleSheet.create({
     flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
     paddingVertical: 16, borderRadius: 16, backgroundColor: C.gold2,
   },
+  dugmeYeri: { height: 53, alignItems: "center", justifyContent: "center" },
   noktalar: { flexDirection: "row", justifyContent: "center", gap: 7 },
   nokta: { width: 7, height: 7, borderRadius: 4, backgroundColor: "rgba(255,255,255,.22)" },
   noktaAcik: { backgroundColor: C.gold2, width: 20 },
