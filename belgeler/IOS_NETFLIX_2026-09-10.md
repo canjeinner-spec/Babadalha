@@ -1,0 +1,95 @@
+# iOS'ta Netflix — 10 Eylül 2026 ölçümleri
+
+Cihaz: iPhone, Expo Go, `react-native-webview` (yerel modül yok).
+Kimlik: `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15
+Version/17.4 Safari/605.1.15`, `platform=MacIntel`, `dokunma=0`.
+
+Bütün satırlar `parti-metro.log`'dan; tahmin yok.
+
+## Android'den farkı: iOS'ta EME açık
+
+Netflix'in kendi `clientPlaybackCapabilities` nesnesi:
+
+```
+supportsHTML5=maybe supportsHTML5withDRM=maybe determinedCapabilities=true
+canPlayHTML5=true canPlayHTML5WithDRM=true
+TAG=yes TAG_UA=maybe H264=yes WEBM=yes HLS=yes
+MSE=yes MSE_MP4_AUDIO=yes MSE_MP4=yes MSE_WEBM=yes MSE_EME_TYPE_MP4=yes
+SILVERLIGHT=no FLASH=no
+EME_UA=maybe READ_ONLY_AUDIO=no EME=yes
+```
+
+**`EME=yes`.** Android'de bu satır `no` idi ve duvar oradaydı
+(`ANDROID_WEBVIEW_DRM_2026-09-09.md`). iOS'ta motor "yapabilirim" diyor:
+
+- `eme istek com.apple.fps.3_0` → `eme TAMAM com.apple.fps.3_0`
+- `anahtar URETILDI com.apple.fps.3_0`
+- avc1, hevc, dvhe, av01 tamponları açılıyor
+- `medya: eski-fps destek com.apple.fps.2_0 -> EVET`
+
+Yani iOS'ta FairPlay kuruluyor. Sorun DRM yeteneği değil.
+
+## Asıl bulgu: içerik başına karar
+
+Aynı oturumda, aynı kimlikle, aynı WebView'de:
+
+| İzleme adresi | Sonuç |
+|---|---|
+| `/watch/80126264` | `video-bulundu hazir=4 +119ms` ✅ (tam sayfa yükleme) |
+| `/watch/82699336` | `video-bulundu hazir=4 +1887ms` ✅ (SPA gezintisi) |
+| `/watch/70301862` | video ögesi hiç oluşmadı ❌ |
+| `/watch/81323556` | video ögesi hiç oluşmadı ❌ |
+| `/watch/81035908` | tam sayfa yüklemesinden sonra da oluşmadı ❌ |
+
+Başarısızlarda ekranda **kodsuz** hata sayfası çıkıyor ve Netflix'in iç
+hata nesnelerinin hepsi boş:
+
+```
+nfhata: ekranda kodsuz hata sayfasi yol=/watch/81035908
+nfic: kodsuz olusturmaHatasi={} durum={} yetenek={...} uaDestek={...} oturum={}
+```
+
+Sonu `_UA` olan alanların hepsi `maybe`: Netflix gönderdiğimiz kimliği
+sınıflandıramıyor. Sınıflandıramadığı istemciye bazı içerikleri veriyor,
+bazılarını vermiyor. **Bu içerik başına verilmiş bir erişim kararıdır ve
+aşılmaya çalışılmaz.**
+
+## Çürütülen ara hüküm
+
+Oturumun ortasında "izleme adresine tam sayfa yükleme çalışıyor, servisin
+kendi SPA gezintisi çalışmıyor" diye yazmıştım. **Yanlıştı.**
+`/watch/82699336` SPA gezintisiyle açıldı; `/watch/81035908` tam sayfa
+yüklemesinden sonra da açılmadı. Gezinti biçimi belirleyici değil.
+
+## Kalan düzeltme: izleme bekçisi
+
+Yine de yerinde bırakıldı, çünkü ölçülen bir işe yarıyor: video bulunması
+1887 ms sürebiliyor ve daha yavaş geçişlerde eşiği aşan içerik olabilir.
+
+`src/parti/kopru.ts`: adres izleme sayfasına dönünce bekçi kuruluyor;
+4,5 sn içinde YENİ video ögesi bağlanmazsa aynı adrese `location.replace`
+ile tam sayfa yüklemesi yapılıyor. `sessionStorage` damgası her adres için
+tek deneme veriyor. Cihazda doğrulandı:
+
+```
+izleme-video-yok tam-yuklemeye-geciliyor +4501ms
+izleme-video-yok yeniden-denendi +4502ms      <- dongu yok
+```
+
+Ayrıca eski sayfadan kalan fragman ögesine yapışma sorunu vardı; loglarda
+`atla: istek=33 ... sure=2663` satırları izlenen içeriğin değil o ögenin
+süresini gösteriyordu. Bekçi `tVideo` üzerinden çalıştığı için o durum da
+kapsanıyor.
+
+## Arayüz tarafı
+
+`parti-sec` izleme sayfasına gidilip 14 sn içinde oynatma başlamazsa ya da
+`engel` olayı gelirse artık sessizce odaya dönmüyor; seçim ekranında
+kalıp "Bu içerik burada açılmadı" uyarısını gösteriyor. Eskiden kuyruk boş
+kaldığı için oda eski içeriği oynatmaya devam ediyordu ve kullanıcı ne
+olduğunu anlamıyordu.
+
+## Çalışan platformlar
+
+Prime Video, Disney+, YouTube iOS'ta sorunsuz. Android'de Netflix hariç
+hepsi çalışıyor (`platform.ts` → `BU_CIHAZDA_YOK`).

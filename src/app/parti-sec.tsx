@@ -13,6 +13,7 @@ import { useApp } from "@/store/appStore";
 import { C } from "@/theme/colors";
 
 const BEKLEME_MS = 700;
+const ACILMA_SURESI_MS = 14000;
 
 export default function PartiSec() {
   const router = useRouter();
@@ -25,14 +26,37 @@ export default function PartiSec() {
   const oynatici = useRef<OynaticiKolu>(null);
   const [sonBilgi, setSonBilgi] = useState<{ adres: string; baslik: string | null } | null>(null);
   const [secimAni, setSecimAni] = useState(0);
+  const [izlemeAni, setIzlemeAni] = useState(0);
+  const [acilmadi, setAcilmadi] = useState<string | null>(null);
 
   const olayGeldi = useCallback((o: OynaticiOlayi) => {
-    if (o.tur === "bilgi") setSonBilgi({ adres: o.adres, baslik: o.baslik });
-    else if (o.tur === "oynat" && o.izleme) {
+    if (o.tur === "bilgi") {
+      setSonBilgi({ adres: o.adres, baslik: o.baslik });
+      if (o.izleme) {
+        setIzlemeAni((a) => a || Date.now());
+      } else {
+        setIzlemeAni(0);
+        setAcilmadi(null);
+      }
+    } else if (o.tur === "engel") {
+      setIzlemeAni(0);
+      setAcilmadi(o.sebep);
+    } else if (o.tur === "oynat" && o.izleme) {
       oynatici.current?.duraklat();
+      setIzlemeAni(0);
+      setAcilmadi(null);
       setSecimAni((a) => a || Date.now());
     }
   }, []);
+
+  useEffect(() => {
+    if (!izlemeAni) return;
+    const t = setTimeout(() => {
+      setIzlemeAni(0);
+      setAcilmadi("Bu içerik burada açılmadı. Listeye dönüp başka bir şey seçebilirsin.");
+    }, ACILMA_SURESI_MS);
+    return () => clearTimeout(t);
+  }, [izlemeAni]);
 
   useEffect(() => {
     if (!secimAni || !platform) return;
@@ -74,6 +98,17 @@ export default function PartiSec() {
         tamEkran
         onOlay={olayGeldi}
       />
+      {!!acilmadi && (
+        <View style={[styles.uyari, { paddingBottom: insets.bottom + 14 }]}>
+          <View style={styles.uyariIc}>
+            <Icon name="warn" size={17} color={C.gold2} />
+            <Txt size={12.5} color="#fff" lh={1.45} style={{ flex: 1 }}>{acilmadi}</Txt>
+            <Pressable onPress={() => setAcilmadi(null)} hitSlop={10}>
+              <Icon name="x" size={16} sw={2.4} color={C.dim} />
+            </Pressable>
+          </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -83,5 +118,12 @@ const styles = StyleSheet.create({
   baslik: {
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
     paddingHorizontal: 16, paddingBottom: 10, backgroundColor: "#000",
+  },
+  uyari: { position: "absolute", left: 0, right: 0, bottom: 0, paddingHorizontal: 14, paddingTop: 14 },
+  uyariIc: {
+    flexDirection: "row", alignItems: "center", gap: 11,
+    padding: 13, borderRadius: 16,
+    backgroundColor: "rgba(15,13,21,.96)",
+    borderWidth: 1, borderColor: C.gold + "44",
   },
 });
