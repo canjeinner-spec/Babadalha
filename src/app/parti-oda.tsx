@@ -501,15 +501,14 @@ export default function PartiOda() {
 
   const saatSapmasi = useCallback(() => saatRef.current?.sapma() ?? 0, []);
 
+  const gunlukOnek = `${benimAnahtar}/${benSahip ? "sahip" : "uye"}`;
   const gunluk = useCallback((olay: string, ayrinti?: Record<string, unknown>) => {
     if (!__DEV__) return;
     const ek = ayrinti
       ? " " + Object.entries(ayrinti).map(([k, v]) => `${k}=${typeof v === "number" ? Math.round(v * 100) / 100 : v}`).join(" ")
       : "";
-    const kim = benimAnahtarRef.current || "?";
-    const rol = benSahipRef.current ? "sahip" : "uye";
-    console.log(`[senkron ${kim}/${rol}] ${olay}${ek}`);
-  }, []);
+    console.log(`[senkron ${gunlukOnek}] ${olay}${ek}`);
+  }, [gunlukOnek]);
 
   const suankiDurum = useCallback((): OynatimDurumu => {
     siraRef.current += 1;
