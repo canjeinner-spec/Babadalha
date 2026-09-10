@@ -920,10 +920,7 @@ export default function PartiOda() {
           <UstBar
             kisi={kisiler.length}
             onKapat={cik}
-            onGezin={() => {
-              if (kip === "oynatim") { setKip("gezinme"); setSimdiSecim(null); return; }
-              router.push({ pathname: "/parti-platform", params: { secim: "1" } });
-            }}
+            onGezin={() => router.push({ pathname: "/parti-platform", params: { secim: "1" } })}
             onKisiler={() => setKisilerAcik(true)}
           />
         </View>
