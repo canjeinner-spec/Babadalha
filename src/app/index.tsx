@@ -2,7 +2,7 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { FlatList, Pressable, StyleSheet, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Portrait } from "@/components/Portrait";
 import { TanitimBanner } from "@/components/TanitimBanner";
@@ -60,6 +60,7 @@ export default function PartiAnaEkran() {
   const userName = useApp((s) => s.userName);
   const [odalar, setOdalar] = useState<LobiOdasi[]>([]);
   const { ic, renk } = useTema();
+  const altPay = useSafeAreaInsets().bottom;
   const temali = !!ic?.ustGorsel;
 
   useEffect(() => lobiyiDinle(setOdalar), []);
@@ -101,13 +102,6 @@ export default function PartiAnaEkran() {
           <TanitimBanner />
         </View>
 
-        <Pressable onPress={partiBaslat} style={styles.baslatSar}>
-          <Gradient colors={[C.gold2, "#C8922B"]} deg={135} style={styles.baslat}>
-            <Icon name="evParty" size={17} color="#241A05" />
-            <Txt weight="extrabold" size={14} color="#241A05">Parti başlat</Txt>
-          </Gradient>
-        </Pressable>
-
         <View style={styles.listeBasligi}>
           <Txt weight="extrabold" size={12.5} color={C.text}>Canlı partiler</Txt>
           <View style={{ flex: 1 }} />
@@ -117,7 +111,7 @@ export default function PartiAnaEkran() {
         <FlatList
           data={odalar}
           keyExtractor={(o) => o.odaId}
-          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 108 }}
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
             <OdaSatiri
@@ -139,6 +133,13 @@ export default function PartiAnaEkran() {
           }
         />
       </SafeAreaView>
+
+      <Pressable onPress={partiBaslat} style={[styles.baslatSar, { bottom: altPay + 16 }]}>
+        <Gradient colors={[C.gold2, "#C8922B"]} deg={135} style={styles.baslat}>
+          <Icon name="evParty" size={17} color="#241A05" />
+          <Txt weight="extrabold" size={14} color="#241A05">Parti başlat</Txt>
+        </Gradient>
+      </Pressable>
     </View>
   );
 }
@@ -147,7 +148,11 @@ const styles = StyleSheet.create({
   kok: { flex: 1, backgroundColor: C.bg },
   baslik: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 14 },
   bannerYuva: { paddingHorizontal: 16, marginTop: 2 },
-  baslatSar: { marginHorizontal: 16, marginTop: 14, borderRadius: 16, overflow: "hidden" },
+  baslatSar: {
+    position: "absolute", left: 16, right: 16,
+    borderRadius: 16, overflow: "hidden",
+    shadowColor: "#000", shadowOpacity: 0.45, shadowRadius: 14, shadowOffset: { width: 0, height: 5 }, elevation: 8,
+  },
   baslat: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 14 },
   listeBasligi: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingTop: 22, paddingBottom: 10 },
   satir: {
