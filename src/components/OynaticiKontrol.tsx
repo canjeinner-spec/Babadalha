@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { memo, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { type LayoutChangeEvent, PanResponder, Pressable, StyleSheet, View } from "react-native";
 
 import { Txt } from "@/components/Txt";
@@ -23,10 +23,11 @@ export function zamanYaz(sn: number): string {
 }
 
 export const OynaticiKontrol = memo(function OynaticiKontrol({
-  konum, sure, oynuyor, onOynat, onDuraklat, onAtla,
+  konum, sure, oynuyor, onOynat, onDuraklat, onAtla, sagDugmeler,
 }: {
   konum: number; sure: number; oynuyor: boolean;
   onOynat: () => void; onDuraklat: () => void; onAtla: (saniye: number) => void;
+  sagDugmeler?: ReactNode;
 }) {
   const [acik, setAcik] = useState(true);
   const [genislik, setGenislik] = useState(0);
@@ -117,6 +118,7 @@ export const OynaticiKontrol = memo(function OynaticiKontrol({
           <View pointerEvents="none" style={[styles.tutamac, { left: Math.max(0, oran * genislik - 7) }, surukleme != null && styles.tutamacBuyuk]} />
         </View>
         <Txt weight="extrabold" size={11} color="rgba(255,255,255,.75)" style={styles.zaman}>{zamanYaz(sure)}</Txt>
+        {sagDugmeler}
       </View>
     </Pressable>
   );

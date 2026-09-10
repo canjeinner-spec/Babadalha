@@ -117,20 +117,21 @@ export const PartiOynatici = forwardRef<OynaticiKolu, {
           onOynat={() => web.current?.enjekte(KOMUT.oynat)}
           onDuraklat={() => web.current?.enjekte(KOMUT.duraklat)}
           onAtla={(sn) => { setKonum(sn); web.current?.enjekte(KOMUT.atla(sn)); }}
+          sagDugmeler={
+            onBoyut ? (
+              <View style={styles.kosuKutusu}>
+                {!!onSohbet && tamEkran && (
+                  <Pressable onPress={onSohbet} hitSlop={10} style={styles.kosuDugmesi}>
+                    <Icon path={YOL_PANEL} size={19} sw={2.1} color={sohbetAcik ? C.gold2 : "#fff"} />
+                  </Pressable>
+                )}
+                <Pressable onPress={onBoyut} hitSlop={10} style={styles.kosuDugmesi}>
+                  <Icon path={tamEkran ? YOL_KUCULT : YOL_BUYUT} size={21} sw={2.4} color="#fff" />
+                </Pressable>
+              </View>
+            ) : null
+          }
         />
-      )}
-
-      {!!onBoyut && !hata && (
-        <View style={[styles.kosuKutusu, !tamEkran && styles.kosuKutusuUst]}>
-          {!!onSohbet && tamEkran && (
-            <Pressable onPress={onSohbet} hitSlop={10} style={[styles.kosuDugmesi, sohbetAcik && styles.kosuDugmesiAcik]}>
-              <Icon path={YOL_PANEL} size={19} sw={2.1} color={sohbetAcik ? C.gold2 : "#fff"} />
-            </Pressable>
-          )}
-          <Pressable onPress={onBoyut} hitSlop={10} style={styles.kosuDugmesi}>
-            <Icon path={tamEkran ? YOL_KUCULT : YOL_BUYUT} size={21} sw={2.4} color="#fff" />
-          </Pressable>
-        </View>
       )}
 
       {ustKatman}
@@ -152,13 +153,11 @@ const styles = StyleSheet.create({
   yuva: { width: "100%", aspectRatio: 16 / 9, backgroundColor: "#000" },
   yuvaTam: { flex: 1, width: "100%", backgroundColor: "#000" },
   web: { flex: 1, backgroundColor: "#000" },
-  kosuKutusu: { position: "absolute", right: 10, bottom: 10, flexDirection: "row", gap: 8 },
-  kosuKutusuUst: { bottom: 42 },
+  kosuKutusu: { flexDirection: "row", alignItems: "center", gap: 6, marginLeft: 2 },
   kosuDugmesi: {
-    width: 36, height: 36,
+    width: 30, height: 30,
     alignItems: "center", justifyContent: "center",
     shadowColor: "#000", shadowOpacity: 0.55, shadowRadius: 6, shadowOffset: { width: 0, height: 1 },
   },
-  kosuDugmesiAcik: {},
   perde: { ...StyleSheet.absoluteFill, alignItems: "center", justifyContent: "center", backgroundColor: "#000" },
 });
