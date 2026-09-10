@@ -1,4 +1,3 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { type Session } from "@supabase/supabase-js";
 import { AppState as RNAppState } from "react-native";
 import { create } from "zustand";
