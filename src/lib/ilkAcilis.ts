@@ -1,23 +1,48 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Guvenli from "expo-secure-store";
 
-const ANAHTAR = "aron.karsilama.goruldu";
+const KARSILAMA = "aron.karsilama.goruldu";
+const GIRIS = "aron.giris.atlandi";
 
-export async function karsilamaGoruldu(): Promise<boolean> {
+export const OTURUMLUK = __DEV__;
+
+const oturum = { karsilama: false, giris: false };
+
+async function oku(anahtar: string): Promise<boolean> {
   try {
-    if (await Guvenli.getItemAsync(ANAHTAR)) return true;
+    if (await Guvenli.getItemAsync(anahtar)) return true;
   } catch { /* yoksay */ }
   try {
-    if (await AsyncStorage.getItem(ANAHTAR)) return true;
+    if (await AsyncStorage.getItem(anahtar)) return true;
   } catch { /* yoksay */ }
   return false;
 }
 
+async function yaz(anahtar: string): Promise<void> {
+  try {
+    await Guvenli.setItemAsync(anahtar, "1");
+  } catch { /* yoksay */ }
+  try {
+    await AsyncStorage.setItem(anahtar, "1");
+  } catch { /* yoksay */ }
+}
+
+export async function karsilamaGoruldu(): Promise<boolean> {
+  if (OTURUMLUK) return oturum.karsilama;
+  return oku(KARSILAMA);
+}
+
 export async function karsilamayiIsaretle(): Promise<void> {
-  try {
-    await Guvenli.setItemAsync(ANAHTAR, "1");
-  } catch { /* yoksay */ }
-  try {
-    await AsyncStorage.setItem(ANAHTAR, "1");
-  } catch { /* yoksay */ }
+  oturum.karsilama = true;
+  if (!OTURUMLUK) await yaz(KARSILAMA);
+}
+
+export async function girisAtlandi(): Promise<boolean> {
+  if (OTURUMLUK) return oturum.giris;
+  return oku(GIRIS);
+}
+
+export async function girisiAtla(): Promise<void> {
+  oturum.giris = true;
+  if (!OTURUMLUK) await yaz(GIRIS);
 }

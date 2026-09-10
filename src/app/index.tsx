@@ -5,7 +5,7 @@ import { FlatList, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Anim } from "@/components/Anim";
-import { karsilamaGoruldu } from "@/lib/ilkAcilis";
+import { girisAtlandi, karsilamaGoruldu } from "@/lib/ilkAcilis";
 import { BaslatAmblemi } from "@/components/BaslatAmblemi";
 import { Portrait } from "@/components/Portrait";
 import { TanitimBanner } from "@/components/TanitimBanner";
@@ -63,10 +63,15 @@ export default function PartiAnaEkran() {
   useEffect(() => {
     let acik = true;
     karsilamaGoruldu()
-      .then((gorulmus) => {
+      .then(async (gorulmus) => {
         if (!acik) return;
-        if (!gorulmus) router.replace("/karsilama");
-        else if (!useApp.getState().girisYapildi) router.replace("/giris");
+        if (!gorulmus) {
+          router.replace("/karsilama");
+          return;
+        }
+        if (useApp.getState().girisYapildi) return;
+        if (await girisAtlandi()) return;
+        if (acik) router.replace("/giris");
       })
       .catch(() => {});
     return () => { acik = false; };

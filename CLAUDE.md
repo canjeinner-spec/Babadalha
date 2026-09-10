@@ -128,6 +128,22 @@ ile öldür (`pgrep -f ... | grep -v $$`). `pkill -f` en son çare.
 
 ---
 
+## KURAL 3.5 — Karşılama akışı geliştirmede her açılışta gösterilir
+
+`src/lib/ilkAcilis.ts` içindeki `OTURUMLUK` bayrağı `__DEV__`'e bağlı.
+
+- **Geliştirmede (Expo Go):** karşılama ve giriş bayrakları diske
+  yazılmıyor, yalnız JS oturumu boyunca hatırlanıyor. Yani her tam
+  yeniden yüklemede karşılama bir kez daha çıkıyor, denemek için
+  uygulamayı silmek gerekmiyor.
+- **Sürüm derlemesinde:** `__DEV__` false olduğu için bayraklar
+  SecureStore ve AsyncStorage'a yazılıyor, akış hayatta bir kez çıkıyor.
+
+Yani build alırken elle bir şey geri açmaya gerek yok, kendiliğinden
+doğru davranıyor. Bu davranışı değiştirmen gerekirse tek yer `OTURUMLUK`.
+
+---
+
 ## KURAL 4 — İş bittiyse push edilir
 
 Her tamamlanan iş hemen commit'lenip push edilir. Bir işin bittiğini

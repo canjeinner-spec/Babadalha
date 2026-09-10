@@ -11,14 +11,16 @@ import { TitrekYazi } from "@/components/TitrekYazi";
 import { Txt } from "@/components/Txt";
 import { KARSILAMA_KARELERI } from "@/data/karsilamaKareleri";
 import { haptic } from "@/lib/haptics";
+import { girisiAtla } from "@/lib/ilkAcilis";
 import { C } from "@/theme/colors";
 
 export default function Giris() {
   const router = useRouter();
   const [markaHatasi, setMarkaHatasi] = useState(false);
 
-  const devam = useCallback(() => {
+  const devam = useCallback(async () => {
     haptic.select();
+    await girisiAtla();
     router.replace("/");
   }, [router]);
 
