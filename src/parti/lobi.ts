@@ -19,6 +19,12 @@ export type LobiOdasi = {
 
 const LOBI = "parti-lobi";
 
+function gunluk(olay: string, ayrinti?: Record<string, unknown>): void {
+  if (!__DEV__) return;
+  const ek = ayrinti ? " " + Object.entries(ayrinti).map(([k, v]) => `${k}=${v}`).join(" ") : "";
+  console.log(`[lobi] ${olay}${ek}`);
+}
+
 function odaCoz(ham: unknown): LobiOdasi | null {
   if (!ham || typeof ham !== "object") return null;
   const o = ham as Partial<LobiOdasi>;
@@ -67,6 +73,7 @@ function yayinla(): void {
     yayinZaman = null;
   }
   const liste = listeCikar();
+  gunluk("liste", { oda: liste.length, kimlikler: liste.map((o) => o.odaId.slice(-6)).join(",") || "-" });
   for (const d of dinleyiciler) d(liste);
 }
 
@@ -79,8 +86,12 @@ function yayinlaToplu(): void {
 }
 
 function izimiGonder(): void {
-  if (!kanal || !hazir || !yayinlanan) return;
-  kanal.track(yayinlanan).catch(() => {});
+  if (!kanal || !hazir || !yayinlanan) {
+    gunluk("iz-gonderilmedi", { kanal: !!kanal, hazir, yayin: !!yayinlanan });
+    return;
+  }
+  gunluk("iz-gonderildi", { oda: yayinlanan.odaId.slice(-6), platform: yayinlanan.platform, kisi: yayinlanan.kisi });
+  kanal.track(yayinlanan).catch((e) => gunluk("iz-hata", { mesaj: (e as Error)?.message ?? String(e) }));
 }
 
 function kanaliSagla(): void {
@@ -95,6 +106,7 @@ function kanaliSagla(): void {
     .on("presence", { event: "leave" }, yayinlaToplu)
     .subscribe((durum) => {
       if (kanal !== k) return;
+      gunluk("kanal", { durum });
       if (durum === "SUBSCRIBED") {
         hazir = true;
         izimiGonder();
@@ -163,6 +175,7 @@ export function odayiLobideYayinla(ilk: LobiOdasi): LobiYayini {
   if (!supabase) return { guncelle: () => {}, kapat: () => {} };
 
   yayinlanan = { ...ilk, an: Date.now() };
+  gunluk("yayin-basladi", { oda: ilk.odaId.slice(-6), platform: ilk.platform });
   kanaliSagla();
   izimiGonder();
 
@@ -176,6 +189,7 @@ export function odayiLobideYayinla(ilk: LobiOdasi): LobiYayini {
     kapat: () => {
       if (kapandi) return;
       kapandi = true;
+      gunluk("yayin-bitti", { oda: ilk.odaId.slice(-6) });
       yayinlanan = null;
       if (kanal && hazir) {
         try {
