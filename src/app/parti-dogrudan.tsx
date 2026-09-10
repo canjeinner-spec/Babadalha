@@ -13,12 +13,6 @@ import { useApp } from "@/store/appStore";
 import { C } from "@/theme/colors";
 import { Zemin } from "@/theme/Zemin";
 
-const ORNEKLER = [
-  "https://sunucum.com/film.mp4",
-  "https://sunucum.com/yayin.m3u8",
-  "https://sunucum.com/video.mpd",
-];
-
 export default function PartiDogrudan() {
   const router = useRouter();
   const { secim } = useLocalSearchParams<{ secim?: string }>();
@@ -65,10 +59,6 @@ export default function PartiDogrudan() {
           style={{ flex: 1 }}
         >
           <View style={styles.govde}>
-            <Txt size={13} color={C.dim} lh={1.5}>
-              Video adresini yapıştır. Oda sahibi durdurup sardığında herkeste aynı anda uygulanır.
-            </Txt>
-
             <TextInput
               value={adres}
               onChangeText={setAdres}
@@ -97,18 +87,6 @@ export default function PartiDogrudan() {
                 {secim ? "Bu bağlantıya geç" : "Partiyi başlat"}
               </Txt>
             </Pressable>
-
-            <View style={styles.ornekKutu}>
-              <Txt size={11} color={C.dim2}>Örnek biçimler</Txt>
-              {ORNEKLER.map((o) => (
-                <Txt key={o} size={11} color={C.dim} style={{ marginTop: 4 }}>{o}</Txt>
-              ))}
-            </View>
-
-            <Txt size={11} color={C.dim2} lh={1.5} style={{ marginTop: 4 }}>
-              Netflix, Prime gibi servislerin bağlantıları burada çalışmaz; onların akışları
-              kendi uygulamalarının kimlik doğrulamasına bağlı.
-            </Txt>
           </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -134,8 +112,4 @@ const styles = StyleSheet.create({
     backgroundColor: C.gold2,
   },
   dugmePasif: { backgroundColor: "rgba(255,255,255,.07)" },
-  ornekKutu: {
-    padding: 12, borderRadius: 12, marginTop: 4,
-    backgroundColor: "rgba(255,255,255,.03)", borderWidth: 1, borderColor: C.line,
-  },
 });
