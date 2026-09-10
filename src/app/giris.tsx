@@ -28,7 +28,7 @@ export default function Giris() {
 
   return (
     <View style={styles.kok}>
-      <AkanDuvar gorseller={KARSILAMA_KARELERI} sutunSayisi={3} karartma={0.66} doldur={false} />
+      <AkanDuvar gorseller={KARSILAMA_KARELERI} sutunSayisi={3} karartma={0.62} />
 
       <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
         <View style={styles.tepe}>
