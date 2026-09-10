@@ -458,7 +458,7 @@ const ORTAK = `
     bekciDurdur();
     izlemeBekci = setTimeout(function () {
       izlemeBekci = 0;
-      if (tVideo || !izlemeSayfasi()) return;
+      if (video || tVideo || !izlemeSayfasi()) return;
       var su = location.href;
       var onceki = null;
       try { onceki = sessionStorage.getItem('__aronTamYukleme'); } catch (e) {}
@@ -650,7 +650,7 @@ const ORTAK = `
     var baslik = ozel ? b0.baslik : (document.title || '');
     if (!ozel && sonOzel && adres === sonAdres) return;
     if (adres === sonAdres && baslik === sonBaslik) return;
-    if (adres !== sonAdres && izlemeSayfasi()) { t0 = simdi(); tVideo = 0; tOynat = 0; zaman('izleme-adresi' + (video ? ' eski-video-var' : '')); bekciKur(); }
+    if (adres !== sonAdres && izlemeSayfasi() && !video) { t0 = simdi(); tVideo = 0; tOynat = 0; zaman('izleme-adresi'); bekciKur(); }
     sonAdres = adres;
     sonBaslik = baslik;
     sonOzel = ozel;
