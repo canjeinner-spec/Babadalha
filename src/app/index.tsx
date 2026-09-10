@@ -5,6 +5,7 @@ import { FlatList, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Portrait } from "@/components/Portrait";
+import { UstKaplama } from "@/components/UstKaplama";
 import { Txt } from "@/components/Txt";
 import { Icon } from "@/icons/Icon";
 import { haptic } from "@/lib/haptics";
@@ -13,6 +14,7 @@ import { lobiyiDinle, type LobiOdasi } from "@/parti/lobi";
 import { useApp } from "@/store/appStore";
 import { C } from "@/theme/colors";
 import { Gradient } from "@/theme/Gradient";
+import { TEMA_YAZI_GOLGESI, useTema } from "@/theme/tema";
 import { Zemin } from "@/theme/Zemin";
 
 function OdaSatiri({ oda, onBas }: { oda: LobiOdasi; onBas: () => void }) {
@@ -56,6 +58,8 @@ export default function PartiAnaEkran() {
   const userPhoto = useApp((s) => s.userPhoto);
   const userName = useApp((s) => s.userName);
   const [odalar, setOdalar] = useState<LobiOdasi[]>([]);
+  const { ic, renk } = useTema();
+  const temali = !!ic?.ustGorsel;
 
   useEffect(() => lobiyiDinle(setOdalar), []);
 
@@ -66,12 +70,26 @@ export default function PartiAnaEkran() {
 
   return (
     <View style={styles.kok}>
-      <Zemin />
+      <Zemin hale={!temali} />
+      <UstKaplama uzat={52} yumusak />
       <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
         <View style={styles.baslik}>
           <View style={{ flex: 1, minWidth: 0 }}>
-            <Txt weight="displayBold" size={22} color="#fff">Parti</Txt>
-            <Txt size={11.5} color={C.dim} style={{ marginTop: 2 }}>Birlikte izle, birlikte konuş</Txt>
+            <Txt
+              weight="displayBold"
+              size={22}
+              color={temali ? renk.ana : "#fff"}
+              style={temali ? TEMA_YAZI_GOLGESI : undefined}
+            >
+              Parti
+            </Txt>
+            <Txt
+              size={11.5}
+              color={temali ? renk.solgun : C.dim}
+              style={[{ marginTop: 2 }, temali ? TEMA_YAZI_GOLGESI : undefined]}
+            >
+              Birlikte izle, birlikte konuş
+            </Txt>
           </View>
           <Pressable onPress={() => router.push("/parti-profil")} hitSlop={8}>
             <Portrait name={userName || "Sen"} size={36} photo={userPhoto || undefined} halkasiz />
