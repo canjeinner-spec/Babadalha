@@ -32,6 +32,7 @@ const S = modulYukle("src/parti/senkron.ts");
 const K = modulYukle("src/parti/saat.ts");
 const D = modulYukle("src/parti/devir.ts");
 const M = modulYukle("src/parti/sistemMesaji.ts");
+const I = modulYukle("src/parti/icerik.ts");
 
 let gecen = 0;
 let kalan = 0;
@@ -279,6 +280,22 @@ console.log("sistem mesajlari");
     "etiket parcasi kisiyi tasiyor",
     M.sistemParcalari(ali, { cesit: "katildi" }, false)[0].kisi.ad === "Ali",
   );
+}
+
+console.log("icerik kimligi");
+{
+  const a = I.icerikAnahtari;
+  ol("youtube v parametresi", a("youtube", "https://www.youtube.com/watch?v=BcUckd8Ox9I") === "youtube:v:BcUckd8Ox9I");
+  ol(
+    "youtube ucucu parametreler kimligi degistirmiyor",
+    a("youtube", "https://www.youtube.com/watch?v=BcUckd8Ox9I&t=12s&list=RD1&pp=abc") === a("youtube", "https://m.youtube.com/watch?v=BcUckd8Ox9I"),
+  );
+  ol("youtube shorts", a("youtube", "https://www.youtube.com/shorts/abc123?feature=x") === "youtube:shorts:abc123");
+  ol("youtube farkli video farkli kimlik", a("youtube", "https://www.youtube.com/watch?v=aaa") !== a("youtube", "https://www.youtube.com/watch?v=bbb"));
+  ol("netflix yol tabanli", a("netflix", "https://www.netflix.com/watch/81731428?trackId=1&tctx=2") === "netflix:www.netflix.com/watch/81731428");
+  ol("sondaki egik cizgi ve buyuk harf esitleniyor", a("netflix", "https://WWW.netflix.com/watch/1/") === a("netflix", "https://www.netflix.com/watch/1"));
+  ol("bos adres platformla kaliyor", a("youtube", "") === "youtube:");
+  ol("bozuk adres cokmuyor", a("plex", "bu bir url degil") === "plex:bu bir url degil");
 }
 
 console.log(`\n${gecen} gecti, ${kalan} kaldi`);

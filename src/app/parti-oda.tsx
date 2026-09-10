@@ -64,6 +64,7 @@ import {
 import { ODAM_ID, kendiOdaKimligi, usePartiOdam } from "@/parti/odam";
 import { type OynaticiOlayi } from "@/parti/kopru";
 import { type PartiSecim, usePartiKuyruk } from "@/parti/kuyruk";
+import { icerikAnahtari } from "@/parti/icerik";
 import { Icon } from "@/icons/Icon";
 import { haptic } from "@/lib/haptics";
 import { useApp } from "@/store/appStore";
@@ -413,6 +414,8 @@ export default function PartiOda() {
   const saatRef = useRef<SaatEsleyici | null>(null);
   const siraRef = useRef(0);
   const sonPaketRef = useRef<PaketKimligi | null>(null);
+  const yuklenenIcerikRef = useRef<string>("");
+  const yuklenenPlatformRef = useRef<PlatformKodu | null>(null);
   const sonKonumRef = useRef(0);
   const oynuyorRef = useRef(false);
   const benSahipRef = useRef(false);
@@ -469,6 +472,8 @@ export default function PartiOda() {
 
   const baslat = useCallback((s: PartiSecim) => {
     setOynatimNo((n) => n + 1);
+    yuklenenPlatformRef.current = s.platform;
+    yuklenenIcerikRef.current = icerikAnahtari(s.platform, s.adres);
     setKip("gezinme");
     setOynatilan({ platform: s.platform, adres: s.adres });
     setSimdiSecim(s);
@@ -553,15 +558,20 @@ export default function PartiOda() {
     const kimlik = paketKimligi(d);
     if (kimlik) sonPaketRef.current = kimlik;
     uzakBitisRef.current = Date.now() + UZAK_UYGULAMA_SOGUMA;
-    const farkliIcerik = d.platform !== oynatilan.platform || d.adres !== oynatilan.adres;
-    if (farkliIcerik && d.adres) {
-      setOynatimNo((n) => n + 1);
+    const gelenAnahtar = icerikAnahtari(d.platform, d.adres);
+    const platformDegisti = d.platform !== yuklenenPlatformRef.current;
+    const icerikDegisti = gelenAnahtar !== yuklenenIcerikRef.current;
+    if (d.adres && (platformDegisti || icerikDegisti)) {
+      yuklenenPlatformRef.current = d.platform;
+      yuklenenIcerikRef.current = gelenAnahtar;
+      gunluk("icerik", { platform: d.platform, anahtar: gelenAnahtar, yenidenKur: platformDegisti });
+      if (platformDegisti) setOynatimNo((n) => n + 1);
       setOynatilan({ platform: d.platform, adres: d.adres });
       setSimdiki(d.baslik);
       setSimdikiKapak(d.kapak ?? null);
       setKip("oynatim");
       setEk((e) => [...e, {
-        tur: "simdi", anahtar: "s" + d.an, baslik: d.baslik ?? "Video", platform: d.platform,
+        tur: "simdi", anahtar: "s" + gelenAnahtar, baslik: d.baslik ?? "Video", platform: d.platform,
       }]);
       return;
     }
@@ -576,7 +586,7 @@ export default function PartiOda() {
     if (d.oynuyor && !oynuyor) oynatici.current?.oynat();
     if (!d.oynuyor && oynuyor) oynatici.current?.duraklat();
     if (d.baslik && d.baslik !== simdiki) setSimdiki(d.baslik);
-  }, [oynatilan, sonKonum, oynuyor, simdiki, saatSapmasi, gunluk]);
+  }, [sonKonum, oynuyor, simdiki, saatSapmasi, gunluk]);
 
   const benimRolRef = useRef<PartiRol>("uye");
   const odaAyariRef = useRef(odaAyari);
@@ -933,6 +943,10 @@ export default function PartiOda() {
     } else if (o.tur === "bilgi") {
       setSimdiki(o.baslik);
       setSonAdres(o.adres);
+      if (o.izleme) {
+        yuklenenPlatformRef.current = oynatilan.platform;
+        yuklenenIcerikRef.current = icerikAnahtari(oynatilan.platform, o.adres);
+      }
       if (o.kapak) setSimdikiKapak(o.kapak);
       oynatici.current?.sadelestir();
       if (o.izleme) {
