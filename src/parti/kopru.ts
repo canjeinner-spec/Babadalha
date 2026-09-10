@@ -1107,16 +1107,46 @@ const YOUTUBE = `
     try { if (n && n.style && typeof n.style.setProperty === 'function') n.style.setProperty(k, v, 'important'); } catch (e) {}
   }
 
+  var GIZLI = 'data-aron-gizli';
+  function gizliyiAc() {
+    var acilan = 0;
+    try {
+      var liste = document.querySelectorAll('[' + GIZLI + ']');
+      for (var i = 0; i < liste.length; i++) {
+        liste[i].style.removeProperty('display');
+        liste[i].removeAttribute(GIZLI);
+        acilan++;
+      }
+    } catch (e) {}
+    return acilan;
+  }
+
+  function videonunKabi(v) {
+    var k = v;
+    while (k && k !== document.body) {
+      if (k.id === 'player-container-id' || k.id === 'full-bleed-container') return k;
+      k = k.parentElement;
+    }
+    return null;
+  }
+
   var sonKap = null;
   var sonUygulama = 0;
 
   window.__aronSadelestir = function () {
     if (!/\\/watch|\\/shorts/.test(location.pathname)) return;
     stilKur();
-    var kap = document.getElementById('player-container-id')
+    var v = document.querySelector('video.html5-main-video');
+    if (v && !(v.isConnected && document.body && document.body.contains(v))) return;
+    var kap = (v && videonunKabi(v))
+      || document.getElementById('player-container-id')
       || document.getElementById('full-bleed-container')
       || document.getElementById('movie_player');
-    if (!kap) return;
+    if (!kap || !document.body || !document.body.contains(kap)) return;
+    var acilan = gizliyiAc();
+    if (acilan && window.__aronYolla) {
+      window.__aronYolla({ tur: 'gunluk', seviye: 'yerlesim', metin: 'onceki gizleme geri alindi: ' + acilan + ' dugum' });
+    }
     if (kap !== sonKap && window.__aronYolla) {
       window.__aronYolla({ tur: 'gunluk', seviye: 'yerlesim', metin: 'kap degisti: ' + (sonKap ? sonKap.id : '-') + ' -> ' + kap.id });
     }
@@ -1138,7 +1168,9 @@ const YOUTUBE = `
     var tum = document.body.querySelectorAll('*');
     for (var i = 0; i < tum.length; i++) {
       var n = tum[i];
-      if (!kalsin.has(n)) gizle(n, 'display', 'none');
+      if (kalsin.has(n)) continue;
+      gizle(n, 'display', 'none');
+      try { n.setAttribute(GIZLI, '1'); } catch (e) {}
     }
     ['position:fixed', 'top:0', 'left:0', 'right:0', 'bottom:0', 'width:100vw', 'height:100vh',
      'margin:0', 'padding:0', 'transform:none', 'z-index:2147483000', 'background:#000', 'border-radius:0']
