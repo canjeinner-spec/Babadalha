@@ -34,6 +34,21 @@ sonuç: Android'de Netflix'i çözen hiçbiri bunu WebView içinde çözmemiş.
 Netflix dışındaki servisler (Prime, Disney+, Hulu, Max, Crunchyroll,
 YouTube, Plex, Drive) Android'de çalışıyor.
 
+### Bir içerik açılmıyorsa önce kendi kodumuzu ele
+
+10 Eylül'de üç kez "Netflix reddediyor" hükmü verildi, üçü de yanlış
+çıktı; hata her seferinde bizdeydi. Sıra şudur:
+
+1. **Aynı anda ikinci bir WebView açık mı?** Netflix bunu S7020 ile
+   reddediyor. Bu yüzden seçim için ayrı ekran açılmaz, gezinme odanın
+   kendi oynatıcısında yapılır (`612318b`).
+2. **Doğru video ögesine mi bağlıyız?** En büyük alanlı video değil,
+   oynatıcı kabındaki (`oynaticiKabinda`) seçilir.
+3. **Yeterince beklendi mi?** Turtle 250 ms → 1,5 sn → 5 sn ile pes
+   etmiyor.
+
+Ayrıntı: `belgeler/IOS_NETFLIX_2026-09-10.md`.
+
 ### iOS'ta durum farklı ve o da ölçüldü (10 Eylül 2026)
 
 `belgeler/IOS_NETFLIX_2026-09-10.md`. Özet: iOS'ta `EME=yes`, FairPlay

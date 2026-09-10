@@ -118,3 +118,68 @@ olduğunu anlamıyordu.
 
 Prime Video, Disney+, YouTube iOS'ta sorunsuz. Android'de Netflix hariç
 hepsi çalışıyor (`platform.ts` → `BU_CIHAZDA_YOK`).
+
+---
+
+# ASIL KÖK SEBEP: S7020 — iki WebView
+
+Yukarıdaki bütün "içerik açılmıyor" ölçümleri, aynı gün akşam bulunan tek
+bir sebebe dayanıyordu. Cihazda Netflix şu hatayı bastı:
+
+```
+Hata Kodu S7020
+Netflix'i birden fazla tarayıcıda veya sekmede izliyorsunuz.
+```
+
+Kullanıcının tespiti doğru yeri gösterdi: *"ilk oda oluştururken her film
+sorunsuz ama oda içindeki akış sorunlu."*
+
+`parti-oda` kendi WebView'ini monte tutuyordu; odadan büyüteçe basınca
+`parti-sec` **ikinci** bir WebView açıyordu. İki Netflix oturumu aynı anda
+açık kalınca Netflix ikincisini S7020 ile reddediyor, ardından kodsuz hata
+sayfası basıyordu.
+
+## Bu yüzden çürüyen üç hükmüm
+
+Aynı gün üç kez "burada duvar var" dedim, üçü de yanlış çıktı:
+
+1. **"Tam sayfa yükleme çalışır, SPA gezintisi çalışmaz."**
+   Çürüdü: `/watch/82699336` SPA ile açıldı, `/watch/81035908` tam
+   yüklemeden sonra da açılmadı.
+2. **"Netflix içerik başına ret veriyor."**
+   Çürüdü: oynatıcı kabı düzeltmesinden sonra açılan sayısı 2'den 6'ya
+   çıktı, açılmayan hiç artmadı.
+3. **"Kalan üç içerik gerçek ret."**
+   Çürüdü: `70301862`, `81257204` ve `82026389` sonradan açıldı.
+
+## Son tablo (aynı oturum, tüm düzeltmelerden sonra)
+
+```
+Açılan (en az bir kez):     11
+Hiç açılmayan:               3   (80014298, 81035908, 82716765)
+Önce takılıp sonra açılan:   3   (70301862, 81257204, 82026389)
+```
+
+Hiç açılmayan üçü için de "Netflix reddediyor" denemez; diğer üçü de bir
+süre öyle görünüp sonra açıldı.
+
+## Alınan ders
+
+Bu depoda ölçüme dayanmayan hüküm vermek üç kez yanlış sonuç üretti ve
+her seferinde suç servise atıldı, oysa hata bizim kodumuzdaydı. Bir
+içerik açılmıyorsa önce şunlar elenir:
+
+1. Aynı anda ikinci bir WebView açık mı (S7020 ve benzerleri)
+2. Doğru video ögesine mi bağlıyız (oynatıcı kabı testi)
+3. Yeterince bekledik mi (Turtle 250 ms → 1,5 sn → 5 sn ile pes etmiyor)
+
+## Yapılan düzeltmeler
+
+| Commit | Ne |
+|---|---|
+| `1b8424b` | izleme bekçisi — video yoksa bir kez tam sayfa yükleme |
+| `143fa2a` | video ögesi kap testiyle seçiliyor (Turtle'dan) |
+| `f9f7e62` | odak dışında oynatıcı sökülüyor (ilk S7020 düzeltmesi) |
+| `08f1cbf` | bekçi oynayan videoyu kesmesin |
+| `5578d91` | söküm yalnız seçim ekranı açıkken |
+| `612318b` | **tek WebView** — seçim ekranı kaldırıldı, gezinme odada |
