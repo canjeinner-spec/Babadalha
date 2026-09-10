@@ -23,6 +23,7 @@ type Props = {
   turSuresi?: number;
   karartma?: number;
   doldur?: boolean;
+  sutunOrani?: number;
 };
 
 function Sutun({
@@ -33,6 +34,7 @@ function Sutun({
   yukari,
   canli,
   doldur,
+  kaydir,
 }: {
   gorseller: ImageSourcePropType[];
   genislik: number;
@@ -41,6 +43,7 @@ function Sutun({
   yukari: boolean;
   canli: boolean;
   doldur: boolean;
+  kaydir: number;
 }) {
   const seritYuksekligi = gorseller.length * (kareYuksekligi + ARALIK);
   const kayma = useSharedValue(yukari ? 0 : -seritYuksekligi);
@@ -68,7 +71,7 @@ function Sutun({
 
   return (
     <View style={{ width: genislik, overflow: "hidden" }}>
-      <Animated.View style={stil}>
+      <Animated.View style={[{ marginTop: -kaydir }, stil]}>
         {[0, 1].map((tur) =>
           gorseller.map((g, i) => (
             <Image
@@ -97,11 +100,14 @@ export function AkanDuvar({
   turSuresi = 42000,
   karartma = 0.72,
   doldur = true,
+  sutunOrani,
 }: Props) {
   const { width, height } = useWindowDimensions();
   const canli = useCanli();
 
-  const sutunGenisligi = (width + ARALIK * (sutunSayisi + 1)) / sutunSayisi;
+  const sutunGenisligi = sutunOrani
+    ? width * sutunOrani
+    : (width + ARALIK * (sutunSayisi + 1)) / sutunSayisi;
   const kareYuksekligi = Math.round(sutunGenisligi / KARE_ORANI);
 
   const sutunlar = useMemo(() => {
@@ -129,13 +135,21 @@ export function AkanDuvar({
             yukari={i % 2 === 0}
             canli={canli}
             doldur={doldur}
+            kaydir={((i * 0.37) % 1) * (kareYuksekligi + ARALIK)}
           />
         ))}
       </View>
       <View style={[StyleSheet.absoluteFill, { backgroundColor: C.bg, opacity: karartma }]} />
       <LinearGradient
-        colors={["rgba(8,8,12,.62)", "rgba(8,8,12,.12)", "rgba(8,8,12,.72)", "rgba(8,8,12,.97)", C.bg]}
-        locations={[0, 0.26, 0.58, 0.82, 1]}
+        colors={[
+          "rgba(8,8,12,.72)",
+          "rgba(8,8,12,.10)",
+          "rgba(8,8,12,.30)",
+          "rgba(8,8,12,.82)",
+          "rgba(8,8,12,.97)",
+          C.bg,
+        ]}
+        locations={[0, 0.2, 0.5, 0.76, 0.9, 1]}
         style={StyleSheet.absoluteFill}
       />
     </View>

@@ -28,7 +28,7 @@ export default function Giris() {
 
   return (
     <View style={styles.kok}>
-      <AkanDuvar gorseller={KARSILAMA_KARELERI} sutunSayisi={3} karartma={0.62} />
+      <AkanDuvar gorseller={KARSILAMA_KARELERI} sutunSayisi={3} sutunOrani={0.42} karartma={0.38} />
 
       <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
         <View style={styles.tepe}>
@@ -55,9 +55,9 @@ export default function Giris() {
               { metin: "film aynı saniyede başlar", renk: C.gold2 },
             ]}
             size={25}
-            style={{ textAlign: "center", lineHeight: 34 }}
+            style={styles.baslik}
           />
-          <Txt size={13.5} color="rgba(255,255,255,.72)" align="center" lh={1.5} style={styles.altYazi}>
+          <Txt size={13.5} color="rgba(255,255,255,.86)" align="center" lh={1.5} style={styles.altYazi}>
             Netflix, Disney+, Prime Video, YouTube ve daha fazlası.
           </Txt>
         </View>
@@ -95,7 +95,16 @@ const styles = StyleSheet.create({
   tepe: { alignItems: "center", paddingTop: 12, gap: 16 },
   marka: { width: 148, height: 35 },
   orta: { paddingHorizontal: 26 },
-  altYazi: { marginTop: 16, paddingHorizontal: 8 },
+  baslik: {
+    textAlign: "center", lineHeight: 34,
+    textShadowColor: "rgba(0,0,0,.85)", textShadowRadius: 12,
+    textShadowOffset: { width: 0, height: 2 },
+  },
+  altYazi: {
+    marginTop: 16, paddingHorizontal: 8,
+    textShadowColor: "rgba(0,0,0,.8)", textShadowRadius: 10,
+    textShadowOffset: { width: 0, height: 1 },
+  },
   dip: { paddingHorizontal: 20, paddingBottom: 16, gap: 12 },
   beyazDugme: {
     flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10,
