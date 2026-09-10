@@ -33,15 +33,23 @@ export default function Giris() {
       <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
         <View style={styles.tepe}>
           {markaHatasi ? (
-            <Txt weight="displayBold" size={28} color="#fff">Aron</Txt>
+            <Txt weight="displayBold" size={28} color={C.gold2}>Aron</Txt>
           ) : (
-            <Image
-              source={require("@/assets/marka/aron-marka.webp")}
-              style={styles.marka}
-              contentFit="contain"
-              transition={160}
-              onError={() => setMarkaHatasi(true)}
-            />
+            <View style={styles.kilit}>
+              <Image
+                source={require("@/assets/marka/aron-amblem.webp")}
+                style={styles.amblem}
+                contentFit="contain"
+                transition={160}
+              />
+              <Image
+                source={require("@/assets/marka/aron-marka.webp")}
+                style={styles.marka}
+                contentFit="contain"
+                transition={160}
+                onError={() => setMarkaHatasi(true)}
+              />
+            </View>
           )}
           <DilSecici />
         </View>
@@ -91,7 +99,9 @@ export default function Giris() {
 const styles = StyleSheet.create({
   kok: { flex: 1, backgroundColor: C.bg },
   tepe: { alignItems: "center", paddingTop: 12, gap: 16 },
-  marka: { width: 140, height: 33 },
+  kilit: { flexDirection: "row", alignItems: "center", gap: 11 },
+  amblem: { width: 40, height: 35 },
+  marka: { width: 132, height: 31 },
   orta: { paddingHorizontal: 26, paddingBottom: 28 },
   altYazi: { marginTop: 16, paddingHorizontal: 8 },
   dip: { paddingHorizontal: 20, paddingBottom: 16, gap: 12 },
