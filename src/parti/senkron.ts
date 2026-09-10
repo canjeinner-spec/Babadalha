@@ -9,6 +9,7 @@ export type OzelIdTip = "premium" | "kapsul" | null;
 export type PartiKisi = {
   anahtar: string;
   ad: string;
+  kullaniciAdi?: string | null;
   foto?: string;
   sahip: boolean;
   rol: PartiRol;
@@ -50,8 +51,8 @@ export type SenkronOlay =
   | { tur: "oynatim"; durum: OynatimDurumu }
   | { tur: "sohbet"; mesaj: SohbetMesaji }
   | { tur: "durumSor" }
-  | { tur: "yetki"; anahtar: string; rol: PartiRol }
-  | { tur: "atildi"; anahtar: string }
+  | { tur: "yetki"; anahtar: string; rol: PartiRol; veren: string }
+  | { tur: "atildi"; anahtar: string; atan: string; atanRol: PartiRol }
   | { tur: "odaAyari"; ayar: OdaAyari }
   | { tur: "mikrofonIzin"; anahtar: string; acik: boolean }
   | { tur: "devir"; eskiSahip: string; yeniSahip: string }
@@ -64,8 +65,8 @@ export type PartiKanali = {
   oynatimYayinla: (durum: OynatimDurumu) => void;
   sohbetYolla: (mesaj: SohbetMesaji) => void;
   durumIste: () => void;
-  yetkiYayinla: (anahtar: string, rol: PartiRol) => void;
-  atmaYayinla: (anahtar: string) => void;
+  yetkiYayinla: (anahtar: string, rol: PartiRol, veren: string) => void;
+  atmaYayinla: (anahtar: string, atan: string, atanRol: PartiRol) => void;
   odaAyariYayinla: (ayar: OdaAyari) => void;
   mikrofonIzniYayinla: (anahtar: string, acik: boolean) => void;
   devirYayinla: (eskiSahip: string, yeniSahip: string) => void;
@@ -112,6 +113,7 @@ function kisiCoz(ham: unknown): PartiKisi | null {
   return {
     anahtar: String(k.anahtar),
     ad: String(k.ad),
+    kullaniciAdi: k.kullaniciAdi ? String(k.kullaniciAdi) : null,
     foto: k.foto ? String(k.foto) : undefined,
     sahip: !!k.sahip,
     rol: (k.rol === "sahip" || k.rol === "yardimci" ? k.rol : k.sahip ? "sahip" : "uye") as PartiRol,
@@ -191,12 +193,21 @@ export function partiKanaliAc({ odaId, ben, onOlay }: Acilis): PartiKanali {
       if (!kapandi) onOlay({ tur: "durumSor" });
     })
     .on("broadcast", { event: "yetki" }, ({ payload }) => {
-      const p = payload as { anahtar?: string; rol?: PartiRol } | null;
-      if (!kapandi && p?.anahtar && p.rol) onOlay({ tur: "yetki", anahtar: String(p.anahtar), rol: p.rol });
+      const p = payload as { anahtar?: string; rol?: PartiRol; veren?: string } | null;
+      if (!kapandi && p?.anahtar && p.rol) {
+        onOlay({ tur: "yetki", anahtar: String(p.anahtar), rol: p.rol, veren: String(p.veren ?? "") });
+      }
     })
     .on("broadcast", { event: "atildi" }, ({ payload }) => {
-      const p = payload as { anahtar?: string } | null;
-      if (!kapandi && p?.anahtar) onOlay({ tur: "atildi", anahtar: String(p.anahtar) });
+      const p = payload as { anahtar?: string; atan?: string; atanRol?: PartiRol } | null;
+      if (!kapandi && p?.anahtar) {
+        onOlay({
+          tur: "atildi",
+          anahtar: String(p.anahtar),
+          atan: String(p.atan ?? ""),
+          atanRol: p.atanRol === "yardimci" ? "yardimci" : "sahip",
+        });
+      }
     })
     .on("broadcast", { event: "odaAyari" }, ({ payload }) => {
       if (!kapandi && payload) onOlay({ tur: "odaAyari", ayar: payload as OdaAyari });
@@ -255,8 +266,8 @@ export function partiKanaliAc({ odaId, ben, onOlay }: Acilis): PartiKanali {
     oynatimYayinla: (durum) => gonder("oynatim", durum),
     sohbetYolla: (mesaj) => gonder("sohbet", mesaj),
     durumIste: () => gonder("durumSor", {}),
-    yetkiYayinla: (anahtar, rol) => gonder("yetki", { anahtar, rol }),
-    atmaYayinla: (anahtar) => gonder("atildi", { anahtar }),
+    yetkiYayinla: (anahtar, rol, veren) => gonder("yetki", { anahtar, rol, veren }),
+    atmaYayinla: (anahtar, atan, atanRol) => gonder("atildi", { anahtar, atan, atanRol }),
     odaAyariYayinla: (ayar) => gonder("odaAyari", ayar),
     mikrofonIzniYayinla: (anahtar, acik) => gonder("mikrofonIzin", { anahtar, acik }),
     devirYayinla: (eskiSahip, yeniSahip) => gonder("devir", { eskiSahip, yeniSahip }),

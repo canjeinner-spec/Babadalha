@@ -1,7 +1,8 @@
 import { type PlatformKodu } from "@/oda/platform";
+import { type SistemKisi, type SistemOlayi } from "@/parti/sistemMesaji";
 
 export type PartiSohbetOgesi =
-  | { tur: "katilim"; anahtar: string; kisi: string; ayrildi?: boolean; foto?: string; ozelIdTip?: "premium" | "kapsul" | null; ozelIdTema?: string | null }
+  | { tur: "sistem"; anahtar: string; kisi: SistemKisi; olay: SistemOlayi; benim?: boolean }
   | { tur: "davet"; anahtar: string; adres: string }
   | { tur: "karsilama"; anahtar: string; sahip: string }
   | { tur: "simdi"; anahtar: string; baslik: string; platform?: PlatformKodu }

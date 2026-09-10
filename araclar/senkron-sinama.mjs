@@ -9,7 +9,10 @@ const require0 = createRequire(import.meta.url);
 const SAHTE = {
   "@/lib/supabase": { supabase: null },
   "@/oda/platform": {},
-  "@/parti/yetki": {},
+  "@/parti/yetki": {
+    rolAdi: (rol) =>
+      rol === "sahip" ? "Parti Sahibi" : rol === "yardimci" ? "Parti Yardımcısı" : "İzleyici",
+  },
   "@supabase/supabase-js": {},
 };
 
@@ -28,6 +31,7 @@ function modulYukle(dosya) {
 const S = modulYukle("src/parti/senkron.ts");
 const K = modulYukle("src/parti/saat.ts");
 const D = modulYukle("src/parti/devir.ts");
+const M = modulYukle("src/parti/sistemMesaji.ts");
 
 let gecen = 0;
 let kalan = 0;
@@ -212,6 +216,69 @@ console.log("devir zamanlayicisi");
   z.basla(() => { calisti += 1; });
   ol("durdurulunca yeni is alinmiyor", z.bekliyorMu() === false && calisti === 1);
   ol("gecikme 8 sn", D.DEVIR_GECIKMESI === 8000);
+}
+
+console.log("sistem mesajlari");
+{
+  const k = (ad, kullaniciAdi) => ({ anahtar: "u" + ad, ad, kullaniciAdi });
+  const duz = (parcalar) =>
+    parcalar.map((p) => (p.tur === "etiket" ? M.etiketAdi(p.kisi) : p.metin)).join("");
+
+  ol("kullanici adi varsa etiket ondan", M.etiketAdi(k("Ali", "ali_34")) === "@ali_34");
+  ol("kullanici adi yoksa ada dusuyor", M.etiketAdi(k("Ali", null)) === "@Ali");
+  ol("bos kullanici adi ada dusuyor", M.etiketAdi(k("Ali", "   ")) === "@Ali");
+
+  const ali = k("Ali", "ali_34");
+  const ender = k("Ender", "ender");
+
+  ol(
+    "baskasi katilinca",
+    duz(M.sistemParcalari(ali, { cesit: "katildi" }, false)) === "@ali_34 partiye katıldı",
+    duz(M.sistemParcalari(ali, { cesit: "katildi" }, false)),
+  );
+  ol("ben katilinca ikinci sahis", duz(M.sistemParcalari(ali, { cesit: "katildi" }, true)) === "Partiye katıldın");
+  ol("baskasi ayrilinca", duz(M.sistemParcalari(ali, { cesit: "ayrildi" }, false)) === "@ali_34 partiden ayrıldı");
+
+  const rolVer = { cesit: "rol", veren: ender, rol: "yardimci" };
+  ol(
+    "ucuncu goz rol verilisini goruyor",
+    duz(M.sistemParcalari(ali, rolVer, false)) === "@ender, @ali_34 kullanıcısını Parti Yardımcısı yaptı",
+    duz(M.sistemParcalari(ali, rolVer, false)),
+  );
+  ol(
+    "rolu alan ikinci sahis goruyor",
+    duz(M.sistemParcalari(ali, rolVer, true)) === "@ender seni Parti Yardımcısı yaptı",
+    duz(M.sistemParcalari(ali, rolVer, true)),
+  );
+
+  const rolAl = { cesit: "rol", veren: ender, rol: "uye" };
+  ol(
+    "yardimcilik alinisi",
+    duz(M.sistemParcalari(ali, rolAl, false)) === "@ender, @ali_34 kullanıcısının yardımcılığını aldı",
+    duz(M.sistemParcalari(ali, rolAl, false)),
+  );
+  ol("yardimciligi alinan ikinci sahis", duz(M.sistemParcalari(ali, rolAl, true)) === "@ender yardımcılığını aldı");
+
+  const sahipAtti = { cesit: "atildi", atanRol: "sahip" };
+  const yardimciAtti = { cesit: "atildi", atanRol: "yardimci" };
+  ol(
+    "sahip attiginda",
+    duz(M.sistemParcalari(ali, sahipAtti, false)) === "@ali_34, Parti Sahibi tarafından partiden atıldı",
+    duz(M.sistemParcalari(ali, sahipAtti, false)),
+  );
+  ol(
+    "yardimci attiginda",
+    duz(M.sistemParcalari(ali, yardimciAtti, false)) === "@ali_34, Parti Yardımcısı tarafından partiden atıldı",
+  );
+  ol(
+    "atilan kisi ikinci sahis goruyor",
+    duz(M.sistemParcalari(ali, sahipAtti, true)) === "Parti Sahibi tarafından partiden atıldın",
+  );
+
+  ol(
+    "etiket parcasi kisiyi tasiyor",
+    M.sistemParcalari(ali, { cesit: "katildi" }, false)[0].kisi.ad === "Ali",
+  );
 }
 
 console.log(`\n${gecen} gecti, ${kalan} kaldi`);

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AppState, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { CenterModal } from "@/components/CenterModal";
 import { GirisGerekli } from "@/components/GirisGerekli";
 import { KullaniciYanPanel, type YanPanelKisisi } from "@/components/KullaniciYanPanel";
 import { PartiNativeOynatici } from "@/components/PartiNativeOynatici";
@@ -16,6 +17,7 @@ import { Txt } from "@/components/Txt";
 import { UstKaplama } from "@/components/UstKaplama";
 import { PARTI_KART_TABANI, type PartiOda as PartiOdaKaydi } from "@/data/partiMock";
 import { type PartiSohbetOgesi } from "@/data/partiSohbetMock";
+import { etiketAdi, sistemParcalari, type SistemKisi, type SistemOlayi } from "@/parti/sistemMesaji";
 import { PEOPLE } from "@/data/people";
 import { amIBannedFromRoom, banRoomUser, getRoomMembers, listRooms, odaKatilimcilariGetir, odaKatilimcilariniDinle, odaSahibi, removeRoomMember, setRoomMemberRole, type OdaKatilimcisi, type OdaSahibi } from "@/data/remote/roomsRepo";
 import { type Room } from "@/data/seed";
@@ -27,6 +29,7 @@ import {
   atabilirMi,
   mikrofonAcabilirMi,
   odaAyariCoz,
+  rolAdi,
   rolVerebilirMi,
   sohbetYazabilirMi,
   yetkiVar,
@@ -146,22 +149,39 @@ function SohbetOgesi({ oge, benimFoto, oynuyor, onOynatDurdur, onDavet }: {
   onOynatDurdur?: () => void;
   onDavet?: () => void;
 }) {
-  if (oge.tur === "katilim") {
+  if (oge.tur === "sistem") {
+    const parcalar = sistemParcalari(oge.kisi, oge.olay, !!oge.benim);
+    const govde = (
+      <View style={[styles.sistemMetin, oge.benim && styles.sistemMetinSag]}>
+        {parcalar.map((p, i) =>
+          p.tur === "etiket" ? (
+            <RenkliAd
+              key={i}
+              ad={etiketAdi(p.kisi)}
+              tip={p.kisi.ozelIdTip}
+              tema={p.kisi.ozelIdTema}
+              size={14.5}
+              weight="extrabold"
+              renk="#fff"
+            />
+          ) : (
+            <Txt key={i} size={14.5} color="rgba(255,255,255,.72)">{p.metin}</Txt>
+          ),
+        )}
+      </View>
+    );
+    const yuz = (
+      <Portrait
+        name={oge.kisi.ad}
+        size={AVATAR}
+        photo={oge.kisi.foto ?? (oge.benim ? benimFoto : undefined) ?? PEOPLE[oge.kisi.ad]?.photo}
+        halkasiz
+      />
+    );
     return (
-      <View style={styles.katilimSatir}>
-        <View style={styles.katilimMetin}>
-        <RenkliAd
-          ad={oge.kisi}
-          tip={oge.ozelIdTip}
-          tema={oge.ozelIdTema}
-          size={15}
-          weight="extrabold"
-          renk="#fff"
-        />
-        <Txt size={15} color="rgba(255,255,255,.72)"> {oge.ayrildi ? "odadan ayrıldı" : "odaya katıldı"}</Txt>
-        </View>
-        <View style={{ width: 8 }} />
-        <Portrait name={oge.kisi} size={AVATAR} photo={oge.foto ?? PEOPLE[oge.kisi]?.photo} halkasiz />
+      <View style={[styles.sistemSatir, oge.benim && styles.sistemSatirSag]}>
+        {oge.benim ? govde : yuz}
+        {oge.benim ? yuz : govde}
       </View>
     );
   }
@@ -373,6 +393,8 @@ export default function PartiOda() {
   const [oynatimNo, setOynatimNo] = useState(0);
   const [ek, setEk] = useState<PartiSohbetOgesi[]>([]);
   const [bildirim, setBildirim] = useState("");
+  const [atilma, setAtilma] = useState<PartiRol | null>(null);
+  const [cikisOnayi, setCikisOnayi] = useState(false);
   const akis = useRef<ScrollView>(null);
   const [kisilerAcik, setKisilerAcik] = useState(false);
   const [ustYukseklik, setUstYukseklik] = useState(0);
@@ -558,6 +580,25 @@ export default function PartiOda() {
     kanalRef.current?.devirYayinla(ayrilanAnahtar, benimAnahtarRef.current);
   }, []);
 
+  const sistemKisi = useCallback((k: PartiKisi): SistemKisi => ({
+    anahtar: k.anahtar,
+    ad: k.ad,
+    kullaniciAdi: k.kullaniciAdi ?? null,
+    foto: k.foto,
+    ozelIdTip: k.ozelIdTip ?? null,
+    ozelIdTema: k.ozelIdTema ?? null,
+  }), []);
+
+  const sistemEkle = useCallback((kisi: SistemKisi, olay: SistemOlayi, benim = false) => {
+    setEk((e) => [...e, {
+      tur: "sistem",
+      anahtar: `sis-${olay.cesit}-${kisi.anahtar}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      kisi,
+      olay,
+      benim,
+    }]);
+  }, []);
+
   const senkronOlay = useCallback((o: SenkronOlay) => {
     if (o.tur === "kisiler") {
       setAgKisileri(o.kisiler);
@@ -566,7 +607,7 @@ export default function PartiOda() {
         devirRef.current?.iptal();
         bekleyenAyrilanRef.current = null;
       }
-      setEk((e) => [...e, { tur: "katilim", anahtar: `g${o.kisi.anahtar}-${Date.now()}`, kisi: o.kisi.ad, foto: o.kisi.foto, ozelIdTip: o.kisi.ozelIdTip ?? null, ozelIdTema: o.kisi.ozelIdTema ?? null }]);
+      sistemEkle(sistemKisi(o.kisi), { cesit: "katildi" });
     } else if (o.tur === "ayrildi") {
       const sahipAyrildi = sahipAnahtariRef.current === null
         ? o.kisi.sahip
@@ -579,7 +620,7 @@ export default function PartiOda() {
           if (ayrilan) devriUstlen(ayrilan);
         });
       }
-      setEk((e) => [...e, { tur: "katilim", anahtar: `c${o.kisi.anahtar}-${Date.now()}`, kisi: o.kisi.ad, foto: o.kisi.foto, ozelIdTip: o.kisi.ozelIdTip ?? null, ozelIdTema: o.kisi.ozelIdTema ?? null, ayrildi: true }]);
+      sistemEkle(sistemKisi(o.kisi), { cesit: "ayrildi" });
     } else if (o.tur === "sohbet") {
       setEk((e) => [...e, {
         tur: "mesaj", anahtar: o.mesaj.anahtar, kisi: o.mesaj.kisi, metin: o.mesaj.metin,
@@ -614,15 +655,22 @@ export default function PartiOda() {
       saatRef.current?.yanit(o.t0, o.t1);
     } else if (o.tur === "yetki") {
       setAgKisileri((liste) => liste.map((k) => (k.anahtar === o.anahtar ? { ...k, rol: o.rol } : k)));
-      if (o.anahtar === benimAnahtarRef.current) {
-        setCanliRol(o.rol);
-        setBildirim(o.rol === "yardimci" ? "Parti Yardımcısı yapıldın" : "Yardımcılığın alındı");
+      const hedef = agKisileriRef.current.find((k) => k.anahtar === o.anahtar);
+      const veren = agKisileriRef.current.find((k) => k.anahtar === o.veren);
+      if (hedef && veren) {
+        sistemEkle(
+          sistemKisi(hedef),
+          { cesit: "rol", veren: sistemKisi(veren), rol: o.rol },
+          o.anahtar === benimAnahtarRef.current,
+        );
       }
+      if (o.anahtar === benimAnahtarRef.current) setCanliRol(o.rol);
     } else if (o.tur === "atildi") {
       if (o.anahtar === benimAnahtarRef.current) {
-        setBildirim("Odadan çıkarıldın");
-        setTimeout(() => cikRef.current(), 900);
+        setAtilma(o.atanRol);
       } else {
+        const hedef = agKisileriRef.current.find((k) => k.anahtar === o.anahtar);
+        if (hedef) sistemEkle(sistemKisi(hedef), { cesit: "atildi", atanRol: o.atanRol });
         setAgKisileri((liste) => liste.filter((k) => k.anahtar !== o.anahtar));
       }
     } else if (o.tur === "odaAyari") {
@@ -637,15 +685,25 @@ export default function PartiOda() {
         e.some((x) => x.anahtar === "ben-katildim")
           ? e
           : [...e, {
-              tur: "katilim", anahtar: "ben-katildim", kisi: userName,
-              foto: userPhoto ?? undefined, ozelIdTip, ozelIdTema,
+              tur: "sistem",
+              anahtar: "ben-katildim",
+              benim: true,
+              kisi: {
+                anahtar: benimAnahtarRef.current,
+                ad: userName,
+                kullaniciAdi: null,
+                foto: userPhoto ?? undefined,
+                ozelIdTip,
+                ozelIdTema,
+              },
+              olay: { cesit: "katildi" },
             }]
       ));
       kanalRef.current?.durumIste();
       setTimeout(() => kanalRef.current?.durumIste(), 1200);
       setTimeout(() => kanalRef.current?.durumIste(), 3500);
     }
-  }, [durumUygula, durumYayinla, devriUstlen, userName, userPhoto, ozelIdTip, ozelIdTema]);
+  }, [durumUygula, durumYayinla, devriUstlen, sistemEkle, sistemKisi, userName, userPhoto, ozelIdTip, ozelIdTema]);
 
   const senkronOlayRef = useRef(senkronOlay);
   useEffect(() => { senkronOlayRef.current = senkronOlay; }, [senkronOlay]);
@@ -902,27 +960,28 @@ export default function PartiOda() {
 
   const rolDegistir = useCallback(async (hedef: PartiKisi, yeniRol: PartiRol) => {
     if (!rolVerebilirMi(benimRolRef.current, hedef.rol)) return;
-    kanalRef.current?.yetkiYayinla(hedef.anahtar, yeniRol);
+    kanalRef.current?.yetkiYayinla(hedef.anahtar, yeniRol, benimAnahtarRef.current);
     setAgKisileri((liste) => liste.map((k) => (k.anahtar === hedef.anahtar ? { ...k, rol: yeniRol } : k)));
-    setBildirim(yeniRol === "yardimci" ? `${hedef.ad} yardımcı yapıldı` : `${hedef.ad} yardımcılıktan alındı`);
+    const ben = agKisileriRef.current.find((k) => k.anahtar === benimAnahtarRef.current);
+    if (ben) sistemEkle(sistemKisi(hedef), { cesit: "rol", veren: sistemKisi(ben), rol: yeniRol });
     if (dbId != null && hedef.dbId != null) {
       try { await setRoomMemberRole(dbId, hedef.dbId, yeniRol === "yardimci" ? "yardimci" : "uye"); }
       catch { setBildirim("Rol kaydedilemedi"); }
     }
-  }, [dbId]);
+  }, [dbId, sistemEkle, sistemKisi]);
 
   const odadanAt = useCallback(async (hedef: PartiKisi) => {
     if (!atabilirMi(benimRolRef.current, hedef.rol)) return;
-    kanalRef.current?.atmaYayinla(hedef.anahtar);
+    kanalRef.current?.atmaYayinla(hedef.anahtar, benimAnahtarRef.current, benimRolRef.current);
     setAgKisileri((liste) => liste.filter((k) => k.anahtar !== hedef.anahtar));
-    setBildirim(`${hedef.ad} odadan çıkarıldı`);
+    sistemEkle(sistemKisi(hedef), { cesit: "atildi", atanRol: benimRolRef.current });
     if (dbId != null && hedef.dbId != null) {
       try {
         await banRoomUser(dbId, hedef.dbId);
         await removeRoomMember(dbId, hedef.dbId);
       } catch { setBildirim("Yasaklama kaydedilemedi"); }
     }
-  }, [dbId]);
+  }, [dbId, sistemEkle, sistemKisi]);
 
   const odaAyariDegistir = useCallback((yama: Partial<OdaAyari>) => {
     if (!yetkiVar(benimRolRef.current, "sohbetKilit")) return;
@@ -1090,7 +1149,7 @@ export default function PartiOda() {
         >
           <UstBar
             kisi={kisiler.length}
-            onKapat={cik}
+            onKapat={() => setCikisOnayi(true)}
             onGezin={() => router.push({ pathname: "/parti-platform", params: { secim: "1" } })}
             onKisiler={() => setKisilerAcik(true)}
           />
@@ -1207,6 +1266,47 @@ export default function PartiOda() {
         }}
       />
 
+      <CenterModal visible={cikisOnayi} onClose={() => setCikisOnayi(false)}>
+        <View style={styles.uyariKart}>
+          <Txt weight="displayBold" size={16} color="#fff" align="center">Partiden ayrıl</Txt>
+          <Txt size={13} color={C.dim} align="center" lh={1.45} style={{ marginTop: 8 }}>
+            {benSahip
+              ? odaAyari.otomatikDevir
+                ? "Sen çıkınca parti odadaki birine geçecek."
+                : "Sahiplik devri kapalı; sen çıkınca parti kimseye geçmeyecek."
+              : "Partiden ayrılmak istediğine emin misin?"}
+          </Txt>
+          <View style={styles.uyariDugmeler}>
+            <Pressable style={styles.uyariIkincil} onPress={() => setCikisOnayi(false)}>
+              <Txt weight="extrabold" size={13} color="#fff">Vazgeç</Txt>
+            </Pressable>
+            <Pressable
+              style={styles.uyariBirincil}
+              onPress={() => { setCikisOnayi(false); cik(); }}
+            >
+              <Txt weight="extrabold" size={13} color="#241A05">Ayrıl</Txt>
+            </Pressable>
+          </View>
+        </View>
+      </CenterModal>
+
+      <CenterModal visible={atilma !== null} onClose={() => { setAtilma(null); cik(); }}>
+        <View style={styles.uyariKart}>
+          <Txt weight="displayBold" size={16} color="#fff" align="center">Partiden çıkarıldın</Txt>
+          <Txt size={13} color={C.dim} align="center" lh={1.45} style={{ marginTop: 8 }}>
+            {atilma ? `${rolAdi(atilma)} seni bu partiden çıkardı. Bu partiye tekrar giremezsin.` : ""}
+          </Txt>
+          <View style={styles.uyariDugmeler}>
+            <Pressable
+              style={[styles.uyariBirincil, { flex: 1 }]}
+              onPress={() => { setAtilma(null); cik(); }}
+            >
+              <Txt weight="extrabold" size={13} color="#241A05">Tamam</Txt>
+            </Pressable>
+          </View>
+        </View>
+      </CenterModal>
+
       {bildirim !== "" && (
         <View style={[styles.bildirim, { bottom: insets.bottom + 90 }]} pointerEvents="none">
           <Txt weight="extrabold" size={12.5} color="#fff">{bildirim}</Txt>
@@ -1218,6 +1318,19 @@ export default function PartiOda() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
+  uyariKart: {
+    backgroundColor: C.card, borderRadius: 18, padding: 20,
+    borderWidth: 1, borderColor: C.line,
+  },
+  uyariDugmeler: { flexDirection: "row", gap: 10, marginTop: 18 },
+  uyariIkincil: {
+    flex: 1, alignItems: "center", justifyContent: "center", paddingVertical: 12,
+    borderRadius: 12, backgroundColor: C.kontrol,
+  },
+  uyariBirincil: {
+    flex: 1, alignItems: "center", justifyContent: "center", paddingVertical: 12,
+    borderRadius: 12, backgroundColor: C.gold2,
+  },
   yatayGovde: { flex: 1, flexDirection: "row" },
   yanSutun: { width: "32%", minWidth: 240 },
   ustZemin: { paddingHorizontal: 18 },
@@ -1234,8 +1347,10 @@ const styles = StyleSheet.create({
   donen: { opacity: 0.75 },
   akis: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12, gap: 14 },
 
-  katilimSatir: { flexDirection: "row", alignItems: "center", justifyContent: "flex-end" },
-  katilimMetin: { flexDirection: "row", alignItems: "center", flexShrink: 1, minWidth: 0, flexWrap: "wrap", justifyContent: "flex-end" },
+  sistemSatir: { flexDirection: "row", alignItems: "center", justifyContent: "flex-start", gap: 8 },
+  sistemSatirSag: { justifyContent: "flex-end" },
+  sistemMetin: { flexDirection: "row", alignItems: "center", flexShrink: 1, minWidth: 0, flexWrap: "wrap", justifyContent: "flex-start" },
+  sistemMetinSag: { justifyContent: "flex-end" },
   karsilamaKapsul: {
     flexDirection: "row", alignItems: "flex-start", alignSelf: "flex-start",
     maxWidth: "92%", gap: 7, borderRadius: 16, borderWidth: 1,
