@@ -5,6 +5,7 @@ import { FlatList, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Portrait } from "@/components/Portrait";
+import { TanitimBanner } from "@/components/TanitimBanner";
 import { UstKaplama } from "@/components/UstKaplama";
 import { Txt } from "@/components/Txt";
 import { Icon } from "@/icons/Icon";
@@ -96,6 +97,10 @@ export default function PartiAnaEkran() {
           </Pressable>
         </View>
 
+        <View style={styles.bannerYuva}>
+          <TanitimBanner />
+        </View>
+
         <Pressable onPress={partiBaslat} style={styles.baslatSar}>
           <Gradient colors={[C.gold2, "#C8922B"]} deg={135} style={styles.baslat}>
             <Icon name="evParty" size={17} color="#241A05" />
@@ -141,7 +146,8 @@ export default function PartiAnaEkran() {
 const styles = StyleSheet.create({
   kok: { flex: 1, backgroundColor: C.bg },
   baslik: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 14 },
-  baslatSar: { marginHorizontal: 16, borderRadius: 16, overflow: "hidden" },
+  bannerYuva: { paddingHorizontal: 16, marginTop: 2 },
+  baslatSar: { marginHorizontal: 16, marginTop: 14, borderRadius: 16, overflow: "hidden" },
   baslat: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 14 },
   listeBasligi: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingTop: 22, paddingBottom: 10 },
   satir: {
