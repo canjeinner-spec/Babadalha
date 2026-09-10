@@ -282,6 +282,7 @@ export const KopruWeb = forwardRef<KopruWebKolu, Props>(function KopruWeb(
       thirdPartyCookiesEnabled
       sharedCookiesEnabled
       allowsInlineMediaPlayback
+      androidLayerType="hardware"
       mediaPlaybackRequiresUserAction={false}
       allowsFullscreenVideo
       allowsAirPlayForMediaPlayback={false}

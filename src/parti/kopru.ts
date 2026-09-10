@@ -1931,7 +1931,7 @@ export function kopruBetigi(platform: PlatformKodu): string {
   if (netflixAndroid) ortam = TURTLE_ORTAM;
   else if (ORTAM_YAMASIZ.has(platform)) ortam = "";
   else ortam = masaustuOrtami(safari, ajan === MASAUSTU_LINUX_CHROME ? "Linux x86_64" : "MacIntel");
-  const av1 = netflixAndroid ? AV1_ENGEL : "";
+  const av1 = Platform.OS === "android" ? AV1_ENGEL : "";
   return `${ortam}\n${MSE}\n${av1}\n${MEDYA}\n${TEMEL}\n${EKLER[platform] ?? ""}\n${ORTAK}\n${TANI}\ntrue;`;
 }
 
