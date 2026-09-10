@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { FlatList, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { Anim } from "@/components/Anim";
 import { BaslatAmblemi } from "@/components/BaslatAmblemi";
 import { Portrait } from "@/components/Portrait";
 import { TanitimBanner } from "@/components/TanitimBanner";
@@ -125,11 +126,8 @@ export default function PartiAnaEkran() {
           )}
           ListEmptyComponent={
             <View style={styles.bos}>
-              <Icon name="evMoon" size={30} color={C.dim2} />
-              <Txt weight="bold" size={13.5} color={C.text} style={{ marginTop: 12 }}>Şu an açık parti yok</Txt>
-              <Txt size={11.5} color={C.dim} align="center" style={{ marginTop: 5, lineHeight: 17 }}>
-                İlk partiyi sen başlat, arkadaşların listede görsün.
-              </Txt>
+              <Anim kaynak={require("@/assets/anim/parti-yok.json")} style={styles.bosAnim} />
+              <Txt weight="bold" size={13.5} color={C.text} style={{ marginTop: 6 }}>Şu an açık parti yok</Txt>
             </View>
           }
         />
@@ -180,5 +178,6 @@ const styles = StyleSheet.create({
     paddingVertical: 6, paddingHorizontal: 11, borderRadius: 999,
     backgroundColor: C.gold + "14", borderWidth: 1, borderColor: C.gold + "33",
   },
-  bos: { alignItems: "center", paddingTop: 60, paddingHorizontal: 40 },
+  bos: { alignItems: "center", paddingTop: 28, paddingHorizontal: 40 },
+  bosAnim: { width: 210, height: 149 },
 });
