@@ -12,11 +12,9 @@ import { benimKusanilanlarim, BOS_KUSANILI, type Kusanili } from "@/data/remote/
 import { createRoom, getMyRoom, listRooms } from "@/data/remote/roomsRepo";
 import { listPosts } from "@/data/remote/feedRepo";
 import { addXp } from "@/data/remote/xpRepo";
-import { modGecerli, VARSAYILAN_MOD, type UygulamaModu } from "@/oda/mod";
 import { cacheTemizle, prefetch, setCached } from "@/lib/cache";
 import { benzersizKanalAdi, isSupabaseConfigured, supabase } from "@/lib/supabase";
 
-const MOD_ANAHTARI = "uygulamaModu";
 
 function ayniOda(a: Room | null, b: Room | null): boolean {
   if (!a || !b) return false;
@@ -100,8 +98,6 @@ type AppState = {
   currentRoom: Room | null;
   inRoom: boolean;
   odaOturumu: number | null;
-  uygulamaModu: UygulamaModu;
-  setUygulamaModu: (m: UygulamaModu) => void;
   koltugum: { odaId: number; koltuk: number | null; mic: boolean } | null;
   koltukYaz: (odaId: number, koltuk: number | null, mic: boolean) => void;
   girisAdayi: Room | null;
@@ -202,9 +198,6 @@ export const useApp = create<AppState>((set, get) => ({
   initAuth: () => {
     if (authStarted) return;
     authStarted = true;
-    AsyncStorage.getItem(MOD_ANAHTARI)
-      .then((v) => { if (modGecerli(v)) set({ uygulamaModu: v }); })
-      .catch(() => {});
     if (!isSupabaseConfigured) {
       set({ bootstrapped: true });
       return;
@@ -405,11 +398,6 @@ export const useApp = create<AppState>((set, get) => ({
   currentRoom: null,
   inRoom: false,
   odaOturumu: null,
-  uygulamaModu: VARSAYILAN_MOD,
-  setUygulamaModu: (m) => {
-    set({ uygulamaModu: m });
-    AsyncStorage.setItem(MOD_ANAHTARI, m).catch(() => {});
-  },
   koltugum: null,
   koltukYaz: (odaId, koltuk, mic) => set({ koltugum: { odaId, koltuk, mic } }),
   girisAdayi: null,
