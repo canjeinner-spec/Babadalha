@@ -73,7 +73,7 @@ export default function PartiAnaEkran() {
   return (
     <View style={styles.kok}>
       <Zemin hale={!temali} />
-      <UstKaplama uzat={96} yumusak zemin="#16121F" />
+      <UstKaplama uzat={96} yumusak />
       <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
         <View style={styles.baslik}>
           <View style={{ flex: 1, minWidth: 0 }}>

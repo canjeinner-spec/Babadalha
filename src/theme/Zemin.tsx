@@ -2,12 +2,20 @@ import { StyleSheet } from "react-native";
 
 import { C } from "./colors";
 import { Gradient } from "./Gradient";
+import { karart, saydam } from "./renk";
+import { useTema } from "./tema";
+
+const VARSAYILAN_TABAN = "#16121F";
 
 export function Zemin({ hale = true }: { hale?: boolean }) {
+  const { ic } = useTema();
+  const taban = ic?.zemin ?? VARSAYILAN_TABAN;
+  const vurgu = ic?.vurgu ?? C.gold;
+
   return (
     <>
       <Gradient
-        colors={["#16121F", "#0B0A11", "#08080C"]}
+        colors={[taban, karart(taban, 0.5), karart(taban, 0.86)]}
         deg={175}
         locations={[0, 0.5, 1]}
         style={StyleSheet.absoluteFill}
@@ -15,7 +23,7 @@ export function Zemin({ hale = true }: { hale?: boolean }) {
       />
       {hale && (
         <Gradient
-          colors={[C.gold + "1A", "transparent"]}
+          colors={[saydam(vurgu, 0.1), "transparent"]}
           deg={180}
           style={styles.hale}
           pointerEvents="none"
