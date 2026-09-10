@@ -3,7 +3,7 @@ import { Image } from "expo-image";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import * as EkranYonu from "expo-screen-orientation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { AppState, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { GirisGerekli } from "@/components/GirisGerekli";
@@ -36,11 +36,17 @@ import {
 import { usePartiGiris } from "@/parti/giris";
 import { usePartiIzleme } from "@/parti/izleme";
 import { odayiLobideYayinla, type LobiYayini } from "@/parti/lobi";
+import { saatEsleyiciAc, type SaatEsleyici } from "@/parti/saat";
 import {
   beklenenKonum,
+  eskiPaketMi,
+  paketKimligi,
   partiKanaliAc,
+  yankiPenceresinde,
   SAPMA_ESIGI,
+  UZAK_UYGULAMA_SOGUMA,
   type OynatimDurumu,
+  type PaketKimligi,
   type PartiKanali,
   type PartiKisi,
   type SenkronOlay,
@@ -369,8 +375,16 @@ export default function PartiOda() {
   const yayinBilgiRef = useRef<{
     ad: string; sahip: string; sahipFoto?: string; platform: PlatformKodu; baslik: string | null;
   }>({ ad: "", sahip: "", platform: "youtube", baslik: null });
-  const uygulaniyorRef = useRef(false);
+  const uzakBitisRef = useRef(0);
   const sonYayinRef = useRef(0);
+  const askidaRef = useRef(false);
+  const askiKaydiRef = useRef<{ konum: number; oynuyor: boolean; an: number } | null>(null);
+  const saatRef = useRef<SaatEsleyici | null>(null);
+  const siraRef = useRef(0);
+  const sonPaketRef = useRef<PaketKimligi | null>(null);
+  const sonKonumRef = useRef(0);
+  const oynuyorRef = useRef(false);
+  const benSahipRef = useRef(false);
   const [dbRol, setDbRol] = useState<PartiRol | null>(null);
   const [canliRol, setCanliRol] = useState<PartiRol | null>(null);
   const [odaAyari, setOdaAyari] = useState<OdaAyari>(VARSAYILAN_ODA_AYARI);
@@ -450,24 +464,40 @@ export default function PartiOda() {
   const mikAcilir = mikrofonAcabilirMi(benimRol, odaAyari, !!mikrofonIzinleri[benimAnahtar]);
   const mikYayinda = mikIstek && mikAcilir;
 
-  const suankiDurum = useCallback((): OynatimDurumu => ({
-    platform: oynatilan.platform,
-    adres: sonAdres ?? oynatilan.adres,
-    baslik: simdiki,
-    kapak: simdikiKapak,
-    konum: sonKonum,
-    oynuyor,
-    an: Date.now(),
-  }), [oynatilan, sonAdres, simdiki, simdikiKapak, sonKonum, oynuyor]);
+  const saatSapmasi = useCallback(() => saatRef.current?.sapma() ?? 0, []);
 
-  const durumYayinla = useCallback(() => {
-    if (!kontrolBende || !kanalRef.current) return;
+  const suankiDurum = useCallback((): OynatimDurumu => {
+    siraRef.current += 1;
+    return {
+      platform: oynatilan.platform,
+      adres: sonAdres ?? oynatilan.adres,
+      baslik: simdiki,
+      kapak: simdikiKapak,
+      konum: sonKonum,
+      oynuyor,
+      an: Date.now() + saatSapmasi(),
+      sira: siraRef.current,
+      kaynak: benimAnahtar,
+    };
+  }, [oynatilan, sonAdres, simdiki, simdikiKapak, sonKonum, oynuyor, benimAnahtar, saatSapmasi]);
+
+  const yayinlayabilirMi = useCallback(() => (
+    kontrolBende && !askidaRef.current && !yankiPenceresinde(uzakBitisRef.current)
+  ), [kontrolBende]);
+
+  const durumYayinla = useCallback((zorla = false) => {
+    if (!kanalRef.current || !kontrolBende) return;
+    if (!zorla && !yayinlayabilirMi()) return;
     sonYayinRef.current = Date.now();
     kanalRef.current.oynatimYayinla(suankiDurum());
-  }, [kontrolBende, suankiDurum]);
+  }, [kontrolBende, suankiDurum, yayinlayabilirMi]);
 
   const durumUygula = useCallback((d: OynatimDurumu) => {
-    uygulaniyorRef.current = true;
+    if (askidaRef.current) return;
+    if (eskiPaketMi(sonPaketRef.current, d)) return;
+    const kimlik = paketKimligi(d);
+    if (kimlik) sonPaketRef.current = kimlik;
+    uzakBitisRef.current = Date.now() + UZAK_UYGULAMA_SOGUMA;
     const farkliIcerik = d.platform !== oynatilan.platform || d.adres !== oynatilan.adres;
     if (farkliIcerik && d.adres) {
       setOynatimNo((n) => n + 1);
@@ -478,16 +508,14 @@ export default function PartiOda() {
       setEk((e) => [...e, {
         tur: "simdi", anahtar: "s" + d.an, baslik: d.baslik ?? "Video", platform: d.platform,
       }]);
-      uygulaniyorRef.current = false;
       return;
     }
-    const hedef = beklenenKonum(d);
+    const hedef = beklenenKonum(d, Date.now(), saatSapmasi());
     if (Math.abs(hedef - sonKonum) > SAPMA_ESIGI) oynatici.current?.atla(hedef);
     if (d.oynuyor && !oynuyor) oynatici.current?.oynat();
     if (!d.oynuyor && oynuyor) oynatici.current?.duraklat();
     if (d.baslik && d.baslik !== simdiki) setSimdiki(d.baslik);
-    uygulaniyorRef.current = false;
-  }, [oynatilan, sonKonum, oynuyor, simdiki]);
+  }, [oynatilan, sonKonum, oynuyor, simdiki, saatSapmasi]);
 
   const benimRolRef = useRef<PartiRol>("uye");
   const odaAyariRef = useRef(odaAyari);
@@ -497,6 +525,9 @@ export default function PartiOda() {
   useEffect(() => { odaAyariRef.current = odaAyari; }, [odaAyari]);
   useEffect(() => { benimAnahtarRef.current = benimAnahtar; }, [benimAnahtar]);
   useEffect(() => { cikRef.current = cik; }, [cik]);
+  useEffect(() => { sonKonumRef.current = sonKonum; }, [sonKonum]);
+  useEffect(() => { oynuyorRef.current = oynuyor; }, [oynuyor]);
+  useEffect(() => { benSahipRef.current = benSahip; }, [benSahip]);
 
   const senkronOlay = useCallback((o: SenkronOlay) => {
     if (o.tur === "kisiler") {
@@ -513,8 +544,12 @@ export default function PartiOda() {
     } else if (o.tur === "oynatim") {
       durumUygula(o.durum);
     } else if (o.tur === "durumSor") {
-      durumYayinla();
+      durumYayinla(true);
       if (yetkiVar(benimRolRef.current, "sohbetKilit")) kanalRef.current?.odaAyariYayinla(odaAyariRef.current);
+    } else if (o.tur === "saatIstek") {
+      if (benSahipRef.current) kanalRef.current?.saatYanitYolla(o.soran, o.t0, Date.now());
+    } else if (o.tur === "saatYanit") {
+      saatRef.current?.yanit(o.t0, o.t1);
     } else if (o.tur === "yetki") {
       setAgKisileri((liste) => liste.map((k) => (k.anahtar === o.anahtar ? { ...k, rol: o.rol } : k)));
       if (o.anahtar === benimAnahtarRef.current) {
@@ -579,6 +614,44 @@ export default function PartiOda() {
   }, [kanalOdaId, benimAnahtar, userName, userPhoto, benSahip, myDbId, ozelIdTip, ozelIdTema]);
 
   useEffect(() => {
+    if (benSahip) return;
+    const esleyici = saatEsleyiciAc({
+      yollaIstek: (t0) => kanalRef.current?.saatIsteYolla(benimAnahtar, t0),
+    });
+    saatRef.current = esleyici;
+    esleyici.basla();
+    return () => {
+      esleyici.durdur();
+      saatRef.current = null;
+    };
+  }, [benSahip, benimAnahtar, kanalOdaId]);
+
+  useEffect(() => {
+    const abone = AppState.addEventListener("change", (durum) => {
+      if (durum !== "active") {
+        if (askidaRef.current) return;
+        askidaRef.current = true;
+        askiKaydiRef.current = { konum: sonKonumRef.current, oynuyor: oynuyorRef.current, an: Date.now() };
+        return;
+      }
+      if (!askidaRef.current) return;
+      askidaRef.current = false;
+      uzakBitisRef.current = Date.now() + UZAK_UYGULAMA_SOGUMA;
+      saatRef.current?.basla();
+      const kayit = askiKaydiRef.current;
+      askiKaydiRef.current = null;
+      if (!benSahipRef.current) {
+        kanalRef.current?.durumIste();
+        return;
+      }
+      if (!kayit?.oynuyor) return;
+      oynatici.current?.atla(kayit.konum + (Date.now() - kayit.an) / 1000);
+      oynatici.current?.oynat();
+    });
+    return () => abone.remove();
+  }, []);
+
+  useEffect(() => {
     if (!benSahip) return;
     const t = setInterval(() => {
       if (Date.now() - sonYayinRef.current > 1000) durumYayinla();
@@ -638,9 +711,10 @@ export default function PartiOda() {
     if (o.tur === "hazir" && o.sure > 0) setSure(o.sure);
     if (o.tur === "konum" || o.tur === "atla") {
       setSonKonum(o.konum);
-      if (o.tur === "atla" && kontrolBende && !uygulaniyorRef.current) {
+      if (o.tur === "atla" && yayinlayabilirMi()) {
         setTimeout(() => {
-          if (!kanalRef.current) return;
+          if (!kanalRef.current || !yayinlayabilirMi()) return;
+          siraRef.current += 1;
           sonYayinRef.current = Date.now();
           kanalRef.current.oynatimYayinla({
             platform: oynatilan.platform,
@@ -649,7 +723,9 @@ export default function PartiOda() {
             kapak: null,
             konum: o.konum,
             oynuyor,
-            an: Date.now(),
+            an: Date.now() + saatSapmasi(),
+            sira: siraRef.current,
+            kaynak: benimAnahtar,
           });
         }, 0);
       }
@@ -676,10 +752,11 @@ export default function PartiOda() {
         setSimdiSecim(s);
         setEk((e) => [...e, { tur: "simdi", anahtar: "s" + s.anahtar, baslik: s.baslik ?? "Video", platform: s.platform }]);
       }
-      if (kontrolBende && !uygulaniyorRef.current) setTimeout(durumYayinla, 0);
+      setTimeout(() => durumYayinla(), 0);
     } else if (o.tur === "duraklat") {
+      if (askidaRef.current) return;
       setOynuyor(false);
-      if (kontrolBende && !uygulaniyorRef.current) setTimeout(durumYayinla, 0);
+      setTimeout(() => durumYayinla(), 0);
     } else if (o.tur === "bitti") {
       setOynuyor(false);
       setSimdiSecim(null);
@@ -703,7 +780,7 @@ export default function PartiOda() {
       setKip("oynatim");
       oynatici.current?.sadelestir();
     }
-  }, [simdiSecim, oynatilan, sonAdres, simdiki, userName, userPhoto, devamHedefi, sonKonum, kanalOdaId, kontrolBende, oynuyor, durumYayinla]);
+  }, [simdiSecim, oynatilan, sonAdres, simdiki, userName, userPhoto, devamHedefi, sonKonum, kanalOdaId, oynuyor, durumYayinla, yayinlayabilirMi, saatSapmasi, benimAnahtar]);
 
   const oynatilanPlatform = platformBul(oynatilan.platform);
 

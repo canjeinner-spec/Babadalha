@@ -27,7 +27,11 @@ export type OynatimDurumu = {
   konum: number;
   oynuyor: boolean;
   an: number;
+  sira?: number;
+  kaynak?: string;
 };
+
+export type PaketKimligi = { kaynak: string; sira: number };
 
 export type SohbetMesaji = {
   anahtar: string;
@@ -50,6 +54,8 @@ export type SenkronOlay =
   | { tur: "atildi"; anahtar: string }
   | { tur: "odaAyari"; ayar: OdaAyari }
   | { tur: "mikrofonIzin"; anahtar: string; acik: boolean }
+  | { tur: "saatIstek"; soran: string; t0: number }
+  | { tur: "saatYanit"; t0: number; t1: number }
   | { tur: "baglanti"; acik: boolean };
 
 export type PartiKanali = {
@@ -61,14 +67,34 @@ export type PartiKanali = {
   atmaYayinla: (anahtar: string) => void;
   odaAyariYayinla: (ayar: OdaAyari) => void;
   mikrofonIzniYayinla: (anahtar: string, acik: boolean) => void;
+  saatIsteYolla: (soran: string, t0: number) => void;
+  saatYanitYolla: (soran: string, t0: number, t1: number) => void;
   kendiniGuncelle: (kisi: PartiKisi) => void;
 };
 
 export const SAPMA_ESIGI = 1;
 
-export function beklenenKonum(d: OynatimDurumu, simdi = Date.now()): number {
+export const UZAK_UYGULAMA_SOGUMA = 750;
+
+export function beklenenKonum(d: OynatimDurumu, simdi = Date.now(), sapma = 0): number {
   if (!d.oynuyor) return d.konum;
-  return d.konum + Math.max(0, (simdi - d.an) / 1000);
+  return d.konum + Math.max(0, (simdi + sapma - d.an) / 1000);
+}
+
+export function yankiPenceresinde(bitis: number, simdi = Date.now()): boolean {
+  return simdi < bitis;
+}
+
+export function eskiPaketMi(onceki: PaketKimligi | null, yeni: OynatimDurumu): boolean {
+  if (!onceki) return false;
+  if (!yeni.kaynak || !Number.isFinite(yeni.sira)) return false;
+  if (onceki.kaynak !== yeni.kaynak) return false;
+  return (yeni.sira as number) <= onceki.sira;
+}
+
+export function paketKimligi(d: OynatimDurumu): PaketKimligi | null {
+  if (!d.kaynak || !Number.isFinite(d.sira)) return null;
+  return { kaynak: d.kaynak, sira: d.sira as number };
 }
 
 type Acilis = {
@@ -107,6 +133,8 @@ export function partiKanaliAc({ odaId, ben, onOlay }: Acilis): PartiKanali {
       atmaYayinla: () => {},
       odaAyariYayinla: () => {},
       mikrofonIzniYayinla: () => {},
+      saatIsteYolla: () => {},
+      saatYanitYolla: () => {},
       kendiniGuncelle: () => {},
     };
   }
@@ -170,6 +198,19 @@ export function partiKanaliAc({ odaId, ben, onOlay }: Acilis): PartiKanali {
     .on("broadcast", { event: "odaAyari" }, ({ payload }) => {
       if (!kapandi && payload) onOlay({ tur: "odaAyari", ayar: payload as OdaAyari });
     })
+    .on("broadcast", { event: "saatIstek" }, ({ payload }) => {
+      const p = payload as { soran?: string; t0?: number } | null;
+      if (!kapandi && p?.soran && typeof p.t0 === "number") {
+        onOlay({ tur: "saatIstek", soran: String(p.soran), t0: p.t0 });
+      }
+    })
+    .on("broadcast", { event: "saatYanit" }, ({ payload }) => {
+      const p = payload as { soran?: string; t0?: number; t1?: number } | null;
+      if (kapandi || !p || p.soran !== ben.anahtar) return;
+      if (typeof p.t0 === "number" && typeof p.t1 === "number") {
+        onOlay({ tur: "saatYanit", t0: p.t0, t1: p.t1 });
+      }
+    })
     .on("broadcast", { event: "mikrofonIzin" }, ({ payload }) => {
       const p = payload as { anahtar?: string; acik?: boolean } | null;
       if (!kapandi && p?.anahtar) onOlay({ tur: "mikrofonIzin", anahtar: String(p.anahtar), acik: !!p.acik });
@@ -209,6 +250,8 @@ export function partiKanaliAc({ odaId, ben, onOlay }: Acilis): PartiKanali {
     atmaYayinla: (anahtar) => gonder("atildi", { anahtar }),
     odaAyariYayinla: (ayar) => gonder("odaAyari", ayar),
     mikrofonIzniYayinla: (anahtar, acik) => gonder("mikrofonIzin", { anahtar, acik }),
+    saatIsteYolla: (soran, t0) => gonder("saatIstek", { soran, t0 }),
+    saatYanitYolla: (soran, t0, t1) => gonder("saatYanit", { soran, t0, t1 }),
     kendiniGuncelle: (kisi) => {
       if (kapandi) return;
       kanal.track(kisi).catch(() => {});
