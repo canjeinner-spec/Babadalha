@@ -506,7 +506,9 @@ export default function PartiOda() {
     const ek = ayrinti
       ? " " + Object.entries(ayrinti).map(([k, v]) => `${k}=${typeof v === "number" ? Math.round(v * 100) / 100 : v}`).join(" ")
       : "";
-    console.log(`[senkron] ${olay}${ek}`);
+    const kim = benimAnahtarRef.current || "?";
+    const rol = benSahipRef.current ? "sahip" : "uye";
+    console.log(`[senkron ${kim}/${rol}] ${olay}${ek}`);
   }, []);
 
   const suankiDurum = useCallback((): OynatimDurumu => {
