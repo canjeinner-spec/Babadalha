@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: aron-cdm
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: PRD_DOSYA
+        value: device.prd

@@ -3,6 +3,8 @@ package expo.modules.aronplayer
 import android.content.Context
 import android.util.Log
 import androidx.media3.common.util.UnstableApi
+import org.json.JSONArray
+import org.json.JSONObject
 import java.io.DataInputStream
 import java.io.OutputStream
 import java.net.HttpURLConnection
@@ -15,6 +17,8 @@ class NetflixMslYonetici(private val context: Context) {
   val yanit = MslYanit(oturum)
   val manifestUretici = NetflixManifestUretici()
   var drmGeriCagri: NetflixDrmGeriCagri? = null
+    private set
+  var clearKeyJwk: ByteArray? = null
     private set
 
   private val prefs = try {
@@ -30,7 +34,7 @@ class NetflixMslYonetici(private val context: Context) {
     if (kaydedilmis != null && oturum.durumYukle(kaydedilmis)) {
       Log.d(TAG, "MSL oturumu diskten yuklendi")
     }
-    drmGeriCagri = NetflixDrmGeriCagri(oturum, istek, yanit)
+    drmGeriCagri = NetflixDrmGeriCagri(this)
   }
 
   fun anahtarDegisimi(): Boolean {
@@ -68,6 +72,56 @@ class NetflixMslYonetici(private val context: Context) {
     return manifestUretici.jsonDanMpd(manifestJson, context)
   }
 
+  fun lisansAlVeAnahtarCikar(cdmProxyUrl: String) {
+    val challengeYaniti = cdmPost(
+      "$cdmProxyUrl/challenge",
+      """{"pssh":"${NetflixDrmGeriCagri.GENEL_PSSH}"}"""
+    )
+    val challengeJson = JSONObject(challengeYaniti)
+    val challenge = challengeJson.getString("challenge")
+    val oturumKimligi = challengeJson.getString("session_id")
+
+    val lisansAdresi = oturum.lisansUrl.ifEmpty { NetflixDrmGeriCagri.LISANS_URL }
+    val mslYuk = istek.lisansYuku(challenge)
+    val mslYaniti = mslPost(lisansAdresi, mslYuk)
+    val cozulmus = yanit.lisansCoz(mslYaniti)
+
+    val lisansB64 = lisansVerisiCikar(cozulmus)
+
+    val anahtarYaniti = cdmPost(
+      "$cdmProxyUrl/keys",
+      """{"session_id":"$oturumKimligi","license":"$lisansB64"}"""
+    )
+    val anahtarlar = JSONObject(anahtarYaniti)
+    clearKeyJwk = NetflixDrmGeriCagri.clearKeyJwkOlustur(anahtarlar)
+    Log.d(TAG, "ClearKey JWK hazirlandi, ${anahtarlar.length()} anahtar")
+  }
+
+  private fun lisansVerisiCikar(cozulmus: String): String {
+    try {
+      val dizi = JSONArray(cozulmus)
+      if (dizi.length() > 0) {
+        val ilk = dizi.getJSONObject(0)
+        val sonuclar = ilk.optJSONArray("result")
+        if (sonuclar != null && sonuclar.length() > 0) {
+          val sonuc = sonuclar.getJSONObject(0)
+          val b64 = sonuc.optString("licenseResponseBase64", "")
+          if (b64.isNotEmpty()) return b64
+        }
+      }
+    } catch (_: Exception) { }
+    try {
+      val json = JSONObject(cozulmus)
+      val sonuclar = json.optJSONArray("result")
+      if (sonuclar != null && sonuclar.length() > 0) {
+        val sonuc = sonuclar.getJSONObject(0)
+        val b64 = sonuc.optString("licenseResponseBase64", "")
+        if (b64.isNotEmpty()) return b64
+      }
+    } catch (_: Exception) { }
+    throw IllegalStateException("Netflix lisans yanıtından licenseResponseBase64 çıkarılamadı")
+  }
+
   private fun kaydet() {
     try {
       val veri = oturum.durumKaydet()
@@ -84,13 +138,15 @@ class NetflixMslYonetici(private val context: Context) {
     oturum.anaToken = null
     oturum.kullaniciToken = null
     oturum.sahipToken = null
+    clearKeyJwk = null
   }
 
   private fun mslPost(url: String, yuk: String): String {
     val baglanti = URL(url).openConnection() as HttpURLConnection
     baglanti.requestMethod = "POST"
-    baglanti.setRequestProperty("Content-Type", "application/json")
+    baglanti.setRequestProperty("Content-Type", "text/plain")
     baglanti.setRequestProperty("User-Agent", KULLANICI_AJANI)
+    baglanti.setRequestProperty("Accept", "*/*")
     baglanti.doOutput = true
     baglanti.connectTimeout = 30_000
     baglanti.readTimeout = 30_000
@@ -105,8 +161,26 @@ class NetflixMslYonetici(private val context: Context) {
     return String(sonuc)
   }
 
+  private fun cdmPost(url: String, body: String): String {
+    val baglanti = URL(url).openConnection() as HttpURLConnection
+    baglanti.requestMethod = "POST"
+    baglanti.setRequestProperty("Content-Type", "application/json")
+    baglanti.doOutput = true
+    baglanti.connectTimeout = 30_000
+    baglanti.readTimeout = 30_000
+    val os: OutputStream = baglanti.outputStream
+    os.write(body.toByteArray())
+    os.flush()
+    os.close()
+    val girdi = DataInputStream(baglanti.inputStream)
+    val sonuc = girdi.readBytes()
+    girdi.close()
+    baglanti.disconnect()
+    return String(sonuc)
+  }
+
   companion object {
     private const val TAG = "NetflixMsl"
-    private const val KULLANICI_AJANI = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
+    private const val KULLANICI_AJANI = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0"
   }
 }

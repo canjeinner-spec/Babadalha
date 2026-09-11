@@ -13,6 +13,7 @@ data class DrmAyari(
   val netflixId: String = "",
   val netflixSecureId: String = "",
   val netflixVideoId: String = "",
+  val cdmProxyUrl: String = "",
   val primeAmazon: Boolean = false,
   val primeVideoId: String = "",
   val primeCerezler: String = "",
@@ -65,7 +66,8 @@ data class OynatimYapilandirma(
     private fun drmCoz(o: JSONObject?): DrmAyari? {
       o ?: return null
       val lisans = o.optString("licenseUrl")
-      if (lisans.isBlank()) return null
+      val netflixMsl = o.optBoolean("netflixMsl", false)
+      if (lisans.isBlank() && !netflixMsl) return null
       return DrmAyari(
         sema = o.optString("scheme", "widevine").lowercase(),
         lisansUrl = lisans,
@@ -76,6 +78,7 @@ data class OynatimYapilandirma(
         netflixId = o.optString("netflixId", ""),
         netflixSecureId = o.optString("netflixSecureId", ""),
         netflixVideoId = o.optString("netflixVideoId", ""),
+        cdmProxyUrl = o.optString("cdmProxyUrl", ""),
         primeAmazon = o.optBoolean("primeAmazon", false),
         primeVideoId = o.optString("primeVideoId", ""),
         primeCerezler = o.optString("primeCerezler", ""),

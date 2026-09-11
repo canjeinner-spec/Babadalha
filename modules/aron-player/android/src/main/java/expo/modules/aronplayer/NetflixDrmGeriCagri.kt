@@ -13,30 +13,26 @@ import java.io.DataInputStream
 import java.io.OutputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import java.nio.charset.StandardCharsets
 import java.util.UUID
 
 @UnstableApi
 class NetflixDrmGeriCagri(
-  private val oturum: MslOturum,
-  private val istek: MslIstek,
-  private val yanit: MslYanit
+  private val yonetici: NetflixMslYonetici
 ) : MediaDrmCallback {
 
   override fun executeKeyRequest(
     uuid: UUID,
     request: ExoMediaDrm.KeyRequest
   ): MediaDrmCallback.Response {
-    val lisansAdresi = oturum.lisansUrl.ifEmpty { LISANS_URL }
     try {
-      val challengeB64 = MslOturum.base64Kodla(request.data)
-      val yuk = istek.lisansYuku(challengeB64)
-      val sonuc = mslPost(lisansAdresi, yuk)
-      val cozulmus = yanit.lisansCoz(sonuc)
-      return MediaDrmCallback.Response(lisansVerisiniCikar(cozulmus))
+      val jwk = yonetici.clearKeyJwk
+        ?: throw IllegalStateException("ClearKey JWK hazir degil — lisans alinmamis olabilir")
+      return MediaDrmCallback.Response(jwk)
     } catch (e: Exception) {
       throw MediaDrmCallbackException(
-        DataSpec(Uri.parse(lisansAdresi)),
-        Uri.parse(lisansAdresi),
+        DataSpec(Uri.EMPTY),
+        Uri.EMPTY,
         emptyMap<String, List<String>>(),
         0L,
         e
@@ -75,63 +71,37 @@ class NetflixDrmGeriCagri(
     return MediaDrmCallback.Response(veri)
   }
 
-  private fun lisansVerisiniCikar(cozulmus: String): ByteArray {
-    try {
-      val dizi = JSONArray(cozulmus)
-      if (dizi.length() > 0) {
-        val ilk = dizi.getJSONObject(0)
-        val sonuclar = ilk.optJSONArray("result")
-        if (sonuclar != null && sonuclar.length() > 0) {
-          val sonuc = sonuclar.getJSONObject(0)
-          val lisanslar = sonuc.optJSONArray("licenses")
-          if (lisanslar != null && lisanslar.length() > 0) {
-            val veri = lisanslar.getJSONObject(0).optString("data", "")
-            if (veri.isNotEmpty()) return Base64.decode(veri, Base64.DEFAULT)
-          }
-          val veri = sonuc.optString("data", "")
-          if (veri.isNotEmpty()) return Base64.decode(veri, Base64.DEFAULT)
-        }
-      }
-    } catch (_: Exception) { }
-
-    try {
-      val json = JSONObject(cozulmus)
-      val sonuclar = json.optJSONArray("result")
-      if (sonuclar != null && sonuclar.length() > 0) {
-        val sonuc = sonuclar.getJSONObject(0)
-        val veri = sonuc.optString("data", "")
-        if (veri.isNotEmpty()) return Base64.decode(veri, Base64.DEFAULT)
-      }
-      val veri = json.optString("data", "")
-      if (veri.isNotEmpty()) return Base64.decode(veri, Base64.DEFAULT)
-    } catch (_: Exception) { }
-
-    return Base64.decode(cozulmus, Base64.DEFAULT or Base64.NO_WRAP)
-  }
-
-  private fun mslPost(url: String, yuk: String): String {
-    val baglanti = URL(url).openConnection() as HttpURLConnection
-    baglanti.requestMethod = "POST"
-    baglanti.setRequestProperty("Content-Type", "application/json")
-    baglanti.setRequestProperty("User-Agent", KULLANICI_AJANI)
-    baglanti.doOutput = true
-    baglanti.connectTimeout = 30_000
-    baglanti.readTimeout = 30_000
-    val os: OutputStream = baglanti.outputStream
-    os.write(yuk.toByteArray())
-    os.flush()
-    os.close()
-    val girdi = DataInputStream(baglanti.inputStream)
-    val sonuc = girdi.readBytes()
-    girdi.close()
-    baglanti.disconnect()
-    return String(sonuc)
-  }
-
   companion object {
     private const val MSL_TEMEL = "https://www.netflix.com/nq/msl_v1/cadmium/"
-    const val MANIFEST_URL = "${MSL_TEMEL}pbo_manifests/%5E1.0.0/router?reqAttempt=1&reqName=manifest&clienttype=akira&uiversion=v65aacd43&browsername=chrome&browserversion=134.0.0&osname=Windows&osversion=10.0"
-    const val LISANS_URL = "${MSL_TEMEL}pbo_licenses/%5E1.0.0/router?reqAttempt=1&reqName=license&clienttype=akira&uiversion=v65aacd43&browsername=chrome&browserversion=134.0.0&osname=Windows&osversion=10.0"
-    const val KULLANICI_AJANI = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
+    const val MANIFEST_URL = "${MSL_TEMEL}pbo_manifests/%5E1.0.0/router?reqAttempt=1&reqName=manifest&clienttype=akira&uiversion=v65aacd43&browsername=edgeoss&browserversion=134.0.0&osname=Windows&osversion=10.0"
+    const val LISANS_URL = "${MSL_TEMEL}pbo_licenses/%5E1.0.0/router?reqAttempt=1&reqName=prefetch/license&clienttype=akira&uiversion=v65aacd43&browsername=edgeoss&browserversion=134.0.0&osname=Windows&osversion=10.0"
+    const val KULLANICI_AJANI = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0"
+
+    val GENEL_PSSH = "AAAC6nBzc2gAAAAAmgTweZhAQoarkuZb4IhflQAAAsrKAgAAAQABAMACPABXAFIATQBIAEUAQQBEAEUAUgAgAHgAbQBsAG4AcwA9ACIAaAB0AHQAcAA6AC8ALwBzAGMAaABlAG0AYQBzAC4AbQBpAGMAcgBvAHMAbwBmAHQALgBjAG8AbQAvAEQAUgBNAC8AMgAwADAANwAvADAAMwAvAFAAbABhAHkAUgBlAGEAZAB5AEgAZQBhAGQAZQByACIAIAB2AGUAcgBzAGkAbwBuAD0AIgA0AC4AMgAuADAALgAwACIAPgA8AEQAQQBUAEEAPgA8AFAAUgBPAFQARQBDAFQASQBOAEYATwA+ADwASwBJAEQAUwA+ADwASwBJAEQAIABBAEwARwBJAEQAPQAiAEEARQBTAEMAVABSACIAIABWAEEATABVAEUAPQAiAEEAQQBBAEEAQQBOAG8ASQBYAEQANABBAEEAQQBBAEEAQQBBAEEAQQBBAEEAPQA9ACIAPgA8AC8ASwBJAEQAPgA8AC8ASwBJAEQAUwA+ADwALwBQAFIATwBUAEUAQwBUAEkATgBGAE8APgA8AEwAQQBfAFUAUgBMAD4AaAB0AHQAcAA6AC8ALwBjAGEAcABwAHIAcwB2AHIAMAA2AC8AcwBpAGwAdgBlAHIAbABpAGcAaAB0ADUALwByAGkAZwBoAHQAcwBtAGEAbgBhAGcAZQByAC4AYQBzAG0AeAA8AC8ATABBAF8AVQBSAEwAPgA8AEwAVQBJAF8AVQBSAEwAPgBoAHQAdABwADoALwAvAGMAYQBwAHAAcgBzAHYAcgAwADYALwBzAGkAbAB2AGUAcgBsAGkAZwBoAHQANQAvAHIAaQBnAGgAdABzAG0AYQBuAGEAZwBlAHIALgBhAHMAbQB4ADwALwBMAFUASQBfAFUAUgBMAD4APAAvAEQAQQBUAEEAPgA8AC8AVwBSAE0ASABFAEEARABFAFIAPgA="
+
+    fun base64UrlNoPad(b64: String): String {
+      return b64
+        .replace("+", "-")
+        .replace("/", "_")
+        .trimEnd('=')
+    }
+
+    fun clearKeyJwkOlustur(anahtarlar: JSONObject): ByteArray {
+      val jwk = JSONObject()
+      jwk.put("type", "temporary")
+      val keys = JSONArray()
+      val it = anahtarlar.keys()
+      while (it.hasNext()) {
+        val kid = it.next()
+        val key = anahtarlar.getString(kid)
+        val entry = JSONObject()
+        entry.put("kty", "oct")
+        entry.put("kid", base64UrlNoPad(kid))
+        entry.put("k", base64UrlNoPad(key))
+        keys.put(entry)
+      }
+      jwk.put("keys", keys)
+      return jwk.toString().toByteArray(StandardCharsets.UTF_8)
+    }
   }
 }

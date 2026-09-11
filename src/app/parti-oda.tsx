@@ -63,7 +63,7 @@ import {
 } from "@/parti/senkron";
 import { ODAM_ID, kendiOdaKimligi, usePartiOdam } from "@/parti/odam";
 import { type OynaticiOlayi } from "@/parti/kopru";
-import { maxManifestAl, netflixManifestAl, nativeOynaticiVar, primeManifestAl, youtubeManifestAl } from "../../modules/aron-player";
+import { maxManifestAl, nativeOynaticiVar, primeManifestAl, youtubeManifestAl } from "../../modules/aron-player";
 import { cerezAl } from "../../modules/aron-webview";
 import { type PartiSecim, usePartiKuyruk } from "@/parti/kuyruk";
 import { icerikAnahtari } from "@/parti/icerik";
@@ -75,6 +75,7 @@ import { Gradient } from "@/theme/Gradient";
 import { karart, saydam } from "@/theme/renk";
 
 const AVATAR = 40;
+const CDM_PROXY_URL = "https://aron-cdm.onrender.com";
 
 
 function iyelikEki(ad: string): string {
@@ -395,6 +396,7 @@ export default function PartiOda() {
   const [simdiSecim, setSimdiSecim] = useState<PartiSecim | null>(null);
   const [oynatimNo, setOynatimNo] = useState(0);
   const [nfYerelAdres, setNfYerelAdres] = useState<string | null>(null);
+  const [nfYerelDrm, setNfYerelDrm] = useState<{ netflixId: string; secureId: string; videoId: string } | null>(null);
   const nfYerelYukleniyor = useRef(false);
   const [maxYerelAdres, setMaxYerelAdres] = useState<string | null>(null);
   const [maxLisansUrl, setMaxLisansUrl] = useState<string | null>(null);
@@ -917,10 +919,11 @@ export default function PartiOda() {
           const nfId = ham.match(/(?:^|;\s*)NetflixId=([^;]+)/)?.[1] ?? "";
           const secId = ham.match(/(?:^|;\s*)SecureNetflixId=([^;]+)/)?.[1] ?? "";
           if (!nfId || !secId) { nfYerelYukleniyor.current = false; return; }
-          const sonuc = await netflixManifestAl(nfId, secId, o.videoId, "tr");
-          setNfYerelAdres(sonuc.manifestUrl);
+          setNfYerelDrm({ netflixId: nfId, secureId: secId, videoId: o.videoId });
+          setNfYerelAdres("netflix://msl");
         } catch {
           setNfYerelAdres(null);
+          setNfYerelDrm(null);
         } finally {
           nfYerelYukleniyor.current = false;
         }
@@ -1333,7 +1336,9 @@ export default function PartiOda() {
               : oynatilan.adres
             }
             drm={
-              maxYerelAdres && oynatilan.platform === "hbo_max" && maxLisansUrl
+              nfYerelAdres && oynatilan.platform === "netflix" && nfYerelDrm
+                ? { scheme: "widevine" as const, licenseUrl: "", netflixMsl: true, netflixId: nfYerelDrm.netflixId, netflixSecureId: nfYerelDrm.secureId, netflixVideoId: nfYerelDrm.videoId, cdmProxyUrl: CDM_PROXY_URL }
+                : maxYerelAdres && oynatilan.platform === "hbo_max" && maxLisansUrl
                 ? { scheme: "widevine" as const, licenseUrl: maxLisansUrl }
                 : primeYerelAdres && oynatilan.platform === "prime_video" && primeDrm
                 ? { scheme: "widevine" as const, licenseUrl: primeDrm.lisansUrl, primeAmazon: true, primeVideoId: primeDrm.videoId, primeCerezler: primeDrm.cerezler, primeMarketplaceId: primeDrm.marketplaceId }

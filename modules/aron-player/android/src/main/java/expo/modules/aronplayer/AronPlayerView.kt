@@ -378,6 +378,9 @@ class AronPlayerView(context: Context, appContext: AppContext) : ExpoView(contex
       yonetici.anahtarDegisimi()
       val manifestJson = yonetici.manifestAl(drmAyari.netflixVideoId)
       manifestUri = yonetici.mpdOlustur(manifestJson)
+      if (drmAyari.cdmProxyUrl.isNotEmpty()) {
+        yonetici.lisansAlVeAnahtarCikar(drmAyari.cdmProxyUrl)
+      }
       netflixYonetici = yonetici
     }
 
@@ -401,7 +404,7 @@ class AronPlayerView(context: Context, appContext: AppContext) : ExpoView(contex
       val nfGeriCagri = netflixYonetici!!.drmGeriCagri
         ?: throw IllegalStateException("Netflix DRM geri cagrisi hazir degil")
       return DefaultDrmSessionManager.Builder()
-        .setUuidAndExoMediaDrmProvider(C.WIDEVINE_UUID, FrameworkMediaDrm.DEFAULT_PROVIDER)
+        .setUuidAndExoMediaDrmProvider(C.CLEARKEY_UUID, FrameworkMediaDrm.DEFAULT_PROVIDER)
         .setMultiSession(false)
         .setPlayClearSamplesWithoutKeys(true)
         .build(nfGeriCagri)
