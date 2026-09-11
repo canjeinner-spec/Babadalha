@@ -888,7 +888,7 @@ const TANI = `
 (function () {
   if (window.__aronTani) return;
   window.__aronTani = true;
-  var yolla = window.__aronYolla || function () {};
+  function yolla(m) { try { if (window.__aronYolla) window.__aronYolla(m); } catch (e) {} }
 
   var kalan = 60;
   function gunluk(seviye, args) {
@@ -2318,7 +2318,7 @@ const NETFLIX_ANDROID_EK = `
 (function () {
   if (window.__aronNfYerel) return;
   window.__aronNfYerel = true;
-  var yolla = window.__aronYolla || function () {};
+  function yolla(m) { try { if (window.__aronYolla) window.__aronYolla(m); } catch (e) {} }
   var gonderildi = '';
   function yakala(yol) {
     try {
@@ -2435,7 +2435,7 @@ const HBO_MAX_ANDROID_EK = `
 (function () {
   if (window.__aronMaxYerel) return;
   window.__aronMaxYerel = true;
-  var yolla = window.__aronYolla || function () {};
+  function yolla(m) { try { if (window.__aronYolla) window.__aronYolla(m); } catch (e) {} }
   var gonderildi = '';
   setInterval(function () {
     try {
@@ -2454,7 +2454,7 @@ const PRIME_ANDROID_EK = `
 (function () {
   if (window.__aronPrimeYerel) return;
   window.__aronPrimeYerel = true;
-  var yolla = window.__aronYolla || function () {};
+  function yolla(m) { try { if (window.__aronYolla) window.__aronYolla(m); } catch (e) {} }
   var gonderildi = '';
   function asinAl() {
     try {
@@ -2479,7 +2479,7 @@ const YOUTUBE_ANDROID_EK = `
 (function () {
   if (window.__aronYtYerel) return;
   window.__aronYtYerel = true;
-  var yolla = window.__aronYolla || function () {};
+  function yolla(m) { try { if (window.__aronYolla) window.__aronYolla(m); } catch (e) {} }
   var gonderildi = '';
   function idAl() {
     try {
