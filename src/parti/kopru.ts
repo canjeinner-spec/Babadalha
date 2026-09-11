@@ -2346,10 +2346,31 @@ const NETFLIX_ANDROID_EK = `
   };
   window.addEventListener('popstate', function () { yakala(location.pathname); });
   yakala(location.pathname);
+  function oynatmaVideoId() {
+    try {
+      var pa = window.netflix && window.netflix.appContext && window.netflix.appContext.state && window.netflix.appContext.state.playerApp;
+      var api = pa && pa.getAPI && pa.getAPI();
+      var vp = api && api.videoPlayer;
+      if (!vp || !vp.getAllPlayerSessionIds) return '';
+      var ids = vp.getAllPlayerSessionIds() || [];
+      for (var i = 0; i < ids.length; i++) {
+        if (String(ids[i]).indexOf('watch') !== 0) continue;
+        var p = vp.getVideoPlayerBySessionId ? vp.getVideoPlayerBySessionId(ids[i]) : null;
+        if (p && p.getMovieId) { var mid = p.getMovieId(); if (mid) return String(mid); }
+      }
+    } catch (e) {}
+    return '';
+  }
   setInterval(function () {
     try {
-      if (!location.pathname.match(/\\/watch\\//)) { gonderildi = ''; return; }
-      yakala(location.pathname);
+      if (location.pathname.match(/\\/watch\\//)) { yakala(location.pathname); return; }
+      var mid = oynatmaVideoId();
+      if (mid) {
+        if (mid === gonderildi) return;
+        gonderildi = mid;
+        yolla({ tur: 'gunluk', seviye: 'nfyerel', metin: 'oturumdan videoId=' + mid + ' (adres /watch degil)' });
+        yolla({ tur: 'netflix-yerel', videoId: mid });
+      }
     } catch (e) {}
   }, 1500);
 })();
