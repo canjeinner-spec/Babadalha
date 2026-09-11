@@ -20,9 +20,50 @@ class MslYanit(private val oturum: MslOturum) {
     }
   }
 
+  private fun jsonSiniriBul(metin: String, baslangic: Int = 0): Int {
+    var derinlik = 0
+    var dizgiIcinde = false
+    var oncekiKacis = false
+    for (i in baslangic until metin.length) {
+      val c = metin[i]
+      if (oncekiKacis) {
+        oncekiKacis = false
+        continue
+      }
+      when (c) {
+        '\\' -> if (dizgiIcinde) oncekiKacis = true
+        '"' -> dizgiIcinde = !dizgiIcinde
+        '{' -> if (!dizgiIcinde) derinlik++
+        '}' -> if (!dizgiIcinde) {
+          derinlik--
+          if (derinlik == 0) return i + 1
+        }
+      }
+    }
+    return metin.length
+  }
+
+  private fun baslikVeYukAyir(yanit: String): Pair<String, String> {
+    val sinir = jsonSiniriBul(yanit)
+    return Pair(yanit.substring(0, sinir), yanit.substring(sinir))
+  }
+
+  private fun cokluJsonAyir(metin: String): List<String> {
+    val parcalar = mutableListOf<String>()
+    var pos = 0
+    while (pos < metin.length) {
+      val kalan = metin.substring(pos)
+      if (kalan.isBlank()) break
+      val sinir = jsonSiniriBul(kalan)
+      if (sinir <= 0 || sinir == kalan.length && kalan[0] != '{') break
+      parcalar.add(kalan.substring(0, sinir))
+      pos += sinir
+    }
+    return parcalar
+  }
+
   fun mslVerisiCoz(yanit: String): String {
-    val parcalar = yanit.split("}}")
-    val baslikMetni = parcalar[0] + "}}"
+    val (baslikMetni, yukMetni) = baslikVeYukAyir(yanit)
     val baslikJson = JSONObject(baslikMetni)
     val baslikVeri = JSONObject(String(Base64.decode(baslikJson.getString("headerdata"), Base64.DEFAULT)))
     val cozulmusBaslik = if (baslikVeri.has("ciphertext")) aesCozJson(baslikVeri) else baslikVeri
@@ -30,17 +71,7 @@ class MslYanit(private val oturum: MslOturum) {
       oturum.kullaniciToken = JSONObject(cozulmusBaslik.getString("useridtoken"))
     }
 
-    val yukMetni = parcalar[1]
-    val yukParcalari = yukMetni.split("}{").toMutableList()
-    if (yukParcalari.size > 1) {
-      for (i in yukParcalari.indices) {
-        yukParcalari[i] = when (i) {
-          0 -> yukParcalari[i] + "}"
-          yukParcalari.size - 1 -> "{" + yukParcalari[i]
-          else -> "{" + yukParcalari[i] + "}"
-        }
-      }
-    }
+    val yukParcalari = cokluJsonAyir(yukMetni)
 
     val sb = StringBuilder()
     for (parca in yukParcalari) {
@@ -102,16 +133,14 @@ class MslYanit(private val oturum: MslOturum) {
   fun lisansCoz(yanit: String): String = mslVerisiCoz(yanit)
 
   fun sahipTokenCoz(yanit: String) {
-    val parcalar = yanit.split("}}")
-    val baslikMetni = parcalar[0] + "}}"
+    val (baslikMetni, _) = baslikVeYukAyir(yanit)
     val baslikVeri = JSONObject(String(Base64.decode(JSONObject(baslikMetni).getString("headerdata"), Base64.DEFAULT)))
     val cozulmus = aesCozJson(baslikVeri)!!
     oturum.sahipToken = JSONObject(cozulmus.getString("useridtoken"))
   }
 
   fun profilDegistirCoz(yanit: String) {
-    val parcalar = yanit.split("}}")
-    val baslikMetni = parcalar[0] + "}}"
+    val (baslikMetni, _) = baslikVeYukAyir(yanit)
     val baslikVeri = JSONObject(String(Base64.decode(JSONObject(baslikMetni).getString("headerdata"), Base64.DEFAULT)))
     val cozulmus = aesCozJson(baslikVeri)!!
     oturum.kullaniciToken = JSONObject(cozulmus.getString("useridtoken"))

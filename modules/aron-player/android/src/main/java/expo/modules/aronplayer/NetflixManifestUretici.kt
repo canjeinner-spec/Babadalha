@@ -15,8 +15,8 @@ class NetflixManifestUretici {
     sb.append("xmlns:cenc=\"urn:mpeg:cenc:2013\" ")
     sb.append("type=\"static\" ")
 
-    val sure = json.optLong("duration", 0) / 1000
-    sb.append("mediaPresentationDuration=\"PT${sure}S\" ")
+    val sureMs = json.optLong("duration", 0)
+    if (sureMs > 0) sb.append("mediaPresentationDuration=\"PT${sureMs / 1000}S\" ")
     sb.append("minBufferTime=\"PT10S\" ")
     sb.append("profiles=\"urn:mpeg:dash:profile:isoff-on-demand:2011\">\n")
 
@@ -44,7 +44,7 @@ class NetflixManifestUretici {
             val sidx = akis.optLong("sidx", 0)
             val moov = akis.optLong("new_stream_header_size", 0)
             if (sidx > 0) {
-              sb.append("<SegmentBase indexRange=\"$moov-${moov + sidx}\">\n")
+              sb.append("<SegmentBase indexRange=\"$moov-${moov + sidx - 1}\">\n")
               sb.append("<Initialization range=\"0-${moov - 1}\"/>\n")
               sb.append("</SegmentBase>\n")
             }
@@ -76,7 +76,7 @@ class NetflixManifestUretici {
             val sidx = akis.optLong("sidx", 0)
             val moov = akis.optLong("new_stream_header_size", 0)
             if (sidx > 0) {
-              sb.append("<SegmentBase indexRange=\"$moov-${moov + sidx}\">\n")
+              sb.append("<SegmentBase indexRange=\"$moov-${moov + sidx - 1}\">\n")
               sb.append("<Initialization range=\"0-${moov - 1}\"/>\n")
               sb.append("</SegmentBase>\n")
             }

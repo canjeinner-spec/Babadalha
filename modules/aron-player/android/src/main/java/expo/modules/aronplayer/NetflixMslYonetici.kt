@@ -6,8 +6,9 @@ import androidx.media3.common.util.UnstableApi
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.DataInputStream
-import java.io.OutputStream
+import java.net.ConnectException
 import java.net.HttpURLConnection
+import java.net.SocketTimeoutException
 import java.net.URL
 
 @UnstableApi
@@ -45,6 +46,7 @@ class NetflixMslYonetici(private val context: Context) {
         val yuk = istek.anahtarDegisimiYuku(true)
         val sonuc = mslPost(NetflixDrmGeriCagri.MANIFEST_URL, yuk)
         yanit.anahtarDegisimiCoz(sonuc)
+        sahipTokenAl()
         kaydet()
         return true
       }
@@ -56,8 +58,22 @@ class NetflixMslYonetici(private val context: Context) {
     val yuk = istek.anahtarDegisimiYuku(false)
     val sonuc = mslPost(NetflixDrmGeriCagri.MANIFEST_URL, yuk)
     yanit.anahtarDegisimiCoz(sonuc)
+    sahipTokenAl()
     kaydet()
     return true
+  }
+
+  private fun sahipTokenAl() {
+    if (oturum.sahipToken != null) return
+    if (oturum.kullaniciToken == null) return
+    try {
+      val yuk = istek.sahipTokenYuku()
+      val sonuc = mslPost(NetflixDrmGeriCagri.MANIFEST_URL, yuk)
+      yanit.sahipTokenCoz(sonuc)
+      Log.d(TAG, "sahip tokeni alindi")
+    } catch (e: Throwable) {
+      Log.w(TAG, "sahip tokeni alinamadi, devam ediliyor: ${e.message}")
+    }
   }
 
   fun manifestAl(videoId: String): String {
@@ -112,7 +128,7 @@ class NetflixMslYonetici(private val context: Context) {
         if (b64.isNotEmpty()) return b64
       }
     } catch (_: Exception) { }
-    throw IllegalStateException("Netflix lisans yanıtından licenseResponseBase64 çıkarılamadı")
+    throw IllegalStateException("Netflix lisans yanitindan licenseResponseBase64 cikarilamadi: ${cozulmus.take(200)}")
   }
 
   private fun kaydet() {
@@ -135,27 +151,52 @@ class NetflixMslYonetici(private val context: Context) {
   }
 
   private fun mslPost(url: String, yuk: String): String {
+    val yukBytes = yuk.toByteArray()
+    var sonHata: Throwable? = null
+    for (deneme in 1..MAKS_DENEME) {
+      try {
+        return mslGonder(url, yukBytes)
+      } catch (e: SocketTimeoutException) {
+        Log.w(TAG, "MSL zaman asimi $url, deneme $deneme/$MAKS_DENEME")
+        sonHata = e
+      } catch (e: ConnectException) {
+        Log.w(TAG, "MSL baglanti hatasi $url, deneme $deneme/$MAKS_DENEME")
+        sonHata = e
+      }
+      if (deneme < MAKS_DENEME) Thread.sleep(deneme * 2000L)
+    }
+    throw IllegalStateException("MSL $MAKS_DENEME denemede basarisiz: $url", sonHata)
+  }
+
+  private fun mslGonder(url: String, yukBytes: ByteArray): String {
     val baglanti = URL(url).openConnection() as HttpURLConnection
-    baglanti.requestMethod = "POST"
-    baglanti.setRequestProperty("Content-Type", "text/plain")
-    baglanti.setRequestProperty("User-Agent", KULLANICI_AJANI)
-    baglanti.setRequestProperty("Accept", "*/*")
-    baglanti.doOutput = true
-    baglanti.connectTimeout = 30_000
-    baglanti.readTimeout = 30_000
-    val os: OutputStream = baglanti.outputStream
-    os.write(yuk.toByteArray())
-    os.flush()
-    os.close()
-    val girdi = DataInputStream(baglanti.inputStream)
-    val sonuc = girdi.readBytes()
-    girdi.close()
-    baglanti.disconnect()
-    return String(sonuc)
+    try {
+      baglanti.requestMethod = "POST"
+      baglanti.setRequestProperty("Content-Type", "text/plain")
+      baglanti.setRequestProperty("User-Agent", KULLANICI_AJANI)
+      baglanti.setRequestProperty("Accept", "*/*")
+      baglanti.doOutput = true
+      baglanti.connectTimeout = 30_000
+      baglanti.readTimeout = 30_000
+      baglanti.outputStream.use { os ->
+        os.write(yukBytes)
+        os.flush()
+      }
+      val kod = baglanti.responseCode
+      if (kod !in 200..299) {
+        val hataVeri = baglanti.errorStream?.use { DataInputStream(it).readBytes() }
+          ?.let { String(it).take(300) } ?: ""
+        throw IllegalStateException("MSL HTTP $kod: $hataVeri")
+      }
+      return baglanti.inputStream.use { String(DataInputStream(it).readBytes()) }
+    } finally {
+      baglanti.disconnect()
+    }
   }
 
   companion object {
     private const val TAG = "NetflixMsl"
+    private const val MAKS_DENEME = 3
     private const val KULLANICI_AJANI = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0"
   }
 }

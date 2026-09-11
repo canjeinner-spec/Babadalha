@@ -8,7 +8,7 @@ import java.security.KeyPair
 import java.security.KeyPairGenerator
 import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.X509EncodedKeySpec
-import java.util.Random
+import java.security.SecureRandom
 import java.util.concurrent.TimeUnit
 import javax.crypto.Cipher
 import javax.crypto.Mac
@@ -39,7 +39,7 @@ class MslOturum {
   fun esnUret(): String {
     val karakterler = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
     val sb = StringBuilder("NFCDIE-03-")
-    val r = Random()
+    val r = SecureRandom()
     repeat(30) { sb.append(karakterler[r.nextInt(karakterler.length)]) }
     return sb.toString()
   }
@@ -154,7 +154,7 @@ class MslOturum {
 
     fun rastgeleIv(): ByteArray {
       val iv = ByteArray(16)
-      Random().nextBytes(iv)
+      SecureRandom().nextBytes(iv)
       return iv
     }
 

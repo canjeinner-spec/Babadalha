@@ -33,6 +33,7 @@ import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.viewevent.EventDispatcher
 import expo.modules.kotlin.views.ExpoView
 import java.lang.ref.WeakReference
+import java.util.concurrent.Executors
 
 private const val ILERLEME_ARALIK = 500L
 private const val OYNATICI_AJANI = "AronPlayer/1.0 (Linux; Android)"
@@ -58,6 +59,7 @@ class AronPlayerView(context: Context, appContext: AppContext) : ExpoView(contex
   private var arkaPlanOncesiOynuyordu = false
   private var yuzeyBagli = false
 
+  private val agIs = Executors.newSingleThreadExecutor()
   private val elci = Handler(Looper.getMainLooper())
   private val ilerlemeIsi = object : Runnable {
     override fun run() {
@@ -177,6 +179,57 @@ class AronPlayerView(context: Context, appContext: AppContext) : ExpoView(contex
     }
     yapilandirma = yeni
     sonKimlik = yeni.kimlik
+
+    val netflixAkisi = yeni.drm?.netflixMsl == true && yeni.drm.netflixVideoId.isNotEmpty()
+    if (netflixAkisi) {
+      durumYayinla("hazirlaniyor")
+      agIs.execute { netflixHazirlaVeOynat(yeni) }
+    } else {
+      oynaticiKur(yeni)
+    }
+  }
+
+  private fun netflixHazirlaVeOynat(yeni: OynatimYapilandirma) {
+    try {
+      val d = yeni.drm!!
+      val yonetici = NetflixMslYonetici(context)
+      yonetici.baslat(d.netflixId, d.netflixSecureId, "tr")
+      yonetici.anahtarDegisimi()
+      val manifestJson = yonetici.manifestAl(d.netflixVideoId)
+      val mpdUri = yonetici.mpdOlustur(manifestJson)
+      yonetici.lisansAlVeAnahtarCikar()
+      val hazirYapilandirma = OynatimYapilandirma(
+        manifestUrl = mpdUri,
+        mimeTuru = yeni.mimeTuru,
+        drm = yeni.drm,
+        basliklar = yeni.basliklar,
+        baslangicMs = yeni.baslangicMs,
+        otomatikBasla = yeni.otomatikBasla,
+        arkaPlandaDevam = yeni.arkaPlandaDevam
+      )
+      anaIplikte {
+        if (yokEdildi) return@anaIplikte
+        netflixYonetici = yonetici
+        oynaticiKur(hazirYapilandirma)
+      }
+    } catch (e: Throwable) {
+      anaIplikte {
+        if (yokEdildi) return@anaIplikte
+        durumYayinla("hata")
+        onHata(
+          mapOf(
+            "kod" to -1,
+            "kodAdi" to "NETFLIX_HAZIRLIK_HATASI",
+            "mesaj" to (e.message ?: e.javaClass.simpleName),
+            "drm" to true,
+            "sebep" to e.javaClass.simpleName
+          )
+        )
+      }
+    }
+  }
+
+  private fun oynaticiKur(yeni: OynatimYapilandirma) {
     val exo = oynaticiVer()
     val kaynak = try {
       kaynakUret(yeni)
@@ -191,7 +244,7 @@ class AronPlayerView(context: Context, appContext: AppContext) : ExpoView(contex
           "sebep" to e.javaClass.simpleName
         )
       )
-      return@anaIplikte
+      return
     }
     durumYayinla("hazirlaniyor")
     if (yeni.baslangicMs > 0L) {
@@ -284,6 +337,7 @@ class AronPlayerView(context: Context, appContext: AppContext) : ExpoView(contex
     oynatici = null
     sonKimlik = null
     yuzeyBagli = false
+    netflixYonetici = null
     try {
       p?.removeListener(dinleyici)
       p?.removeAnalyticsListener(cozumleyici)
@@ -301,6 +355,7 @@ class AronPlayerView(context: Context, appContext: AppContext) : ExpoView(contex
     kayitSil(this)
     birak()
     elci.removeCallbacksAndMessages(null)
+    agIs.shutdownNow()
     try {
       cerceve.removeAllViews()
       removeAllViews()
@@ -369,18 +424,8 @@ class AronPlayerView(context: Context, appContext: AppContext) : ExpoView(contex
       .setReadTimeoutMs(15_000)
     if (y.basliklar.isNotEmpty()) http.setDefaultRequestProperties(y.basliklar)
 
-    var manifestUri = y.manifestUrl
-    var drmAyari = y.drm
-
-    if (drmAyari?.netflixMsl == true && drmAyari.netflixVideoId.isNotEmpty()) {
-      val yonetici = NetflixMslYonetici(context)
-      yonetici.baslat(drmAyari.netflixId, drmAyari.netflixSecureId, "tr")
-      yonetici.anahtarDegisimi()
-      val manifestJson = yonetici.manifestAl(drmAyari.netflixVideoId)
-      manifestUri = yonetici.mpdOlustur(manifestJson)
-      yonetici.lisansAlVeAnahtarCikar()
-      netflixYonetici = yonetici
-    }
+    val manifestUri = y.manifestUrl
+    val drmAyari = y.drm
 
     val veri: DataSource.Factory = DefaultDataSource.Factory(context, http)
     val parca = MediaItem.Builder().setUri(manifestUri)

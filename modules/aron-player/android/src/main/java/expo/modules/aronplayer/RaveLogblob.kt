@@ -4,9 +4,10 @@ import android.util.Base64
 import android.util.Log
 import org.json.JSONObject
 import java.io.DataInputStream
-import java.io.OutputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import java.net.SocketTimeoutException
+import java.net.ConnectException
 import javax.crypto.Cipher
 import javax.crypto.Mac
 import javax.crypto.spec.IvParameterSpec
@@ -15,6 +16,8 @@ import javax.crypto.spec.SecretKeySpec
 object RaveLogblob {
   private const val TAG = "RaveLogblob"
   private const val LOGBLOB3_URL = "https://api.red.wemesh.ca/videos/netflix/logblob3"
+  private const val KULLANICI_AJANI = "Rave/1700 okhttp/4.12.0"
+  private const val MAKS_DENEME = 3
   private val ANAHTAR = Base64.decode("zry2uQGqhnWuKqCywY2WoQ==", Base64.NO_WRAP)
 
   fun istek(duzMetin: String): String {
@@ -31,37 +34,57 @@ object RaveLogblob {
     govde.put("data", Base64.encodeToString(sifreli, Base64.NO_WRAP))
     govde.put("iv", Base64.encodeToString(iv, Base64.NO_WRAP))
     govde.put("signature", Base64.encodeToString(imza, Base64.NO_WRAP))
+    val govdeBytes = govde.toString().toByteArray()
 
-    val baglanti = URL(LOGBLOB3_URL).openConnection() as HttpURLConnection
-    baglanti.requestMethod = "POST"
-    baglanti.setRequestProperty("Content-Type", "application/json")
-    baglanti.setRequestProperty("Accept", "application/json")
-    baglanti.doOutput = true
-    baglanti.connectTimeout = 30_000
-    baglanti.readTimeout = 30_000
-    val os: OutputStream = baglanti.outputStream
-    os.write(govde.toString().toByteArray())
-    os.flush()
-    os.close()
-
-    val kod = baglanti.responseCode
-    val akis = if (kod in 200..299) baglanti.inputStream else baglanti.errorStream
-    val girdi = DataInputStream(akis)
-    val hamVeri = girdi.readBytes()
-    girdi.close()
-    baglanti.disconnect()
-
-    if (kod !in 200..299) {
-      throw IllegalStateException("logblob3 HTTP $kod: ${String(hamVeri).take(300)}")
+    var sonHata: Throwable? = null
+    for (deneme in 1..MAKS_DENEME) {
+      try {
+        return gonder(govdeBytes)
+      } catch (e: SocketTimeoutException) {
+        Log.w(TAG, "logblob3 zaman asimi, deneme $deneme/$MAKS_DENEME")
+        sonHata = e
+      } catch (e: ConnectException) {
+        Log.w(TAG, "logblob3 baglanti hatasi, deneme $deneme/$MAKS_DENEME")
+        sonHata = e
+      }
+      if (deneme < MAKS_DENEME) Thread.sleep(deneme * 2000L)
     }
+    throw IllegalStateException("logblob3 $MAKS_DENEME denemede basarisiz", sonHata)
+  }
 
-    val yanitJson = JSONObject(String(hamVeri))
-    val sifreliVeri = Base64.decode(yanitJson.getString("data"), Base64.DEFAULT)
-    val yanitIv = Base64.decode(yanitJson.getString("iv"), Base64.DEFAULT)
-    val cozucu = Cipher.getInstance("AES/CBC/PKCS5Padding")
-    cozucu.init(Cipher.DECRYPT_MODE, SecretKeySpec(ANAHTAR, "AES"), IvParameterSpec(yanitIv))
-    val cozulmus = cozucu.doFinal(sifreliVeri)
-    return String(cozulmus)
+  private fun gonder(govdeBytes: ByteArray): String {
+    val baglanti = URL(LOGBLOB3_URL).openConnection() as HttpURLConnection
+    try {
+      baglanti.requestMethod = "POST"
+      baglanti.setRequestProperty("Content-Type", "application/json")
+      baglanti.setRequestProperty("Accept", "application/json")
+      baglanti.setRequestProperty("User-Agent", KULLANICI_AJANI)
+      baglanti.doOutput = true
+      baglanti.connectTimeout = 30_000
+      baglanti.readTimeout = 30_000
+      baglanti.outputStream.use { os ->
+        os.write(govdeBytes)
+        os.flush()
+      }
+
+      val kod = baglanti.responseCode
+      val akis = if (kod in 200..299) baglanti.inputStream else baglanti.errorStream
+      val hamVeri = akis.use { DataInputStream(it).readBytes() }
+
+      if (kod !in 200..299) {
+        throw IllegalStateException("logblob3 HTTP $kod: ${String(hamVeri).take(300)}")
+      }
+
+      val yanitJson = JSONObject(String(hamVeri))
+      val sifreliVeri = Base64.decode(yanitJson.getString("data"), Base64.DEFAULT)
+      val yanitIv = Base64.decode(yanitJson.getString("iv"), Base64.DEFAULT)
+      val cozucu = Cipher.getInstance("AES/CBC/PKCS5Padding")
+      cozucu.init(Cipher.DECRYPT_MODE, SecretKeySpec(ANAHTAR, "AES"), IvParameterSpec(yanitIv))
+      val cozulmus = cozucu.doFinal(sifreliVeri)
+      return String(cozulmus)
+    } finally {
+      baglanti.disconnect()
+    }
   }
 
   fun challengeAl(psshB64: String): String {
