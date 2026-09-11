@@ -1,0 +1,111 @@
+package expo.modules.aronplayer
+
+import android.content.Context
+import android.util.Log
+import androidx.media3.common.util.UnstableApi
+import java.io.DataInputStream
+import java.io.OutputStream
+import java.net.HttpURLConnection
+import java.net.URL
+
+@UnstableApi
+class NetflixMslYonetici(private val context: Context) {
+  val oturum = MslOturum()
+  val istek = MslIstek(oturum)
+  val yanit = MslYanit(oturum)
+  val manifestUretici = NetflixManifestUretici()
+  var drmGeriCagri: NetflixDrmGeriCagri? = null
+    private set
+
+  private val prefs = try {
+    context.getSharedPreferences("aron_netflix_msl", Context.MODE_PRIVATE)
+  } catch (e: Throwable) { null }
+
+  fun baslat(netflixId: String, secureNetflixId: String, dil: String = "tr") {
+    val esn = oturum.esnUret()
+    oturum.baslat(esn, dil)
+    oturum.netflixId = netflixId
+    oturum.netflixSecureId = secureNetflixId
+    val kaydedilmis = prefs?.getString("msl_data", null)
+    if (kaydedilmis != null && oturum.durumYukle(kaydedilmis)) {
+      Log.d(TAG, "MSL oturumu diskten yuklendi")
+    }
+    drmGeriCagri = NetflixDrmGeriCagri(oturum, istek, yanit)
+  }
+
+  fun anahtarDegisimi(): Boolean {
+    val kaydedilmis = prefs?.getString("msl_data", null)
+    if (kaydedilmis != null && oturum.durumYukle(kaydedilmis)) {
+      val durum = oturum.tokenGecerliMi(oturum.anaToken)
+      if (durum.getBoolean("renewable")) {
+        val yuk = istek.anahtarDegisimiYuku(true)
+        val sonuc = mslPost(NetflixDrmGeriCagri.MANIFEST_URL, yuk)
+        yanit.anahtarDegisimiCoz(sonuc)
+        kaydet()
+        return true
+      }
+      if (!durum.getBoolean("expired")) {
+        return true
+      }
+    }
+    oturum.anahtarCiftiUret()
+    val yuk = istek.anahtarDegisimiYuku(false)
+    val sonuc = mslPost(NetflixDrmGeriCagri.MANIFEST_URL, yuk)
+    yanit.anahtarDegisimiCoz(sonuc)
+    kaydet()
+    return true
+  }
+
+  fun manifestAl(videoId: String): String {
+    val yuk = istek.manifestYuku(videoId)
+    val sonuc = mslPost(NetflixDrmGeriCagri.MANIFEST_URL, yuk)
+    val manifestJson = yanit.manifestCoz(sonuc)
+    kaydet()
+    return manifestJson
+  }
+
+  fun mpdOlustur(manifestJson: String): String {
+    return manifestUretici.jsonDanMpd(manifestJson, context)
+  }
+
+  private fun kaydet() {
+    try {
+      val veri = oturum.durumKaydet()
+      prefs?.edit()?.putString("msl_data", veri)?.apply()
+    } catch (e: Throwable) {
+      Log.w(TAG, "MSL durumu kaydedilemedi", e)
+    }
+  }
+
+  fun temizle() {
+    prefs?.edit()?.remove("msl_data")?.apply()
+    oturum.sifrelemeAnahtari = null
+    oturum.hmacAnahtari = null
+    oturum.anaToken = null
+    oturum.kullaniciToken = null
+    oturum.sahipToken = null
+  }
+
+  private fun mslPost(url: String, yuk: String): String {
+    val baglanti = URL(url).openConnection() as HttpURLConnection
+    baglanti.requestMethod = "POST"
+    baglanti.setRequestProperty("Content-Type", "application/json")
+    baglanti.setRequestProperty("User-Agent", NetflixDrmGeriCagri.KULLANICI_AJANI)
+    baglanti.doOutput = true
+    baglanti.connectTimeout = 30_000
+    baglanti.readTimeout = 30_000
+    val os: OutputStream = baglanti.outputStream
+    os.write(yuk.toByteArray())
+    os.flush()
+    os.close()
+    val girdi = DataInputStream(baglanti.inputStream)
+    val sonuc = girdi.readBytes()
+    girdi.close()
+    baglanti.disconnect()
+    return String(sonuc)
+  }
+
+  companion object {
+    private const val TAG = "NetflixMsl"
+  }
+}

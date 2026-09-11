@@ -25,6 +25,7 @@ import androidx.media3.exoplayer.drm.DrmSessionManager
 import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
 import androidx.media3.exoplayer.drm.FrameworkMediaDrm
 import androidx.media3.exoplayer.drm.HttpMediaDrmCallback
+import androidx.media3.exoplayer.drm.MediaDrmCallback
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.ui.AspectRatioFrameLayout
@@ -51,6 +52,7 @@ class AronPlayerView(context: Context, appContext: AppContext) : ExpoView(contex
   private var yapilandirma: OynatimYapilandirma? = null
   private var sonKimlik: String? = null
   private var sonDurum: String = "bos"
+  private var netflixYonetici: NetflixMslYonetici? = null
   private var yokEdildi = false
   private var arkaPlandaydi = false
   private var arkaPlanOncesiOynuyordu = false
@@ -366,13 +368,26 @@ class AronPlayerView(context: Context, appContext: AppContext) : ExpoView(contex
       .setConnectTimeoutMs(15_000)
       .setReadTimeoutMs(15_000)
     if (y.basliklar.isNotEmpty()) http.setDefaultRequestProperties(y.basliklar)
-    val veri: DataSource.Factory = DefaultDataSource.Factory(context, http)
 
-    val parca = MediaItem.Builder().setUri(y.manifestUrl)
+    var manifestUri = y.manifestUrl
+    var drmAyari = y.drm
+
+    if (drmAyari?.netflixMsl == true && drmAyari.netflixVideoId.isNotEmpty()) {
+      val yonetici = NetflixMslYonetici(context)
+      yonetici.baslat(drmAyari.netflixId, drmAyari.netflixSecureId, "tr")
+      yonetici.anahtarDegisimi()
+      val manifestJson = yonetici.manifestAl(drmAyari.netflixVideoId)
+      manifestUri = yonetici.mpdOlustur(manifestJson)
+      netflixYonetici = yonetici
+    }
+
+    val veri: DataSource.Factory = DefaultDataSource.Factory(context, http)
+    val parca = MediaItem.Builder().setUri(manifestUri)
     y.mimeTuru?.let { parca.setMimeType(it) }
 
     val uretici = DefaultMediaSourceFactory(veri)
-    y.drm?.let { d ->
+    val d = drmAyari
+    if (d != null) {
       val yonetici = drmYoneticisi(d)
       uretici.setDrmSessionManagerProvider(object : DrmSessionManagerProvider {
         override fun get(parcaOgesi: MediaItem): DrmSessionManager = yonetici
@@ -382,6 +397,17 @@ class AronPlayerView(context: Context, appContext: AppContext) : ExpoView(contex
   }
 
   private fun drmYoneticisi(d: DrmAyari): DrmSessionManager {
+    if (d.netflixMsl && netflixYonetici != null) {
+      val nfGeriCagri = netflixYonetici!!.drmGeriCagri
+        ?: throw IllegalStateException("Netflix DRM geri cagrisi hazir degil")
+      val clearKeyUuid = java.util.UUID.fromString("e2719d58-a985-b3c9-781a-b030af78d30e")
+      return DefaultDrmSessionManager.Builder()
+        .setUuidAndExoMediaDrmProvider(clearKeyUuid, FrameworkMediaDrm.DEFAULT_PROVIDER)
+        .setMultiSession(false)
+        .setPlayClearSamplesWithoutKeys(true)
+        .build(nfGeriCagri)
+    }
+
     if (d.sema != "widevine") {
       throw IllegalArgumentException("desteklenmeyen DRM semasi: " + d.sema)
     }

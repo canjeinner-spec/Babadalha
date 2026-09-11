@@ -8,7 +8,11 @@ data class DrmAyari(
   val lisansUrl: String,
   val basliklar: Map<String, String>,
   val cokluOturum: Boolean,
-  val anahtarsizOynat: Boolean
+  val anahtarsizOynat: Boolean,
+  val netflixMsl: Boolean = false,
+  val netflixId: String = "",
+  val netflixSecureId: String = "",
+  val netflixVideoId: String = ""
 )
 
 data class OynatimYapilandirma(
@@ -63,7 +67,11 @@ data class OynatimYapilandirma(
         lisansUrl = lisans,
         basliklar = haritaCoz(o.optJSONObject("headers")),
         cokluOturum = o.optBoolean("cokluOturum", false),
-        anahtarsizOynat = o.optBoolean("anahtarsizOynat", false)
+        anahtarsizOynat = o.optBoolean("anahtarsizOynat", false),
+        netflixMsl = o.optBoolean("netflixMsl", false),
+        netflixId = o.optString("netflixId", ""),
+        netflixSecureId = o.optString("netflixSecureId", ""),
+        netflixVideoId = o.optString("netflixVideoId", "")
       )
     }
 

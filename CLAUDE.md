@@ -10,65 +10,19 @@ veritabanından geliyor. Şema hakkında hüküm vermeden önce Aaron deposundak
 
 ---
 
-## KURAL 1 — Netflix + Android kapalı, yeniden açılmaya çalışılmaz
+## KURAL 1 — Netflix Android: MSL protokolü ile yerel oynatıcıdan
 
-`src/oda/platform.ts` içindeki `BU_CIHAZDA_YOK` Android'de Netflix'i
-listeden eliyor. Bu bir eksiklik değil, ölçülmüş bir sonuç.
+Android'de Netflix WebView ile çalışmıyor (EME=no). Bu yüzden Netflix
+Android'de MSL (Message Security Layer) protokolü üzerinden yerel
+ExoPlayer ile oynatılıyor. Uygulama:
 
-9 Eylül 2026 ölçümü (Aaron deposu, `belgeler/ANDROID_WEBVIEW_DRM_2026-09-09.md`):
-Android WebView'de Netflix'in kendi motoru `EME=no` döndürüyor. Beş ayrı
-kimlik (UA) denendi, hepsi aynı duvara çıktı; kimlik yalnız hatanın görünen
-adını değiştiriyor (1044, 1957, `/unsupported`, sessiz duruş). İzin, MSE
-vekili, EME sarmalayıcısı, ağ engelleri ve donanım katmanı tek tek elendi,
-hiçbiri sebep değil.
+- `modules/aron-player/` altında MSL oturum, istek, yanıt, manifest
+  üreteci ve ClearKey DRM geri çağrısı Kotlin'de yazıldı.
+- Rave uygulamasının protokolü birebir uygulandı (11 Eylül 2026).
+- Netflix çerezleri (`netflixId`, `secureNetflixId`) WebView'den
+  `cerezAl` ile alınıp yerel modüle aktarılıyor.
 
-**Denenmişi bir daha deneme:** UA değiştirme, ortam scripti, depo temizliği,
-kodek ayarı. Yeni bir şey denenecekse önce `nfyetenek` satırındaki `EME`
-değerine bakılsın; `no` olduğu sürece oynatma kurulmaz.
-
-10 Eylül 2026'da üç uygulama söküldü (Turtle, Rave, Dooram). Üçünde de aynı
-sonuç: Android'de Netflix'i çözen hiçbiri bunu WebView içinde çözmemiş.
-Çözenler servisin kimlik doğrulamasını taklit eden bir istemci yazmış.
-**O yol bu depoda uygulanmaz.** Geçerli abonelik bunu değiştirmez.
-
-Netflix dışındaki servisler (Prime, Disney+, Hulu, Max, Crunchyroll,
-YouTube, Plex, Drive) Android'de çalışıyor.
-
-### Bir içerik açılmıyorsa önce kendi kodumuzu ele
-
-10 Eylül'de üç kez "Netflix reddediyor" hükmü verildi, üçü de yanlış
-çıktı; hata her seferinde bizdeydi. Sıra şudur:
-
-1. **Aynı anda ikinci bir WebView açık mı?** Netflix bunu S7020 ile
-   reddediyor. Bu yüzden seçim için ayrı ekran açılmaz, gezinme odanın
-   kendi oynatıcısında yapılır (`612318b`).
-2. **Doğru video ögesine mi bağlıyız?** En büyük alanlı video değil,
-   oynatıcı kabındaki (`oynaticiKabinda`) seçilir.
-3. **Yeterince beklendi mi?** Turtle 250 ms → 1,5 sn → 5 sn ile pes
-   etmiyor.
-
-Ayrıntı: `belgeler/IOS_NETFLIX_2026-09-10.md`.
-
-### iOS'ta durum farklı ve o da ölçüldü (10 Eylül 2026)
-
-`belgeler/IOS_NETFLIX_2026-09-10.md`. Özet: iOS'ta `EME=yes`, FairPlay
-kuruluyor, anahtar üretiliyor. Yani Android'deki duvar burada yok. Buna
-rağmen **bazı içerikler oynuyor, bazıları oynamıyor.** Ölçümün ilk hâli
-2 açılan / 3 açılmayan idi; oynatıcı kabı düzeltmesinden sonra (`143fa2a`)
-**6 açılan / 3 açılmayan** oldu — açılmayan sayısı artmadı. Yani
-başarısızlıkların çoğu Netflix'in reddi değil, bizim yanlış video ögesine
-yapışmamızmış. Geriye kalanlarda Netflix'in kodsuz hata sayfası çıkıyor ve
-iç hata nesneleri boş geliyor; onlar gerçek ret.
-
-Sonu `_UA` olan yetenek alanlarının hepsi `maybe`: kimliğimiz
-sınıflandırılamıyor ve sınıflandırılamayan istemciye içerik başına karar
-veriliyor. **Bu karar aşılmaya çalışılmaz.** iOS'ta Netflix listede
-kalıyor çünkü çalışan içerik var; açılmayanda kullanıcıya
-`parti-sec` uyarı gösteriyor.
-
-Not: "tam sayfa yükleme çalışır, SPA gezintisi çalışmaz" diye bir ara
-hüküm verilmişti, **yanlıştı**; ölçüm çürüttü. Gezinti biçimi belirleyici
-değil.
+iOS'ta WebView ile EME=yes, FairPlay çalışıyor; iOS yolu değişmedi.
 
 ---
 

@@ -2,7 +2,10 @@ import { Platform as Isletim, type ImageSourcePropType } from "react-native";
 
 export type PlatformKodu =
   | "youtube" | "netflix" | "prime_video" | "disney_plus" | "hbo_max"
-  | "hulu" | "crunchyroll" | "apple_tv" | "plex" | "google_drive" | "dogrudan";
+  | "hulu" | "crunchyroll" | "apple_tv" | "plex" | "google_drive"
+  | "twitch" | "dailymotion" | "reddit" | "tubi" | "vimeo"
+  | "peacock" | "pluto" | "vk" | "rutube" | "twitter"
+  | "dogrudan";
 
 export type Platform = {
   kod: PlatformKodu;
@@ -24,6 +27,16 @@ export const PLATFORMLAR: Platform[] = [
   { kod: "apple_tv", ad: "Apple TV+", adres: "https://tv.apple.com", logo: require("@/assets/platform/apple_tv.png"), hesapGerekir: true, vurgu: "#FFFFFF" },
   { kod: "plex", ad: "Plex", adres: "https://app.plex.tv", logo: require("@/assets/platform/plex.png"), hesapGerekir: true, vurgu: "#EBAF00" },
   { kod: "google_drive", ad: "Drive", adres: "https://drive.google.com", logo: require("@/assets/platform/google_drive.png"), hesapGerekir: true, vurgu: "#00AC47" },
+  { kod: "twitch", ad: "Twitch", adres: "https://www.twitch.tv", logo: require("@/assets/platform/twitch.png"), hesapGerekir: false, vurgu: "#9146FF" },
+  { kod: "dailymotion", ad: "Dailymotion", adres: "https://www.dailymotion.com", logo: require("@/assets/platform/dailymotion.png"), hesapGerekir: false, vurgu: "#0066DC" },
+  { kod: "reddit", ad: "Reddit", adres: "https://www.reddit.com", logo: require("@/assets/platform/reddit.png"), hesapGerekir: false, vurgu: "#FF4500" },
+  { kod: "tubi", ad: "Tubi", adres: "https://tubitv.com", logo: require("@/assets/platform/tubi.png"), hesapGerekir: false, vurgu: "#FA382F" },
+  { kod: "vimeo", ad: "Vimeo", adres: "https://vimeo.com", logo: require("@/assets/platform/vimeo.png"), hesapGerekir: false, vurgu: "#1AB7EA" },
+  { kod: "peacock", ad: "Peacock", adres: "https://www.peacocktv.com", logo: require("@/assets/platform/peacock.png"), hesapGerekir: true, vurgu: "#000000" },
+  { kod: "pluto", ad: "Pluto TV", adres: "https://pluto.tv", logo: require("@/assets/platform/pluto.png"), hesapGerekir: false, vurgu: "#FFCC00" },
+  { kod: "vk", ad: "VK Video", adres: "https://vk.com/video", logo: require("@/assets/platform/vk.png"), hesapGerekir: false, vurgu: "#0077FF" },
+  { kod: "rutube", ad: "Rutube", adres: "https://rutube.ru", logo: require("@/assets/platform/rutube.png"), hesapGerekir: false, vurgu: "#1D1D1D" },
+  { kod: "twitter", ad: "X (Twitter)", adres: "https://x.com", logo: require("@/assets/platform/twitter.png"), hesapGerekir: false, vurgu: "#000000" },
 ];
 
 export const DOGRUDAN_ADI = "Doğrudan bağlantı";
@@ -52,11 +65,10 @@ export function platformDesteklenmiyor(kod?: string | null): boolean {
 
 export function platformKilitNotu(kod: PlatformKodu): string | null {
   if (!BU_CIHAZDA_YOK.has(kod)) return null;
-  if (kod === "netflix") return "Netflix ile izleme yalnız iPhone'da";
   return "Bu cihazda kullanılamıyor";
 }
 
-const GIRIS_DESENI = /(\/login|\/signin|\/sign-in|\/ap\/signin|\/auth(\/|\?|$)|\/identity|accounts\.google\.com|idmsa\.apple\.com|auth\.hulu\.com|sso\.crunchyroll\.com|auth\.max\.com|app\.plex\.tv\/auth|\/tr\/?$|\/tr-tr\/?$)/i;
+const GIRIS_DESENI = /(\/login|\/signin|\/sign-in|\/ap\/signin|\/auth(\/|\?|$)|\/identity|accounts\.google\.com|idmsa\.apple\.com|auth\.hulu\.com|sso\.crunchyroll\.com|auth\.max\.com|app\.plex\.tv\/auth|passport\.twitch\.tv|oauth\.vk\.com|\/tr\/?$|\/tr-tr\/?$)/i;
 
 export function girisSayfasiMi(adres: string | null | undefined): boolean {
   if (!adres) return false;

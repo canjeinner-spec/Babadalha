@@ -47,6 +47,24 @@ class AronPlayerModule : Module() {
       bilgi
     }
 
+    AsyncFunction("netflixOturumBaslat") { netflixId: String, secureId: String, dil: String ->
+      val ctx = appContext.reactContext ?: throw IllegalStateException("context yok")
+      val yonetici = NetflixMslYonetici(ctx)
+      yonetici.baslat(netflixId, secureId, dil)
+      yonetici.anahtarDegisimi()
+      mapOf("esn" to yonetici.oturum.kimlik, "basarili" to true)
+    }
+
+    AsyncFunction("netflixManifestAl") { netflixId: String, secureId: String, videoId: String, dil: String ->
+      val ctx = appContext.reactContext ?: throw IllegalStateException("context yok")
+      val yonetici = NetflixMslYonetici(ctx)
+      yonetici.baslat(netflixId, secureId, dil)
+      yonetici.anahtarDegisimi()
+      val manifestJson = yonetici.manifestAl(videoId)
+      val mpdUri = yonetici.mpdOlustur(manifestJson)
+      mapOf("manifestUrl" to mpdUri, "manifestJson" to manifestJson)
+    }
+
     OnActivityEntersBackground {
       elci.post { AronPlayerView.hepsi().forEach { it.onArkaPlan() } }
     }
