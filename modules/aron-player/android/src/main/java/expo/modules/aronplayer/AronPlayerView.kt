@@ -3,6 +3,7 @@ package expo.modules.aronplayer
 import android.content.Context
 import android.graphics.Color
 import android.os.Handler
+import android.util.Log
 import android.os.Looper
 import android.view.Gravity
 import android.view.SurfaceView
@@ -35,6 +36,7 @@ import expo.modules.kotlin.views.ExpoView
 import java.lang.ref.WeakReference
 import java.util.concurrent.Executors
 
+private const val TAG = "AronPlayer"
 private const val ILERLEME_ARALIK = 500L
 private const val OYNATICI_AJANI = "AronPlayer/1.0 (Linux; Android)"
 
@@ -192,12 +194,21 @@ class AronPlayerView(context: Context, appContext: AppContext) : ExpoView(contex
   private fun netflixHazirlaVeOynat(yeni: OynatimYapilandirma) {
     try {
       val d = yeni.drm!!
+      if (!FrameworkMediaDrm.isCryptoSchemeSupported(C.CLEARKEY_UUID)) {
+        throw IllegalStateException("cihazda ClearKey destegi yok")
+      }
+      Log.d(TAG, "netflix: ClearKey destegi var, MSL baslatiyor")
       val yonetici = NetflixMslYonetici(context)
       yonetici.baslat(d.netflixId, d.netflixSecureId, "tr")
+      Log.d(TAG, "netflix: MSL oturumu basladi, anahtar degisimi")
       yonetici.anahtarDegisimi()
+      Log.d(TAG, "netflix: anahtar degisimi tamam, manifest aliniyor videoId=${d.netflixVideoId}")
       val manifestJson = yonetici.manifestAl(d.netflixVideoId)
+      Log.d(TAG, "netflix: manifest alindi (${manifestJson.length} bayt), MPD olusturuluyor")
       val mpdUri = yonetici.mpdOlustur(manifestJson)
+      Log.d(TAG, "netflix: MPD hazirlandi, lisans alinacak")
       yonetici.lisansAlVeAnahtarCikar()
+      Log.d(TAG, "netflix: lisans ve anahtarlar hazir, oynatici kuruluyor")
       val hazirYapilandirma = OynatimYapilandirma(
         manifestUrl = mpdUri,
         mimeTuru = yeni.mimeTuru,
@@ -213,6 +224,7 @@ class AronPlayerView(context: Context, appContext: AppContext) : ExpoView(contex
         oynaticiKur(hazirYapilandirma)
       }
     } catch (e: Throwable) {
+      Log.e(TAG, "netflix hazirlik hatasi", e)
       anaIplikte {
         if (yokEdildi) return@anaIplikte
         durumYayinla("hata")
