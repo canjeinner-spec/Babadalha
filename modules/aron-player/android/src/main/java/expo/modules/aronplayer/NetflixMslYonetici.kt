@@ -45,17 +45,23 @@ class NetflixMslYonetici(private val context: Context) {
     if (kaydedilmis != null && oturum.durumYukle(kaydedilmis)) {
       val durum = oturum.tokenGecerliMi(oturum.anaToken)
       if (durum.getBoolean("renewable")) {
-        Log.d(TAG, "ana token yenileniyor")
-        val yuk = istek.anahtarDegisimiYuku(true)
-        val sonuc = mslPost(NetflixDrmGeriCagri.ROUTER_URL, yuk, "anahtar-yenileme")
-        yanit.anahtarDegisimiCoz(sonuc)
-        sahipTokenAl()
-        kaydet()
-        return true
-      }
-      if (!durum.getBoolean("expired")) {
+        try {
+          Log.d(TAG, "ana token yenileniyor")
+          val yuk = istek.anahtarDegisimiYuku(true)
+          val sonuc = mslPost(NetflixDrmGeriCagri.ROUTER_URL, yuk, "anahtar-yenileme")
+          yanit.anahtarDegisimiCoz(sonuc)
+          sahipTokenAl()
+          kaydet()
+          return true
+        } catch (e: Throwable) {
+          Log.w(TAG, "yenileme basarisiz, bayat kayit temizlenip taze anahtar degisimi: ${e.message}")
+          temizle()
+        }
+      } else if (!durum.getBoolean("expired")) {
         Log.d(TAG, "kayitli ana token gecerli")
         return true
+      } else {
+        temizle()
       }
     }
     Log.d(TAG, "yeni anahtar cifti uretiliyor")
