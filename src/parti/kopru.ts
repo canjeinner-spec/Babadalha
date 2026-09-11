@@ -104,6 +104,13 @@ const TURTLE_ORTAM = `
 (function () {
   if (window.__aronOrtam) return;
   window.__aronOrtam = true;
+  function tanimla(n, a, d) { try { Object.defineProperty(n, a, { get: function () { return d; }, configurable: true }); } catch (e) {} }
+  tanimla(navigator, 'platform', 'Linux aarch64');
+  tanimla(navigator, 'vendor', 'Google Inc.');
+  tanimla(navigator, 'standalone', undefined);
+  tanimla(navigator, 'webdriver', false);
+  tanimla(navigator, 'maxTouchPoints', 0);
+  tanimla(navigator, 'msMaxTouchPoints', 0);
   try { window.localStorage.removeItem('clientInformation'); } catch (e) {}
   try {
     var eski = window.matchMedia;
@@ -117,10 +124,8 @@ const TURTLE_ORTAM = `
       return eski(sorgu);
     };
   } catch (e) {}
-  function sifir(ad) { try { Object.defineProperty(navigator, ad, { get: function () { return 0; }, configurable: true }); } catch (e) {} }
-  sifir('maxTouchPoints');
-  sifir('msMaxTouchPoints');
-  try { window.ontouchstart = undefined; } catch (e) {}
+  try { Object.defineProperty(window, 'ontouchstart', { get: function () { return undefined; }, configurable: true }); } catch (e) {}
+  try { if (!window.chrome) window.chrome = { runtime: {} }; } catch (e) {}
 })();
 `;
 
@@ -2333,14 +2338,36 @@ const NETFLIX_ANDROID_EK = `
   window.__aronNfYerel = true;
   var yolla = window.__aronYolla || function () {};
   var gonderildi = '';
-  setInterval(function () {
+  function yakala(yol) {
     try {
-      var m = location.pathname.match(/^\\/watch\\/(\\d+)/);
-      if (!m) { gonderildi = ''; return; }
+      var m = String(yol).match(/\\/watch\\/(\\d+)/);
+      if (!m) return false;
       var kod = m[1];
-      if (kod === gonderildi) return;
+      if (kod === gonderildi) return true;
       gonderildi = kod;
       yolla({ tur: 'netflix-yerel', videoId: kod });
+      return true;
+    } catch (e) {}
+    return false;
+  }
+  var eskiPush = history.pushState;
+  var eskiReplace = history.replaceState;
+  history.pushState = function () {
+    var u = arguments.length > 2 ? arguments[2] : '';
+    if (u && yakala(String(u))) return;
+    return eskiPush.apply(history, arguments);
+  };
+  history.replaceState = function () {
+    var u = arguments.length > 2 ? arguments[2] : '';
+    if (u && yakala(String(u))) return;
+    return eskiReplace.apply(history, arguments);
+  };
+  window.addEventListener('popstate', function () { yakala(location.pathname); });
+  yakala(location.pathname);
+  setInterval(function () {
+    try {
+      if (!location.pathname.match(/\\/watch\\//)) { gonderildi = ''; return; }
+      yakala(location.pathname);
     } catch (e) {}
   }, 1500);
 })();
