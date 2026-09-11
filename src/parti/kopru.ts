@@ -1321,6 +1321,11 @@ const NETFLIX = `
 
   function mslSifirlaVeYenile(kod) {
     if (mslHatasi === kod) return;
+    if (window.__aronNfYerel) {
+      if (window.__aronYolla) window.__aronYolla({ tur: 'gunluk', seviye: 'msl', metin: kod + ' yerel oynatici devralacak' });
+      setTimeout(function () { if (!mslHatasi) mslHatasi = kod; }, 8000);
+      return;
+    }
     mslHatasi = kod;
     if (window.__aronYolla) window.__aronYolla({ tur: 'gunluk', seviye: 'msl', metin: 'cihaz durumu hatasi ' + kod });
     depoDok(kod);
