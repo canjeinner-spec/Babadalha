@@ -34,11 +34,11 @@ depo dışında (`~/.aron-expo-token`, `~/.aron-pexels-token`).
   seçiliyor.
 - **Netflix Android'de gizli** — oda listesinden de eleniyor.
 
-- **sebebi açık işlerde var** - Android için **Native modül yazıldı, her şet hazırlandı**
+- **sebebi açık işlerde var** - Android için **Native modül yazıldı, her şey hazırlandı**
 
 ## Açık işler
 
-- **Her şeyden önce** - Netflix’in 
+- **Her şeyden önce** - Netflix'in Android'de EME desteği yok (KURAL 1); native modüller DRM bilgisi okuyor ama oynatma kurulamıyor.
 
 - YouTube görüntü düzeltmesi ölçümle doğru görünüyor
   (`gorunur=acik kutu=0,0,430,242 kare=1280x720 hazir=4`) ama

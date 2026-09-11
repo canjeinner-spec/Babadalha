@@ -105,8 +105,7 @@ class AronWebView(context: Context, appContext: AppContext) : ExpoView(context, 
   private var hariciDesenler: List<Pattern> = emptyList()
   private var izinler: Set<String> = setOf(
     PermissionRequest.RESOURCE_PROTECTED_MEDIA_ID,
-    PermissionRequest.RESOURCE_AUDIO_CAPTURE,
-    PermissionRequest.RESOURCE_VIDEO_CAPTURE
+    PermissionRequest.RESOURCE_AUDIO_CAPTURE
   )
   private var konsolAktar = false
   private var tamEkranIzin = true
@@ -203,10 +202,6 @@ class AronWebView(context: Context, appContext: AppContext) : ExpoView(context, 
     s.cacheMode = WebSettings.LOAD_DEFAULT
     s.allowFileAccess = false
     s.allowContentAccess = false
-    
-    // Düzeltme: DRM Siyah ekran ve Surface oynatma için Hardware Layer Zorlaması
-    w.setLayerType(View.LAYER_TYPE_HARDWARE, null)
-
     val cm = CookieManager.getInstance()
     cm.setAcceptCookie(true)
     cm.setAcceptThirdPartyCookies(w, true)
@@ -360,22 +355,16 @@ class AronWebView(context: Context, appContext: AppContext) : ExpoView(context, 
   }
 
   private fun kabuk() = object : WebChromeClient() {
-    // NETFLIX DRM FIX: İzin isteği filtre takılmasını engelleme ve Direct Grant
     override fun onPermissionRequest(request: PermissionRequest?) {
       request ?: return
       val istenen = request.resources.toList()
       guvenliPost { onIzin(mapOf("kaynaklar" to istenen.joinToString(","))) }
       try {
-        // DRM (PROTECTED_MEDIA_ID) isteklerini her durumda doğrudan grant ediyoruz.
-        if (istenen.contains(PermissionRequest.RESOURCE_PROTECTED_MEDIA_ID)) {
-          request.grant(istenen.toTypedArray())
+        val onaylanan = istenen.filter { izinler.contains(it) }.toTypedArray()
+        if (onaylanan.isNotEmpty()) {
+          request.grant(onaylanan)
         } else {
-          val onaylanan = istenen.filter { izinler.contains(it) }.toTypedArray()
-          if (onaylanan.isNotEmpty()) {
-            request.grant(onaylanan)
-          } else {
-            request.deny()
-          }
+          request.deny()
         }
       } catch (e: Throwable) {
         try { request.deny() } catch (ignored: Throwable) {}
@@ -527,8 +516,6 @@ class AronWebView(context: Context, appContext: AppContext) : ExpoView(context, 
           "midi" -> yeni.add(PermissionRequest.RESOURCE_MIDI_SYSEX)
         }
       }
-      // Düzeltme: DRM varsayılan olarak her zaman kümede kalmalı
-      yeni.add(PermissionRequest.RESOURCE_PROTECTED_MEDIA_ID)
       izinler = yeni
     } catch (e: Throwable) {
     }

@@ -1,6 +1,6 @@
 import { type ReactNode } from "react";
 import { Modal, Pressable, StyleSheet } from "react-native";
-import Animated, { ZoomIn } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 
 import { KeyboardAware } from "@/components/KeyboardAware";
 import { ModalKok } from "@/components/ModalKok";
