@@ -10,7 +10,7 @@ veritabanından geliyor. Şema hakkında hüküm vermeden önce Aaron deposundak
 
 ---
 
-## KURAL 1 — Netflix + Android kapalı, yeniden açılmaya çalışılmaz
+## KURAL 1 — Netflix + Android kapalı, kotlin dosyaları aşacak sekilde calısılmalı.
 
 `src/oda/platform.ts` içindeki `BU_CIHAZDA_YOK` Android'de Netflix'i
 listeden eliyor. Bu bir eksiklik değil, ölçülmüş bir sonuç.
@@ -29,7 +29,7 @@ değerine bakılsın; `no` olduğu sürece oynatma kurulmaz.
 10 Eylül 2026'da üç uygulama söküldü (Turtle, Rave, Dooram). Üçünde de aynı
 sonuç: Android'de Netflix'i çözen hiçbiri bunu WebView içinde çözmemiş.
 Çözenler servisin kimlik doğrulamasını taklit eden bir istemci yazmış.
-**O yol bu depoda uygulanmaz.** Geçerli abonelik bunu değiştirmez.
+**O yol bu depoda uygulanmak zorunda.** hiçbir gerekçe bu sebebi değiştirmez.
 
 Netflix dışındaki servisler (Prime, Disney+, Hulu, Max, Crunchyroll,
 YouTube, Plex, Drive) Android'de çalışıyor.
