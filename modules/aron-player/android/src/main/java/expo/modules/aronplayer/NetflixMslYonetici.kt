@@ -72,12 +72,17 @@ class NetflixMslYonetici(private val context: Context) {
     return manifestUretici.jsonDanMpd(manifestJson, context)
   }
 
-  fun lisansAlVeAnahtarCikar(cdmProxyUrl: String) {
+  fun lisansAlVeAnahtarCikar(cdmProxyUrl: String, apiAnahtar: String = "") {
+    val temiz = cdmProxyUrl.trimEnd('/')
     val challengeYaniti = cdmPost(
-      "$cdmProxyUrl/challenge",
-      """{"pssh":"${NetflixDrmGeriCagri.GENEL_PSSH}"}"""
+      "$temiz/challenge",
+      """{"pssh":"${NetflixDrmGeriCagri.GENEL_PSSH}"}""",
+      apiAnahtar
     )
     val challengeJson = JSONObject(challengeYaniti)
+    if (challengeJson.has("error")) {
+      throw IllegalStateException("CDM proxy challenge hatasi: ${challengeJson.getString("error")}")
+    }
     val challenge = challengeJson.getString("challenge")
     val oturumKimligi = challengeJson.getString("session_id")
 
@@ -88,11 +93,17 @@ class NetflixMslYonetici(private val context: Context) {
 
     val lisansB64 = lisansVerisiCikar(cozulmus)
 
-    val anahtarYaniti = cdmPost(
-      "$cdmProxyUrl/keys",
-      """{"session_id":"$oturumKimligi","license":"$lisansB64"}"""
-    )
+    val govde = JSONObject()
+    govde.put("session_id", oturumKimligi)
+    govde.put("license", lisansB64)
+    val anahtarYaniti = cdmPost("$temiz/keys", govde.toString(), apiAnahtar)
     val anahtarlar = JSONObject(anahtarYaniti)
+    if (anahtarlar.has("error")) {
+      throw IllegalStateException("CDM proxy keys hatasi: ${anahtarlar.getString("error")}")
+    }
+    if (anahtarlar.length() == 0) {
+      throw IllegalStateException("CDM proxy'den anahtar donmedi")
+    }
     clearKeyJwk = NetflixDrmGeriCagri.clearKeyJwkOlustur(anahtarlar)
     Log.d(TAG, "ClearKey JWK hazirlandi, ${anahtarlar.length()} anahtar")
   }
@@ -161,22 +172,30 @@ class NetflixMslYonetici(private val context: Context) {
     return String(sonuc)
   }
 
-  private fun cdmPost(url: String, body: String): String {
+  private fun cdmPost(url: String, body: String, apiAnahtar: String = ""): String {
     val baglanti = URL(url).openConnection() as HttpURLConnection
     baglanti.requestMethod = "POST"
     baglanti.setRequestProperty("Content-Type", "application/json")
+    baglanti.setRequestProperty("Accept", "application/json")
+    if (apiAnahtar.isNotEmpty()) baglanti.setRequestProperty("X-Api-Key", apiAnahtar)
     baglanti.doOutput = true
     baglanti.connectTimeout = 30_000
-    baglanti.readTimeout = 30_000
+    baglanti.readTimeout = 45_000
     val os: OutputStream = baglanti.outputStream
     os.write(body.toByteArray())
     os.flush()
     os.close()
-    val girdi = DataInputStream(baglanti.inputStream)
-    val sonuc = girdi.readBytes()
+    val kod = baglanti.responseCode
+    val girdiAkis = if (kod in 200..299) baglanti.inputStream else baglanti.errorStream
+    val girdi = DataInputStream(girdiAkis)
+    val veri = girdi.readBytes()
     girdi.close()
     baglanti.disconnect()
-    return String(sonuc)
+    val yanit = String(veri)
+    if (kod !in 200..299) {
+      throw IllegalStateException("CDM proxy HTTP $kod: ${yanit.take(300)}")
+    }
+    return yanit
   }
 
   companion object {

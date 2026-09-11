@@ -76,6 +76,7 @@ import { karart, saydam } from "@/theme/renk";
 
 const AVATAR = 40;
 const CDM_PROXY_URL = "https://aron-cdm.onrender.com";
+const CDM_API_ANAHTAR = "";
 
 
 function iyelikEki(ad: string): string {
@@ -1337,7 +1338,7 @@ export default function PartiOda() {
             }
             drm={
               nfYerelAdres && oynatilan.platform === "netflix" && nfYerelDrm
-                ? { scheme: "widevine" as const, licenseUrl: "", netflixMsl: true, netflixId: nfYerelDrm.netflixId, netflixSecureId: nfYerelDrm.secureId, netflixVideoId: nfYerelDrm.videoId, cdmProxyUrl: CDM_PROXY_URL }
+                ? { scheme: "widevine" as const, licenseUrl: "", netflixMsl: true, netflixId: nfYerelDrm.netflixId, netflixSecureId: nfYerelDrm.secureId, netflixVideoId: nfYerelDrm.videoId, cdmProxyUrl: CDM_PROXY_URL, cdmApiAnahtar: CDM_API_ANAHTAR }
                 : maxYerelAdres && oynatilan.platform === "hbo_max" && maxLisansUrl
                 ? { scheme: "widevine" as const, licenseUrl: maxLisansUrl }
                 : primeYerelAdres && oynatilan.platform === "prime_video" && primeDrm

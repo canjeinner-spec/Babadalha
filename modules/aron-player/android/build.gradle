@@ -23,4 +23,5 @@ dependencies {
   implementation "androidx.media3:media3-exoplayer-smoothstreaming:${media3}"
   implementation "androidx.media3:media3-datasource:${media3}"
   implementation "androidx.media3:media3-ui:${media3}"
+  implementation "org.mozilla:rhino:1.7.15"
 }
