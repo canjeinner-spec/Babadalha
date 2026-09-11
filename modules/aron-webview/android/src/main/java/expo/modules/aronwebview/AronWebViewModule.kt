@@ -190,9 +190,10 @@ class AronWebViewModule : Module() {
   }
 
   private fun drmOku(uuid: UUID, ad: String): Map<String, Any> {
+    var drm: MediaDrm? = null
     return try {
-      val drm = MediaDrm(uuid)
-      val bilgi = mutableMapOf<String, Any>(
+      drm = MediaDrm(uuid)
+      mapOf(
         "sistem" to ad,
         "var" to true,
         "seviye" to ozellik(drm, "securityLevel"),
@@ -204,10 +205,10 @@ class AronWebViewModule : Module() {
         "oturumSiniri" to ozellik(drm, "maxNumberOfSessions"),
         "sistemKimligi" to ozellik(drm, "systemId")
       )
-      kapat(drm)
-      bilgi
     } catch (e: Throwable) {
       mapOf("sistem" to ad, "var" to false, "hata" to (e.message ?: "desteklenmiyor"))
+    } finally {
+      drm?.let { kapat(it) }
     }
   }
 
