@@ -378,9 +378,7 @@ class AronPlayerView(context: Context, appContext: AppContext) : ExpoView(contex
       yonetici.anahtarDegisimi()
       val manifestJson = yonetici.manifestAl(drmAyari.netflixVideoId)
       manifestUri = yonetici.mpdOlustur(manifestJson)
-      if (drmAyari.cdmProxyUrl.isNotEmpty()) {
-        yonetici.lisansAlVeAnahtarCikar(drmAyari.cdmProxyUrl, drmAyari.cdmApiAnahtar)
-      }
+      yonetici.lisansAlVeAnahtarCikar()
       netflixYonetici = yonetici
     }
 
