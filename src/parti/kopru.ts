@@ -50,6 +50,7 @@ export type OynaticiOlayi =
   | { tur: "gunluk"; seviye: string; metin: string }
   | { tur: "durum"; adres: string; baslik: string; videoVar: boolean; hazirDurum: string }
   | { tur: "renk"; renk: string }
+  | { tur: "netflix-yerel"; videoId: string }
   | { tur: "yok" };
 
 function masaustuOrtami(safari: boolean, platformAdi = "MacIntel"): string {
@@ -2000,14 +2001,342 @@ const AV1_ENGEL = `
 })();
 `;
 
+const TWITCH = `
+(function () {
+  window.__aronIzleme = function () {
+    var p = location.pathname;
+    if (/^\\/videos\\/\\d+/.test(p)) return true;
+    if (/\\/clip\\//.test(p)) return true;
+    if (/^\\/[a-zA-Z0-9_]+$/.test(p) && !/^\\/(directory|search|settings|subscriptions|inventory|drops|wallet|downloads|p|u)$/i.test(p)) {
+      try { if (document.querySelector('video')) return true; } catch (e) {}
+    }
+    return false;
+  };
+  window.__aronBaslik = function () {
+    try {
+      var t = document.querySelector('[data-a-target="stream-title"]');
+      if (t) {
+        var kanal = '';
+        try { var k = document.querySelector('h1[data-a-target="stream-title"]'); if (!k) k = document.querySelector('[data-a-target="channel-header-display-name"]'); kanal = k ? (k.textContent || '').trim() : ''; } catch (e) {}
+        return { baslik: (t.textContent || '').trim().slice(0, 120), yazar: kanal || null };
+      }
+    } catch (e) {}
+    var d = (document.title || '').replace(/ - Twitch$/i, '').trim();
+    return d ? { baslik: d.slice(0, 120), yazar: null } : null;
+  };
+  window.__aronKapak = function () {
+    try { var m = document.querySelector('meta[property="og:image"]'); if (m && m.content) return m.content; } catch (e) {}
+    return null;
+  };
+})();
+`;
+
+const DAILYMOTION = `
+(function () {
+  window.__aronIzleme = function () {
+    return /^\\/video\\//.test(location.pathname);
+  };
+  window.__aronBaslik = function () {
+    try { var m = document.querySelector('meta[property="og:title"]'); if (m && m.content) return { baslik: m.content.trim().slice(0, 120), yazar: null }; } catch (e) {}
+    var d = (document.title || '').replace(/ - Dailymotion$/i, '').trim();
+    return d ? { baslik: d.slice(0, 120), yazar: null } : null;
+  };
+  window.__aronKapak = function () {
+    try { var m = document.querySelector('meta[property="og:image"]'); if (m && m.content) return m.content; } catch (e) {}
+    return null;
+  };
+})();
+`;
+
+const REDDIT = `
+(function () {
+  window.__aronIzleme = function () {
+    if (/\\/comments\\//.test(location.pathname)) {
+      try { if (document.querySelector('video, shreddit-player')) return true; } catch (e) {}
+    }
+    return false;
+  };
+  window.__aronBaslik = function () {
+    try { var h = document.querySelector('h1'); if (h) return { baslik: (h.textContent || '').trim().slice(0, 120), yazar: null }; } catch (e) {}
+    try { var m = document.querySelector('meta[property="og:title"]'); if (m && m.content) return { baslik: m.content.trim().slice(0, 120), yazar: null }; } catch (e) {}
+    return null;
+  };
+  window.__aronKapak = function () {
+    try { var m = document.querySelector('meta[property="og:image"]'); if (m && m.content) return m.content; } catch (e) {}
+    return null;
+  };
+})();
+`;
+
+const TUBI = `
+(function () {
+  window.__aronIzleme = function () {
+    return /^\\/(movies|tv-shows|video)\\/\\d+/.test(location.pathname);
+  };
+  window.__aronBaslik = function () {
+    try { var m = document.querySelector('meta[property="og:title"]'); if (m && m.content) return { baslik: m.content.trim().slice(0, 120), yazar: null }; } catch (e) {}
+    var d = (document.title || '').replace(/[|-] Tubi$/i, '').trim();
+    return d ? { baslik: d.slice(0, 120), yazar: null } : null;
+  };
+  window.__aronKapak = function () {
+    try { var m = document.querySelector('meta[property="og:image"]'); if (m && m.content) return m.content; } catch (e) {}
+    return null;
+  };
+})();
+`;
+
+const VIMEO = `
+(function () {
+  window.__aronIzleme = function () {
+    return /^\\/\\d+/.test(location.pathname) || /^\\/[^/]+\\/[^/]+/.test(location.pathname);
+  };
+  window.__aronBaslik = function () {
+    try { var m = document.querySelector('meta[property="og:title"]'); if (m && m.content) return { baslik: m.content.trim().slice(0, 120), yazar: null }; } catch (e) {}
+    var d = (document.title || '').replace(/ on Vimeo$/i, '').trim();
+    return d ? { baslik: d.slice(0, 120), yazar: null } : null;
+  };
+  window.__aronKapak = function () {
+    try { var m = document.querySelector('meta[property="og:image"]'); if (m && m.content) return m.content; } catch (e) {}
+    return null;
+  };
+})();
+`;
+
+const PEACOCK = `
+(function () {
+  window.__aronIzleme = function () {
+    return /\\/watch\\//.test(location.pathname);
+  };
+  window.__aronBaslik = function () {
+    try { var m = document.querySelector('meta[property="og:title"]'); if (m && m.content) return { baslik: m.content.trim().slice(0, 120), yazar: null }; } catch (e) {}
+    var d = (document.title || '').replace(/[|-] Peacock$/i, '').trim();
+    return d ? { baslik: d.slice(0, 120), yazar: null } : null;
+  };
+  window.__aronKapak = function () {
+    try { var m = document.querySelector('meta[property="og:image"]'); if (m && m.content) return m.content; } catch (e) {}
+    return null;
+  };
+})();
+`;
+
+const PLUTO = `
+(function () {
+  window.__aronIzleme = function () {
+    return /\\/(on-demand|live-tv)\\//.test(location.pathname);
+  };
+  window.__aronBaslik = function () {
+    try { var m = document.querySelector('meta[property="og:title"]'); if (m && m.content) return { baslik: m.content.trim().slice(0, 120), yazar: null }; } catch (e) {}
+    var d = (document.title || '').replace(/[|-] Pluto TV$/i, '').trim();
+    return d ? { baslik: d.slice(0, 120), yazar: null } : null;
+  };
+  window.__aronKapak = function () {
+    try { var m = document.querySelector('meta[property="og:image"]'); if (m && m.content) return m.content; } catch (e) {}
+    return null;
+  };
+})();
+`;
+
+const VK = `
+(function () {
+  window.__aronIzleme = function () {
+    return /\\/video-?\\d+_\\d+/.test(location.pathname) || /\\/clip-?\\d+_\\d+/.test(location.pathname) || /^\\/video$/.test(location.pathname);
+  };
+  window.__aronBaslik = function () {
+    try { var m = document.querySelector('meta[property="og:title"]'); if (m && m.content) return { baslik: m.content.trim().slice(0, 120), yazar: null }; } catch (e) {}
+    return null;
+  };
+  window.__aronKapak = function () {
+    try { var m = document.querySelector('meta[property="og:image"]'); if (m && m.content) return m.content; } catch (e) {}
+    return null;
+  };
+})();
+`;
+
+const RUTUBE = `
+(function () {
+  window.__aronIzleme = function () {
+    return /^\\/(video|stream|live\\/video|shorts|embed|play\\/embed)\\//.test(location.pathname);
+  };
+  window.__aronBaslik = function () {
+    try { var m = document.querySelector('meta[property="og:title"]'); if (m && m.content) { var t = m.content.replace(/\\s*[-—]\\s*[Сс]мотреть онлайн.*$/i, '').trim(); return t ? { baslik: t.slice(0, 120), yazar: null } : null; } } catch (e) {}
+    var d = (document.title || '').replace(/\\s*[-—]\\s*[Сс]мотреть.*$/i, '').replace(/\\s*[-|]\\s*Rutube$/i, '').trim();
+    return d ? { baslik: d.slice(0, 120), yazar: null } : null;
+  };
+  window.__aronKapak = function () {
+    try { var m = document.querySelector('meta[property="og:image"]'); if (m && m.content) return m.content; } catch (e) {}
+    return null;
+  };
+})();
+`;
+
+const TWITTER = `
+(function () {
+  window.__aronIzleme = function () {
+    if (/\\/status\\/\\d+/.test(location.pathname)) {
+      try { if (document.querySelector('video')) return true; } catch (e) {}
+    }
+    if (/\\/i\\/broadcasts\\//.test(location.pathname)) return true;
+    return false;
+  };
+  window.__aronBaslik = function () {
+    try {
+      var a = document.querySelector('article');
+      if (a) {
+        var divs = a.querySelectorAll('div[data-testid="tweetText"]');
+        if (divs.length) { var t = (divs[0].textContent || '').trim(); if (t) return { baslik: t.slice(0, 120), yazar: null }; }
+      }
+    } catch (e) {}
+    try { var m = document.querySelector('meta[property="og:title"]'); if (m && m.content) return { baslik: m.content.trim().slice(0, 120), yazar: null }; } catch (e) {}
+    return null;
+  };
+  window.__aronKapak = function () {
+    try { var m = document.querySelector('meta[property="og:image"]'); if (m && m.content) return m.content; } catch (e) {}
+    return null;
+  };
+})();
+`;
+
+const HBO_MAX = `
+(function () {
+  window.__aronIzleme = function () {
+    return /\\/video\\/watch\\//.test(location.pathname) || /\\/player\\//.test(location.pathname);
+  };
+  window.__aronBaslik = function () {
+    try { var m = document.querySelector('meta[property="og:title"]'); if (m && m.content) return { baslik: m.content.trim().slice(0, 120), yazar: null }; } catch (e) {}
+    var d = (document.title || '').replace(/[|-] Max$/i, '').replace(/[|-] HBO Max$/i, '').trim();
+    return d ? { baslik: d.slice(0, 120), yazar: null } : null;
+  };
+  window.__aronKapak = function () {
+    try { var m = document.querySelector('meta[property="og:image"]'); if (m && m.content) return m.content; } catch (e) {}
+    return null;
+  };
+})();
+`;
+
+const HULU = `
+(function () {
+  window.__aronIzleme = function () {
+    return /\\/watch\\//.test(location.pathname);
+  };
+  window.__aronBaslik = function () {
+    try { var m = document.querySelector('meta[property="og:title"]'); if (m && m.content) return { baslik: m.content.trim().slice(0, 120), yazar: null }; } catch (e) {}
+    var d = (document.title || '').replace(/[|-] Hulu$/i, '').trim();
+    return d ? { baslik: d.slice(0, 120), yazar: null } : null;
+  };
+  window.__aronKapak = function () {
+    try { var m = document.querySelector('meta[property="og:image"]'); if (m && m.content) return m.content; } catch (e) {}
+    return null;
+  };
+})();
+`;
+
+const CRUNCHYROLL = `
+(function () {
+  window.__aronIzleme = function () {
+    return /\\/watch\\//.test(location.pathname);
+  };
+  window.__aronBaslik = function () {
+    try { var m = document.querySelector('meta[property="og:title"]'); if (m && m.content) return { baslik: m.content.trim().slice(0, 120), yazar: null }; } catch (e) {}
+    var d = (document.title || '').replace(/[|-] Crunchyroll$/i, '').trim();
+    return d ? { baslik: d.slice(0, 120), yazar: null } : null;
+  };
+  window.__aronKapak = function () {
+    try { var m = document.querySelector('meta[property="og:image"]'); if (m && m.content) return m.content; } catch (e) {}
+    return null;
+  };
+})();
+`;
+
+const APPLE_TV = `
+(function () {
+  window.__aronIzleme = function () {
+    return /\\/play\\//.test(location.pathname) || /\\/episode\\//.test(location.pathname) || /\\/movie\\//.test(location.pathname);
+  };
+  window.__aronBaslik = function () {
+    try { var m = document.querySelector('meta[property="og:title"]'); if (m && m.content) return { baslik: m.content.trim().slice(0, 120), yazar: null }; } catch (e) {}
+    var d = (document.title || '').replace(/[|-] Apple TV[+]?$/i, '').trim();
+    return d ? { baslik: d.slice(0, 120), yazar: null } : null;
+  };
+  window.__aronKapak = function () {
+    try { var m = document.querySelector('meta[property="og:image"]'); if (m && m.content) return m.content; } catch (e) {}
+    return null;
+  };
+})();
+`;
+
+const PLEX = `
+(function () {
+  window.__aronIzleme = function () {
+    return /\\/player/.test(location.hash || location.pathname);
+  };
+  window.__aronBaslik = function () {
+    try { var t = document.querySelector('[class*="MetadataPosterTitle"]'); if (t) return { baslik: (t.textContent || '').trim().slice(0, 120), yazar: null }; } catch (e) {}
+    var d = (document.title || '').replace(/[|-] Plex$/i, '').trim();
+    return d ? { baslik: d.slice(0, 120), yazar: null } : null;
+  };
+  window.__aronKapak = function () {
+    try { var m = document.querySelector('meta[property="og:image"]'); if (m && m.content) return m.content; } catch (e) {}
+    return null;
+  };
+})();
+`;
+
+const GOOGLE_DRIVE = `
+(function () {
+  window.__aronIzleme = function () {
+    return /\\/file\\/d\\//.test(location.pathname);
+  };
+  window.__aronBaslik = function () {
+    var d = (document.title || '').replace(/ - Google Drive$/i, '').trim();
+    return d ? { baslik: d.slice(0, 120), yazar: null } : null;
+  };
+  window.__aronKapak = function () { return null; };
+})();
+`;
+
 const EKLER: Partial<Record<PlatformKodu, string>> = {
   youtube: YOUTUBE,
   netflix: NETFLIX,
   disney_plus: DISNEY,
   prime_video: PRIME,
+  twitch: TWITCH,
+  dailymotion: DAILYMOTION,
+  reddit: REDDIT,
+  tubi: TUBI,
+  vimeo: VIMEO,
+  peacock: PEACOCK,
+  pluto: PLUTO,
+  vk: VK,
+  rutube: RUTUBE,
+  twitter: TWITTER,
+  hbo_max: HBO_MAX,
+  hulu: HULU,
+  crunchyroll: CRUNCHYROLL,
+  apple_tv: APPLE_TV,
+  plex: PLEX,
+  google_drive: GOOGLE_DRIVE,
 };
 
 const ORTAM_YAMASIZ = new Set<PlatformKodu>(["prime_video"]);
+
+const NETFLIX_ANDROID_EK = `
+(function () {
+  if (window.__aronNfYerel) return;
+  window.__aronNfYerel = true;
+  var yolla = window.__aronYolla || function () {};
+  var gonderildi = '';
+  setInterval(function () {
+    try {
+      var m = location.pathname.match(/^\\/watch\\/(\\d+)/);
+      if (!m) { gonderildi = ''; return; }
+      var kod = m[1];
+      if (kod === gonderildi) return;
+      gonderildi = kod;
+      yolla({ tur: 'netflix-yerel', videoId: kod });
+    } catch (e) {}
+  }, 1500);
+})();
+`;
 
 export function kopruBetigi(platform: PlatformKodu): string {
   const ajan = kullaniciAjani(platform);
@@ -2018,7 +2347,8 @@ export function kopruBetigi(platform: PlatformKodu): string {
   else if (ORTAM_YAMASIZ.has(platform)) ortam = "";
   else ortam = masaustuOrtami(safari, ajan === MASAUSTU_LINUX_CHROME ? "Linux x86_64" : "MacIntel");
   const av1 = Platform.OS === "android" ? AV1_ENGEL : "";
-  return `${ortam}\n${MSE}\n${av1}\n${MEDYA}\n${TEMEL}\n${EKLER[platform] ?? ""}\n${ORTAK}\n${TANI}\ntrue;`;
+  const nfYerel = netflixAndroid ? NETFLIX_ANDROID_EK : "";
+  return `${ortam}\n${MSE}\n${av1}\n${MEDYA}\n${TEMEL}\n${EKLER[platform] ?? ""}\n${nfYerel}\n${ORTAK}\n${TANI}\ntrue;`;
 }
 
 function komut(kod: string): string {

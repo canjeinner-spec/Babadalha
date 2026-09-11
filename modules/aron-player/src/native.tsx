@@ -17,6 +17,7 @@ export type DrmDestek = {
 
 type AronPlayerModulu = {
   drmDestegi(): Promise<DrmDestek>;
+  netflixManifestAl(netflixId: string, secureId: string, videoId: string, dil: string): Promise<{ manifestUrl: string; manifestJson: string }>;
 };
 
 export type NativeOlay<T> = { nativeEvent: T };
@@ -92,6 +93,16 @@ export async function drmDestegi(): Promise<DrmDestek | null> {
   } catch {
     return null;
   }
+}
+
+export async function netflixManifestAl(
+  netflixId: string,
+  secureId: string,
+  videoId: string,
+  dil = "tr",
+): Promise<{ manifestUrl: string; manifestJson: string }> {
+  if (!nativeOynaticiVar()) throw new Error("Yerel oynatici yok");
+  return modul!.netflixManifestAl(netflixId, secureId, videoId, dil);
 }
 
 export const NativeOynatici: ComponentType<NativeOynaticiProps> | null = nativeOynaticiVar()

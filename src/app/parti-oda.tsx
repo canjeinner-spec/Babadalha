@@ -63,6 +63,8 @@ import {
 } from "@/parti/senkron";
 import { ODAM_ID, kendiOdaKimligi, usePartiOdam } from "@/parti/odam";
 import { type OynaticiOlayi } from "@/parti/kopru";
+import { netflixManifestAl, nativeOynaticiVar } from "../../modules/aron-player";
+import { cerezAl } from "../../modules/aron-webview";
 import { type PartiSecim, usePartiKuyruk } from "@/parti/kuyruk";
 import { icerikAnahtari } from "@/parti/icerik";
 import { Icon } from "@/icons/Icon";
@@ -392,6 +394,8 @@ export default function PartiOda() {
   }));
   const [simdiSecim, setSimdiSecim] = useState<PartiSecim | null>(null);
   const [oynatimNo, setOynatimNo] = useState(0);
+  const [nfYerelAdres, setNfYerelAdres] = useState<string | null>(null);
+  const nfYerelYukleniyor = useRef(false);
   const [ek, setEk] = useState<PartiSohbetOgesi[]>([]);
   const [bildirim, setBildirim] = useState("");
   const [atilma, setAtilma] = useState<PartiRol | null>(null);
@@ -475,6 +479,7 @@ export default function PartiOda() {
     yuklenenPlatformRef.current = s.platform;
     yuklenenIcerikRef.current = icerikAnahtari(s.platform, s.adres);
     setKip("gezinme");
+    setNfYerelAdres(null);
     setOynatilan({ platform: s.platform, adres: s.adres });
     setSimdiSecim(s);
     setSimdiki(s.baslik);
@@ -566,6 +571,7 @@ export default function PartiOda() {
       yuklenenIcerikRef.current = gelenAnahtar;
       gunluk("icerik", { platform: d.platform, anahtar: gelenAnahtar, yenidenKur: platformDegisti });
       if (platformDegisti) setOynatimNo((n) => n + 1);
+      setNfYerelAdres(null);
       setOynatilan({ platform: d.platform, adres: d.adres });
       setSimdiki(d.baslik);
       setSimdikiKapak(d.kapak ?? null);
@@ -884,6 +890,25 @@ export default function PartiOda() {
   }, [oynatilan.platform, simdiki, simdikiKapak, agKisileri.length, kabaIlerleme]);
 
   const olayGeldi = useCallback((o: OynaticiOlayi) => {
+    if (o.tur === "netflix-yerel" && Platform.OS === "android" && nativeOynaticiVar()) {
+      if (nfYerelYukleniyor.current) return;
+      nfYerelYukleniyor.current = true;
+      (async () => {
+        try {
+          const ham = await cerezAl("https://www.netflix.com");
+          const nfId = ham.match(/(?:^|;\s*)NetflixId=([^;]+)/)?.[1] ?? "";
+          const secId = ham.match(/(?:^|;\s*)SecureNetflixId=([^;]+)/)?.[1] ?? "";
+          if (!nfId || !secId) { nfYerelYukleniyor.current = false; return; }
+          const sonuc = await netflixManifestAl(nfId, secId, o.videoId, "tr");
+          setNfYerelAdres(sonuc.manifestUrl);
+        } catch {
+          setNfYerelAdres(null);
+        } finally {
+          nfYerelYukleniyor.current = false;
+        }
+      })();
+      return;
+    }
     if (o.tur === "sure") {
       setSure(o.sure);
       return;
@@ -1217,11 +1242,11 @@ export default function PartiOda() {
           <View style={styles.oynatici}>
             <Txt size={13} color={C.dim}>Partiye bağlanılıyor…</Txt>
           </View>
-        ) : dogrudanMi(oynatilan.platform) ? (
+        ) : dogrudanMi(oynatilan.platform) || (oynatilan.platform === "netflix" && Platform.OS === "android" && nfYerelAdres) ? (
           <PartiNativeOynatici
             key={`dogrudan-${oynatimNo}`}
             ref={oynatici}
-            adres={oynatilan.adres}
+            adres={nfYerelAdres && oynatilan.platform === "netflix" ? nfYerelAdres : oynatilan.adres}
             tamEkran={kip === "gezinme" || buyuk}
             kilitli={!kontrolBende}
             onOlay={olayGeldi}

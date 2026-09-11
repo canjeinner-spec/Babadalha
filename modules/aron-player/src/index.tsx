@@ -10,6 +10,7 @@ import { View, type ViewProps } from "react-native";
 import {
   NativeOynatici,
   drmDestegi,
+  netflixManifestAl,
   nativeOynaticiVar,
   type DrmDestek,
   type NativeBoyutOlayi,
@@ -21,7 +22,7 @@ import {
   type NativeOynaticiRef,
 } from "./native";
 
-export { drmDestegi, nativeOynaticiVar, type DrmDestek };
+export { drmDestegi, netflixManifestAl, nativeOynaticiVar, type DrmDestek };
 
 export type DrmSemasi = "widevine";
 
@@ -31,6 +32,10 @@ export type DrmYapilandirma = {
   headers?: Record<string, string>;
   cokluOturum?: boolean;
   anahtarsizOynat?: boolean;
+  netflixMsl?: boolean;
+  netflixId?: string;
+  netflixSecureId?: string;
+  netflixVideoId?: string;
 };
 
 export type PlaybackConfig = {
@@ -135,6 +140,10 @@ export function yapilandirmayaJson(config: PlaybackConfig): string {
     }
     if (typeof config.drm.cokluOturum === "boolean") drm.cokluOturum = config.drm.cokluOturum;
     if (typeof config.drm.anahtarsizOynat === "boolean") drm.anahtarsizOynat = config.drm.anahtarsizOynat;
+    if (config.drm.netflixMsl) drm.netflixMsl = true;
+    if (config.drm.netflixId) drm.netflixId = config.drm.netflixId;
+    if (config.drm.netflixSecureId) drm.netflixSecureId = config.drm.netflixSecureId;
+    if (config.drm.netflixVideoId) drm.netflixVideoId = config.drm.netflixVideoId;
     govde.drm = drm;
   }
   return JSON.stringify(govde);
