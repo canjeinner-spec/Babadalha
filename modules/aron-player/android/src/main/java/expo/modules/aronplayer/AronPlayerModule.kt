@@ -28,17 +28,20 @@ class AronPlayerModule : Module() {
         "var" to destek,
         "androidSurum" to Build.VERSION.SDK_INT
       )
+      
+      var drm: MediaDrm? = null
       if (destek) {
         try {
-          val drm = MediaDrm(C.WIDEVINE_UUID)
+          drm = MediaDrm(C.WIDEVINE_UUID)
           bilgi["seviye"] = ozellik(drm, "securityLevel")
           bilgi["vendor"] = ozellik(drm, "vendor")
           bilgi["surum"] = ozellik(drm, "version")
           bilgi["hdcp"] = ozellik(drm, "maxHdcpLevel")
           bilgi["oturumSiniri"] = ozellik(drm, "maxNumberOfSessions")
-          kapat(drm)
         } catch (e: Throwable) {
           bilgi["hata"] = e.javaClass.simpleName
+        } finally {
+          drm?.let { kapat(it) }
         }
       }
       bilgi
