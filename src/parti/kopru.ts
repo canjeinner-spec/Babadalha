@@ -2346,15 +2346,27 @@ const NETFLIX_ANDROID_EK = `
   };
   window.addEventListener('popstate', function () { yakala(location.pathname); });
   yakala(location.pathname);
+  document.addEventListener('click', function (ev) {
+    try {
+      var el = ev.target;
+      for (var n = 0; n < 8 && el; n++) {
+        var href = el.getAttribute ? el.getAttribute('href') : null;
+        if (href) { var m = String(href).match(/\\/watch\\/(\\d+)/); if (m) { yolla({ tur: 'gunluk', seviye: 'nfyerel', metin: 'tiklama /watch/' + m[1] }); yakala('/watch/' + m[1]); return; } }
+        el = el.parentNode;
+      }
+    } catch (e) {}
+  }, true);
+  var oturumDokSayac = 0;
   function oynatmaVideoId() {
     try {
       var pa = window.netflix && window.netflix.appContext && window.netflix.appContext.state && window.netflix.appContext.state.playerApp;
       if (!pa) return '';
+      var idler = [];
       try {
         var d = pa.getState && pa.getState();
         var vp = d && d.videoPlayer;
         var ps = vp && vp.playbackStateBySessionId;
-        for (var k in ps) { var m = String(k).match(/watch-(\\d+)/); if (m) return m[1]; }
+        for (var k in ps) { idler.push('S:' + k); var m = String(k).match(/watch-(\\d+)/); if (m) return m[1]; }
       } catch (e) {}
       try {
         var api = pa.getAPI && pa.getAPI();
@@ -2362,6 +2374,7 @@ const NETFLIX_ANDROID_EK = `
         if (vp2 && vp2.getAllPlayerSessionIds) {
           var ids = vp2.getAllPlayerSessionIds() || [];
           for (var i = 0; i < ids.length; i++) {
+            idler.push('A:' + ids[i]);
             var mm = String(ids[i]).match(/watch-(\\d+)/);
             if (mm) return mm[1];
             if (String(ids[i]).indexOf('watch') === 0 && vp2.getVideoPlayerBySessionId) {
@@ -2371,6 +2384,7 @@ const NETFLIX_ANDROID_EK = `
           }
         }
       } catch (e) {}
+      if (idler.length && oturumDokSayac < 3) { oturumDokSayac++; yolla({ tur: 'gunluk', seviye: 'nfyerel', metin: 'OTURUM-IDLERI[' + idler.length + ']: ' + idler.join(' | ') }); }
     } catch (e) {}
     return '';
   }
