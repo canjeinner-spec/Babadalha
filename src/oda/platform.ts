@@ -43,7 +43,7 @@ export function platformBul(kod?: string | null): Platform | undefined {
   return PLATFORMLAR.find((p) => p.kod === kod);
 }
 
-const BU_CIHAZDA_YOK = new Set<PlatformKodu>(Isletim.OS === "android" ? ["netflix"] : []);
+const BU_CIHAZDA_YOK = new Set<PlatformKodu>([]);
 
 export function platformDesteklenmiyor(kod?: string | null): boolean {
   if (!kod) return false;
