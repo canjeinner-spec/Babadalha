@@ -49,3 +49,4 @@ example
 # yerel native modul derleme ciktilari
 modules/*/android/build/
 modules/*/android/.cxx/
+eas.json
