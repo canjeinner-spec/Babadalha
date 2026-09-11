@@ -33,21 +33,18 @@ class NetflixManifestUretici {
           val akis = akislar.getJSONObject(i)
           val genislik = akis.optInt("res_w", akis.optInt("width", 1920))
           val yukseklik = akis.optInt("res_h", akis.optInt("height", 1080))
-          val bitoran = akis.optLong("bitrate", akis.optLong("avg_bitrate", 5000000))
+          val bant = bantGenisligi(akis, 5000000)
           val profil = akis.optString("content_profile", "")
           val codec = kodekBul(profil, "video")
           val cdnUrl = cdnUrlBul(akis)
-          sb.append("<Representation id=\"video_$i\" bandwidth=\"$bitoran\" ")
+          sb.append("<Representation id=\"video_$i\" bandwidth=\"$bant\" startWithSAP=\"1\" ")
           sb.append("width=\"$genislik\" height=\"$yukseklik\" codecs=\"$codec\">\n")
           if (cdnUrl.isNotEmpty()) {
             sb.append("<BaseURL>$cdnUrl</BaseURL>\n")
-            val sidx = akis.optLong("sidx", 0)
-            val moov = akis.optLong("new_stream_header_size", 0)
-            if (sidx > 0) {
-              sb.append("<SegmentBase indexRange=\"$moov-${moov + sidx - 1}\">\n")
-              sb.append("<Initialization range=\"0-${moov - 1}\"/>\n")
-              sb.append("</SegmentBase>\n")
-            }
+            val (sidxBas, sidxSon, initUz) = sidxAralik(akis)
+            sb.append("<SegmentBase indexRange=\"$sidxBas-$sidxSon\">\n")
+            sb.append("<Initialization range=\"0-$initUz\"/>\n")
+            sb.append("</SegmentBase>\n")
           }
           sb.append("</Representation>\n")
         }
@@ -66,20 +63,17 @@ class NetflixManifestUretici {
         ekleKoruma(sb, json)
         for (i in 0 until akislar.length()) {
           val akis = akislar.getJSONObject(i)
-          val bitoran = akis.optLong("bitrate", akis.optLong("avg_bitrate", 128000))
+          val bant = bantGenisligi(akis, 128000)
           val profil = akis.optString("content_profile", "")
           val codec = kodekBul(profil, "audio")
           val cdnUrl = cdnUrlBul(akis)
-          sb.append("<Representation id=\"audio_${j}_$i\" bandwidth=\"$bitoran\" codecs=\"$codec\">\n")
+          sb.append("<Representation id=\"audio_${j}_$i\" bandwidth=\"$bant\" startWithSAP=\"1\" codecs=\"$codec\">\n")
           if (cdnUrl.isNotEmpty()) {
             sb.append("<BaseURL>$cdnUrl</BaseURL>\n")
-            val sidx = akis.optLong("sidx", 0)
-            val moov = akis.optLong("new_stream_header_size", 0)
-            if (sidx > 0) {
-              sb.append("<SegmentBase indexRange=\"$moov-${moov + sidx - 1}\">\n")
-              sb.append("<Initialization range=\"0-${moov - 1}\"/>\n")
-              sb.append("</SegmentBase>\n")
-            }
+            val (sidxBas, sidxSon, initUz) = sidxAralik(akis)
+            sb.append("<SegmentBase indexRange=\"$sidxBas-$sidxSon\">\n")
+            sb.append("<Initialization range=\"0-$initUz\"/>\n")
+            sb.append("</SegmentBase>\n")
           }
           sb.append("</Representation>\n")
         }
@@ -118,6 +112,27 @@ class NetflixManifestUretici {
     val dosya = File(context.cacheDir, "netflix_dash_manifest.xml")
     dosya.writeText(sb.toString())
     return dosya.toURI().toString()
+  }
+
+  private fun sidxAralik(akis: JSONObject): Triple<Long, Long, Long> {
+    val sidx = akis.optJSONObject("sidx")
+    if (sidx == null) {
+      var basByte = akis.optLong("startByteOffset", 0)
+      if (basByte == 0L) basByte = 100000
+      return Triple(0L, basByte, basByte)
+    }
+    val offset = sidx.getLong("offset")
+    val sidxSon = sidx.getLong("size") + offset - 1
+    val moov = akis.optJSONObject("moov")
+    val initUzunluk = if (moov != null) moov.getLong("offset") + moov.getLong("size") - 1
+      else akis.optLong("startByteOffset", 100000)
+    return Triple(offset, sidxSon, initUzunluk)
+  }
+
+  private fun bantGenisligi(akis: JSONObject, varsayilan: Long): Long {
+    val bitoran = akis.optLong("bitrate", 0)
+    if (bitoran > 0) return bitoran * 1000
+    return akis.optLong("avg_bitrate", varsayilan)
   }
 
   private fun ekleKoruma(sb: StringBuilder, json: JSONObject) {
