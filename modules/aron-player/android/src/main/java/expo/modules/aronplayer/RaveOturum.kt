@@ -1,6 +1,7 @@
 package expo.modules.aronplayer
 
 import android.content.Context
+import android.os.Build
 import android.provider.Settings
 import android.util.Base64
 import android.util.Log
@@ -9,6 +10,10 @@ import java.io.DataInputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 import java.util.UUID
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
@@ -22,7 +27,7 @@ object RaveOturum {
   private const val GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
   private const val CLIENT_VERSION = "9.0.28"
   private const val API_VERSION = "4.0"
-  private const val KULLANICI_AJANI = "Rave/2328 (9.0.28) (Android 14; Pixel 8; Google redfin; en)"
+  private const val UYGULAMA_SURUMU = "2328 (9.0.28)"
   private val GIZLI_ANAHTAR = "c3ab8ff13720e8ad9047dd39466b3c8974e592c2fa383d4a3960714caef0c4f2".toByteArray()
 
   private var appContext: Context? = null
@@ -33,6 +38,9 @@ object RaveOturum {
   private var parseId: String? = null
   private var cihazId: String? = null
   private var ssaid: String = ""
+
+  @Volatile private var saatFarki: Long = 0
+  @Volatile private var sonKullanilanFark: Long = 0
 
   private var googleRefreshToken: String? = null
   private var googleClientId: String? = null
@@ -59,7 +67,32 @@ object RaveOturum {
     googleRefreshToken = prefs?.getString("g_refresh", null)
     googleClientId = prefs?.getString("g_client_id", null)
     googleClientSecret = prefs?.getString("g_client_secret", null)
+    saatFarki = prefs?.getLong("saat_farki", 0L) ?: 0L
   }
+
+  private fun kullaniciAjani(): String {
+    val dil = try { Locale.getDefault().language.ifEmpty { "en" } } catch (e: Throwable) { "en" }
+    return "Rave/$UYGULAMA_SURUMU (Android ${Build.VERSION.RELEASE}; ${Build.MODEL}; ${Build.BRAND} ${Build.DEVICE}; $dil)"
+  }
+
+  private fun suAn(): Long = System.currentTimeMillis() + saatFarki
+
+  fun saatiKalibreEt(dateBasligi: String?) {
+    if (dateBasligi.isNullOrEmpty()) return
+    val sunucuMs = try {
+      val bicim = SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US)
+      bicim.timeZone = TimeZone.getTimeZone("GMT")
+      bicim.parse(dateBasligi)?.time ?: return
+    } catch (e: Throwable) { return }
+    val yeni = sunucuMs - System.currentTimeMillis()
+    if (kotlin.math.abs(yeni - saatFarki) > 1000L) {
+      saatFarki = yeni
+      prefs?.edit()?.putLong("saat_farki", yeni)?.apply()
+      Log.d(TAG, "saat farki guncellendi: ${yeni}ms")
+    }
+  }
+
+  fun saatDegistiMi(): Boolean = kotlin.math.abs(saatFarki - sonKullanilanFark) > 1000L
 
   fun tokenAyarla(parseToken: String?, refreshToken: String?, clientId: String?, clientSecret: String?) {
     if (!parseToken.isNullOrEmpty()) {
@@ -85,7 +118,8 @@ object RaveOturum {
 
   fun basliklar(govdeUzunlugu: Int): Map<String, String> {
     val token = bearer ?: throw IllegalStateException("Rave oturumu yok")
-    val ts = System.currentTimeMillis()
+    val ts = suAn()
+    sonKullanilanFark = saatFarki
     val ozet = istekOzeti(token, ts, govdeUzunlugu)
     return mapOf(
       "Content-Type" to "application/json",
@@ -93,7 +127,7 @@ object RaveOturum {
       "Client-Version" to CLIENT_VERSION,
       "WeMesh-API-Version" to API_VERSION,
       "WeMesh-Platform" to "android",
-      "User-Agent" to KULLANICI_AJANI,
+      "User-Agent" to kullaniciAjani(),
       "ssaid" to ssaid,
       "Authorization" to "Bearer $token",
       "request-hash" to ozet,
@@ -211,6 +245,7 @@ object RaveOturum {
       baglanti.readTimeout = 30_000
       baglanti.outputStream.use { it.write(govde); it.flush() }
       val kod = baglanti.responseCode
+      saatiKalibreEt(baglanti.getHeaderField("Date"))
       val akis = if (kod in 200..299) baglanti.inputStream else baglanti.errorStream
       val ham = akis?.use { DataInputStream(it).readBytes() } ?: ByteArray(0)
       if (kod !in 200..299) {

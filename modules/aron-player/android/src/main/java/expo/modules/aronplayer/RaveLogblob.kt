@@ -37,10 +37,16 @@ object RaveLogblob {
 
     var sonHata: Throwable? = null
     var yenilendi = false
+    var saatDenendi = false
     for (deneme in 1..MAKS_DENEME) {
       try {
         return gonder(govdeBytes)
       } catch (e: YetkiHatasi) {
+        if (!saatDenendi && RaveOturum.saatDegistiMi()) {
+          saatDenendi = true
+          Log.w(TAG, "logblob3 yetki hatasi, saat kalibre edildi, tekrar deneniyor")
+          continue
+        }
         if (!yenilendi && RaveOturum.yenile()) {
           yenilendi = true
           Log.w(TAG, "logblob3 yetki hatasi, oturum yenilendi, tekrar deneniyor")
@@ -76,6 +82,7 @@ object RaveLogblob {
       }
 
       val kod = baglanti.responseCode
+      RaveOturum.saatiKalibreEt(baglanti.getHeaderField("Date"))
       val akis = if (kod in 200..299) baglanti.inputStream else baglanti.errorStream
       val hamVeri = akis.use { DataInputStream(it).readBytes() }
 
