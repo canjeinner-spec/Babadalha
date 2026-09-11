@@ -47,7 +47,7 @@ class NetflixMslYonetici(private val context: Context) {
       if (durum.getBoolean("renewable")) {
         Log.d(TAG, "ana token yenileniyor")
         val yuk = istek.anahtarDegisimiYuku(true)
-        val sonuc = mslPost(NetflixDrmGeriCagri.MANIFEST_URL, yuk, "anahtar-yenileme")
+        val sonuc = mslPost(NetflixDrmGeriCagri.ROUTER_URL, yuk, "anahtar-yenileme")
         yanit.anahtarDegisimiCoz(sonuc)
         sahipTokenAl()
         kaydet()
@@ -61,7 +61,7 @@ class NetflixMslYonetici(private val context: Context) {
     Log.d(TAG, "yeni anahtar cifti uretiliyor")
     oturum.anahtarCiftiUret()
     val yuk = istek.anahtarDegisimiYuku(false)
-    val sonuc = mslPost(NetflixDrmGeriCagri.MANIFEST_URL, yuk, "anahtar-degisimi")
+    val sonuc = mslPost(NetflixDrmGeriCagri.ROUTER_URL, yuk, "anahtar-degisimi")
     yanit.anahtarDegisimiCoz(sonuc)
     Log.d(TAG, "anahtar degisimi tamam")
     sahipTokenAl()
@@ -74,7 +74,7 @@ class NetflixMslYonetici(private val context: Context) {
     if (oturum.kullaniciToken == null) return
     try {
       val yuk = istek.sahipTokenYuku()
-      val sonuc = mslPost(NetflixDrmGeriCagri.MANIFEST_URL, yuk, "sahip-token")
+      val sonuc = mslPost(NetflixDrmGeriCagri.ROUTER_URL, yuk, "sahip-token")
       yanit.sahipTokenCoz(sonuc)
       Log.d(TAG, "sahip tokeni alindi")
     } catch (e: Throwable) {

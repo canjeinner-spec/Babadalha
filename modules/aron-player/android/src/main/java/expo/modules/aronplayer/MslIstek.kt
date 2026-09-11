@@ -262,18 +262,18 @@ class MslIstek(private val oturum: MslOturum) {
 
   companion object {
     val ICERIK_PROFILLERI = listOf(
+      "playready-h264mpl22-dash",
       "playready-h264mpl30-dash",
       "playready-h264mpl31-dash",
       "playready-h264mpl40-dash",
+      "playready-h264hpl22-dash",
       "playready-h264hpl30-dash",
       "playready-h264hpl31-dash",
       "playready-h264hpl40-dash",
       "heaac-2-dash",
       "heaac-2hq-dash",
-      "heaac-5.1-dash",
-      "heaac-5.1hq-dash",
-      "simplesdh",
       "dfxp-ls-sdh",
+      "simplesdh",
       "webvtt-lssdh-ios8",
       "BIF240",
       "BIF320"

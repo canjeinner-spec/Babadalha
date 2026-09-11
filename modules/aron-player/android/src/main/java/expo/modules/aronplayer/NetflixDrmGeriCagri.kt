@@ -75,6 +75,7 @@ class NetflixDrmGeriCagri(
 
   companion object {
     private const val MSL_TEMEL = "https://www.netflix.com/nq/msl_v1/cadmium/"
+    const val ROUTER_URL = "${MSL_TEMEL}pbo_manifests/%5E1.0.0/router"
     const val MANIFEST_URL = "${MSL_TEMEL}pbo_manifests/%5E1.0.0/router?reqAttempt=1&reqName=manifest&clienttype=akira&uiversion=v65aacd43&browsername=edgeoss&browserversion=134.0.0&osname=Windows&osversion=10.0"
     const val LISANS_URL = "${MSL_TEMEL}pbo_licenses/%5E1.0.0/router?reqAttempt=1&reqName=prefetch/license&clienttype=akira&uiversion=v65aacd43&browsername=edgeoss&browserversion=134.0.0&osname=Windows&osversion=10.0"
     const val KULLANICI_AJANI = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0"
