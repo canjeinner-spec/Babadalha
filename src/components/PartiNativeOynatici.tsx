@@ -130,7 +130,7 @@ export const PartiNativeOynatici = forwardRef<OynaticiKolu, Props>(function Part
 
   const hataGeldi = useCallback(
     (o: { kodAdi: string; mesaj: string; drm: boolean }) => {
-      const sebep = o.drm ? `DRM hatası: ${o.kodAdi}` : `${o.kodAdi} — ${o.mesaj}`;
+      const sebep = `${o.kodAdi}: ${o.mesaj || "-"}`;
       setYukleniyor(false);
       setHata(sebep);
       bildir({ tur: "engel", sebep });
