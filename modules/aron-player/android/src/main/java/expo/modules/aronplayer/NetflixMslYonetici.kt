@@ -27,6 +27,7 @@ class NetflixMslYonetici(private val context: Context) {
   } catch (e: Throwable) { null }
 
   fun baslat(netflixId: String, secureNetflixId: String, dil: String = "tr") {
+    RaveOturum.yapilandir(context)
     val esn = oturum.esnUret()
     oturum.baslat(esn, dil)
     oturum.netflixId = netflixId

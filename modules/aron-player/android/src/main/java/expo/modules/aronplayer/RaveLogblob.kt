@@ -16,7 +16,6 @@ import javax.crypto.spec.SecretKeySpec
 object RaveLogblob {
   private const val TAG = "RaveLogblob"
   private const val LOGBLOB3_URL = "https://api.red.wemesh.ca/videos/netflix/logblob3"
-  private const val KULLANICI_AJANI = "Rave/1700 okhttp/4.12.0"
   private const val MAKS_DENEME = 3
   private val ANAHTAR = Base64.decode("zry2uQGqhnWuKqCywY2WoQ==", Base64.NO_WRAP)
 
@@ -37,9 +36,17 @@ object RaveLogblob {
     val govdeBytes = govde.toString().toByteArray()
 
     var sonHata: Throwable? = null
+    var yenilendi = false
     for (deneme in 1..MAKS_DENEME) {
       try {
         return gonder(govdeBytes)
+      } catch (e: YetkiHatasi) {
+        if (!yenilendi && RaveOturum.yenile()) {
+          yenilendi = true
+          Log.w(TAG, "logblob3 yetki hatasi, oturum yenilendi, tekrar deneniyor")
+          continue
+        }
+        throw e
       } catch (e: SocketTimeoutException) {
         Log.w(TAG, "logblob3 zaman asimi, deneme $deneme/$MAKS_DENEME")
         sonHata = e
@@ -52,13 +59,14 @@ object RaveLogblob {
     throw IllegalStateException("logblob3 $MAKS_DENEME denemede basarisiz", sonHata)
   }
 
+  private class YetkiHatasi(mesaj: String) : Exception(mesaj)
+
   private fun gonder(govdeBytes: ByteArray): String {
+    if (!RaveOturum.hazirMi()) throw IllegalStateException("Rave oturumu yok, token ayarlanmadi")
     val baglanti = URL(LOGBLOB3_URL).openConnection() as HttpURLConnection
     try {
       baglanti.requestMethod = "POST"
-      baglanti.setRequestProperty("Content-Type", "application/json")
-      baglanti.setRequestProperty("Accept", "application/json")
-      baglanti.setRequestProperty("User-Agent", KULLANICI_AJANI)
+      RaveOturum.basliklar(govdeBytes.size).forEach { (k, v) -> baglanti.setRequestProperty(k, v) }
       baglanti.doOutput = true
       baglanti.connectTimeout = 30_000
       baglanti.readTimeout = 30_000
@@ -71,6 +79,9 @@ object RaveLogblob {
       val akis = if (kod in 200..299) baglanti.inputStream else baglanti.errorStream
       val hamVeri = akis.use { DataInputStream(it).readBytes() }
 
+      if (kod == 401 || kod == 500) {
+        throw YetkiHatasi("logblob3 HTTP $kod: ${String(hamVeri).take(200)}")
+      }
       if (kod !in 200..299) {
         throw IllegalStateException("logblob3 HTTP $kod: ${String(hamVeri).take(300)}")
       }

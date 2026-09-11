@@ -14,6 +14,8 @@ import {
   netflixManifestAl,
   nativeOynaticiVar,
   primeManifestAl,
+  raveGoogleGiris,
+  raveTokenAyarla,
   youtubeManifestAl,
   type DrmDestek,
   type NativeBoyutOlayi,
@@ -25,7 +27,7 @@ import {
   type NativeOynaticiRef,
 } from "./native";
 
-export { drmDestegi, maxManifestAl, netflixManifestAl, nativeOynaticiVar, primeManifestAl, youtubeManifestAl, type DrmDestek };
+export { drmDestegi, maxManifestAl, netflixManifestAl, nativeOynaticiVar, primeManifestAl, raveGoogleGiris, raveTokenAyarla, youtubeManifestAl, type DrmDestek };
 
 export type DrmSemasi = "widevine";
 

@@ -47,6 +47,20 @@ class AronPlayerModule : Module() {
       bilgi
     }
 
+    AsyncFunction("raveTokenAyarla") { parseToken: String?, refreshToken: String?, clientId: String?, clientSecret: String? ->
+      val ctx = appContext.reactContext ?: throw IllegalStateException("context yok")
+      RaveOturum.yapilandir(ctx)
+      RaveOturum.tokenAyarla(parseToken, refreshToken, clientId, clientSecret)
+      mapOf("hazir" to RaveOturum.hazirMi())
+    }
+
+    AsyncFunction("raveGoogleGiris") { idToken: String ->
+      val ctx = appContext.reactContext ?: throw IllegalStateException("context yok")
+      RaveOturum.yapilandir(ctx)
+      RaveOturum.googleIleGiris(idToken)
+      mapOf("hazir" to RaveOturum.hazirMi())
+    }
+
     AsyncFunction("netflixOturumBaslat") { netflixId: String, secureId: String, dil: String ->
       val ctx = appContext.reactContext ?: throw IllegalStateException("context yok")
       val yonetici = NetflixMslYonetici(ctx)

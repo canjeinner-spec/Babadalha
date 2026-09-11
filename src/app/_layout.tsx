@@ -8,6 +8,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider, initialWindowMetrics } from "react-native-safe-area-context";
 
 import { useDil } from "@/lib/dil";
+import { raveTokeniYukle } from "@/lib/rave";
 import { useApp } from "@/store/appStore";
 import { C } from "@/theme/colors";
 import { fontMap } from "@/theme/fonts";
@@ -30,6 +31,7 @@ export default function KokYerlesim() {
   useEffect(() => {
     initAuth();
     dilYukle();
+    raveTokeniYukle().catch(() => {});
   }, [initAuth, dilYukle]);
 
   useEffect(() => {

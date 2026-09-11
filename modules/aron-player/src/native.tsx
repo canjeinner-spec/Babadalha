@@ -17,6 +17,8 @@ export type DrmDestek = {
 
 type AronPlayerModulu = {
   drmDestegi(): Promise<DrmDestek>;
+  raveTokenAyarla(parseToken: string | null, refreshToken: string | null, clientId: string | null, clientSecret: string | null): Promise<{ hazir: boolean }>;
+  raveGoogleGiris(idToken: string): Promise<{ hazir: boolean }>;
   netflixManifestAl(netflixId: string, secureId: string, videoId: string, dil: string): Promise<{ manifestUrl: string; manifestJson: string }>;
   maxManifestAl(oturumToken: string, icerikId: string): Promise<{ manifestUrl: string; lisansUrl: string; manifestJson: string }>;
   youtubeManifestAl(videoId: string, dil: string): Promise<{ manifestUrl: string; baslik: string; yazar: string; sureMs: number; streamingJson: string }>;
@@ -96,6 +98,27 @@ export async function drmDestegi(): Promise<DrmDestek | null> {
   } catch {
     return null;
   }
+}
+
+export async function raveTokenAyarla(
+  parseToken: string | null,
+  refreshToken: string | null = null,
+  clientId: string | null = null,
+  clientSecret: string | null = null,
+): Promise<boolean> {
+  if (!nativeOynaticiVar()) return false;
+  try {
+    const sonuc = await modul!.raveTokenAyarla(parseToken, refreshToken, clientId, clientSecret);
+    return sonuc.hazir;
+  } catch {
+    return false;
+  }
+}
+
+export async function raveGoogleGiris(idToken: string): Promise<boolean> {
+  if (!nativeOynaticiVar()) throw new Error("Yerel oynatici yok");
+  const sonuc = await modul!.raveGoogleGiris(idToken);
+  return sonuc.hazir;
 }
 
 export async function netflixManifestAl(
