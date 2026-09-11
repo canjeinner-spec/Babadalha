@@ -2349,15 +2349,28 @@ const NETFLIX_ANDROID_EK = `
   function oynatmaVideoId() {
     try {
       var pa = window.netflix && window.netflix.appContext && window.netflix.appContext.state && window.netflix.appContext.state.playerApp;
-      var api = pa && pa.getAPI && pa.getAPI();
-      var vp = api && api.videoPlayer;
-      if (!vp || !vp.getAllPlayerSessionIds) return '';
-      var ids = vp.getAllPlayerSessionIds() || [];
-      for (var i = 0; i < ids.length; i++) {
-        if (String(ids[i]).indexOf('watch') !== 0) continue;
-        var p = vp.getVideoPlayerBySessionId ? vp.getVideoPlayerBySessionId(ids[i]) : null;
-        if (p && p.getMovieId) { var mid = p.getMovieId(); if (mid) return String(mid); }
-      }
+      if (!pa) return '';
+      try {
+        var d = pa.getState && pa.getState();
+        var vp = d && d.videoPlayer;
+        var ps = vp && vp.playbackStateBySessionId;
+        for (var k in ps) { var m = String(k).match(/watch-(\\d+)/); if (m) return m[1]; }
+      } catch (e) {}
+      try {
+        var api = pa.getAPI && pa.getAPI();
+        var vp2 = api && api.videoPlayer;
+        if (vp2 && vp2.getAllPlayerSessionIds) {
+          var ids = vp2.getAllPlayerSessionIds() || [];
+          for (var i = 0; i < ids.length; i++) {
+            var mm = String(ids[i]).match(/watch-(\\d+)/);
+            if (mm) return mm[1];
+            if (String(ids[i]).indexOf('watch') === 0 && vp2.getVideoPlayerBySessionId) {
+              var p = vp2.getVideoPlayerBySessionId(ids[i]);
+              if (p && p.getMovieId) { var mid = p.getMovieId(); if (mid) return String(mid); }
+            }
+          }
+        }
+      } catch (e) {}
     } catch (e) {}
     return '';
   }
