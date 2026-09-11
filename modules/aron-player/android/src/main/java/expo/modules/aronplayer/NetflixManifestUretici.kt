@@ -1,6 +1,7 @@
 package expo.modules.aronplayer
 
 import android.content.Context
+import android.util.Base64
 import org.json.JSONObject
 import java.io.File
 import java.util.UUID
@@ -28,7 +29,7 @@ class NetflixManifestUretici {
       val akislar = videoIz.optJSONArray("streams") ?: videoIz.optJSONArray("downloadables")
       if (akislar != null) {
         sb.append("<AdaptationSet mimeType=\"video/mp4\" contentType=\"video\" segmentAlignment=\"true\">\n")
-        ekleKoruma(sb, json)
+        ekleKoruma(sb, videoIz)
         for (i in 0 until akislar.length()) {
           val akis = akislar.getJSONObject(i)
           val genislik = akis.optInt("res_w", akis.optInt("width", 1920))
@@ -60,7 +61,7 @@ class NetflixManifestUretici {
         val akislar = sesIz.optJSONArray("streams") ?: sesIz.optJSONArray("downloadables")
         if (akislar == null || akislar.length() == 0) continue
         sb.append("<AdaptationSet mimeType=\"audio/mp4\" contentType=\"audio\" lang=\"$dil\">\n")
-        ekleKoruma(sb, json)
+        ekleKoruma(sb, sesIz)
         for (i in 0 until akislar.length()) {
           val akis = akislar.getJSONObject(i)
           val bant = bantGenisligi(akis, 128000)
@@ -135,12 +136,32 @@ class NetflixManifestUretici {
     return akis.optLong("avg_bitrate", varsayilan)
   }
 
-  private fun ekleKoruma(sb: StringBuilder, json: JSONObject) {
-    val defaultKid = json.optString("defaultKID", "")
+  private fun ekleKoruma(sb: StringBuilder, iz: JSONObject) {
+    val hamKid = iz.optJSONObject("drmHeader")?.optString("keyId", "") ?: ""
+    val kid = kidUuid(hamKid)
     sb.append("<ContentProtection schemeIdUri=\"urn:mpeg:dash:mp4protection:2011\" value=\"cenc\"")
-    if (defaultKid.isNotEmpty()) sb.append(" cenc:default_KID=\"$defaultKid\"")
+    if (kid.isNotEmpty()) sb.append(" cenc:default_KID=\"$kid\"")
     sb.append("/>\n")
     sb.append("<ContentProtection schemeIdUri=\"urn:uuid:e2719d58-a985-b3c9-781a-b030af78d30e\"/>\n")
+  }
+
+  private fun kidUuid(ham: String): String {
+    val s = ham.trim()
+    if (s.isEmpty()) return ""
+    if (s.length == 36 && s.count { it == '-' } == 4) return s.lowercase()
+    val hexMi = s.length == 32 && s.all { it.isDigit() || it in 'a'..'f' || it in 'A'..'F' }
+    val bytes: ByteArray = if (hexMi) {
+      ByteArray(16) { s.substring(it * 2, it * 2 + 2).toInt(16).toByte() }
+    } else {
+      try {
+        Base64.decode(s, Base64.DEFAULT)
+      } catch (e: Throwable) {
+        try { Base64.decode(s, Base64.URL_SAFE) } catch (e2: Throwable) { return "" }
+      }
+    }
+    if (bytes.size != 16) return ""
+    val hex = bytes.joinToString("") { "%02x".format(it) }
+    return "${hex.substring(0, 8)}-${hex.substring(8, 12)}-${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20)}"
   }
 
   private fun kodekBul(profil: String, tur: String): String {
