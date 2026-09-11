@@ -21,8 +21,8 @@ const DRM_PLATFORMLARI = new Set<PlatformKodu>([
 const MASAUSTU_LINUX_CHROME =
   "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.7559.172 Safari/537.36";
 
-const CHROMEOS_CHROME =
-  "Mozilla/5.0 (X11; CrOS aarch64 16503.74.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.7559.172 Safari/537.36";
+const WINDOWS_EDGE =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0";
 
 export function masaustuIcerikMi(platform: PlatformKodu): boolean {
   return DRM_PLATFORMLARI.has(platform);
@@ -30,7 +30,7 @@ export function masaustuIcerikMi(platform: PlatformKodu): boolean {
 
 export function kullaniciAjani(platform: PlatformKodu): string {
   if (Platform.OS === "ios" && DRM_PLATFORMLARI.has(platform)) return MASAUSTU_SAFARI;
-  if (Platform.OS === "android" && platform === "netflix") return CHROMEOS_CHROME;
+  if (Platform.OS === "android" && platform === "netflix") return WINDOWS_EDGE;
   if (Platform.OS === "android" && DRM_PLATFORMLARI.has(platform)) return MASAUSTU_LINUX_CHROME;
   return MASAUSTU_CHROME;
 }
@@ -104,28 +104,10 @@ const TURTLE_ORTAM = `
 (function () {
   if (window.__aronOrtam) return;
   window.__aronOrtam = true;
-  function tanimla(n, a, d) { try { Object.defineProperty(n, a, { get: function () { return d; }, configurable: true }); } catch (e) {} }
-  tanimla(navigator, 'platform', 'Linux aarch64');
-  tanimla(navigator, 'vendor', 'Google Inc.');
-  tanimla(navigator, 'standalone', undefined);
-  tanimla(navigator, 'webdriver', false);
-  tanimla(navigator, 'maxTouchPoints', 0);
-  tanimla(navigator, 'msMaxTouchPoints', 0);
-  try { window.localStorage.removeItem('clientInformation'); } catch (e) {}
   try {
-    var eski = window.matchMedia;
-    window.matchMedia = function (sorgu) {
-      if (sorgu === '(hover: hover)' || /hover\\s*:\\s*hover/.test(String(sorgu))) {
-        return { matches: true, media: sorgu, onchange: null, addListener: function () {}, removeListener: function () {}, addEventListener: function () {}, removeEventListener: function () {}, dispatchEvent: function () { return false; } };
-      }
-      if (/pointer\\s*:\\s*coarse|hover\\s*:\\s*none/.test(String(sorgu))) {
-        return { matches: false, media: sorgu, onchange: null, addListener: function () {}, removeListener: function () {}, addEventListener: function () {}, removeEventListener: function () {}, dispatchEvent: function () { return false; } };
-      }
-      return eski(sorgu);
-    };
+    document.cookie = 'forceWebsite=true; path=/; domain=.netflix.com';
+    document.cookie = 'hasSeenCookieDisclosure=true; path=/; domain=.netflix.com';
   } catch (e) {}
-  try { Object.defineProperty(window, 'ontouchstart', { get: function () { return undefined; }, configurable: true }); } catch (e) {}
-  try { if (!window.chrome) window.chrome = { runtime: {} }; } catch (e) {}
 })();
 `;
 

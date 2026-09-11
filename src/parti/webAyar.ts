@@ -42,11 +42,21 @@ const ORTAK_AYAR: WebAyarlari = {
 function ipuclari(ua: string): AgIpuclari {
   const surum = ua.match(/Chrome\/(\d+)[\d.]*/)?.[1] ?? "126";
   const tam = ua.match(/Chrome\/([\d.]+)/)?.[1] ?? `${surum}.0.0.0`;
-  const markalar = [
-    { marka: "Chromium", anaSurum: surum, tamSurum: tam },
-    { marka: "Google Chrome", anaSurum: surum, tamSurum: tam },
-    { marka: "Not?A_Brand", anaSurum: "24", tamSurum: "24.0.0.0" },
-  ];
+  const edgeSurum = ua.match(/Edg\/(\d+)/)?.[1];
+  const markalar = edgeSurum
+    ? [
+        { marka: "Chromium", anaSurum: surum, tamSurum: tam },
+        { marka: "Not:A-Brand", anaSurum: "24", tamSurum: "24.0.0.0" },
+        { marka: "Microsoft Edge", anaSurum: edgeSurum, tamSurum: `${edgeSurum}.0.0.0` },
+      ]
+    : [
+        { marka: "Chromium", anaSurum: surum, tamSurum: tam },
+        { marka: "Google Chrome", anaSurum: surum, tamSurum: tam },
+        { marka: "Not?A_Brand", anaSurum: "24", tamSurum: "24.0.0.0" },
+      ];
+  if (ua.includes("Windows NT")) {
+    return { platform: "Windows", platformSurum: "15.0.0", mimari: "x86", bit: 64, mobil: false, model: "", tamSurum: tam, markalar };
+  }
   if (ua.includes("CrOS")) {
     return { platform: "Chrome OS", platformSurum: "16503.74.0", mimari: "arm", bit: 64, mobil: false, model: "", tamSurum: tam, markalar };
   }
@@ -70,6 +80,7 @@ const ORTAK_ENGEL = [
 
 const PLATFORM_YAPI: Partial<Record<PlatformKodu, Partial<NativeWebYapilandirma>>> = {
   netflix: {
+    ayarlar: { istekBasligiGizle: false },
     agDesenleri: [
       "/msl_v1/cadmium/pbo_manifests",
       "/msl_v1/cadmium/pbo_licenses",
@@ -77,6 +88,11 @@ const PLATFORM_YAPI: Partial<Record<PlatformKodu, Partial<NativeWebYapilandirma>
       "/nq/website/memberapi",
       "\\.nflxvideo\\.net",
     ],
+    basliklar: {
+      "Sec-Ch-Ua": "\"Chromium\";v=\"134\", \"Not:A-Brand\";v=\"24\", \"Microsoft Edge\";v=\"134\"",
+      "Sec-Ch-Ua-Mobile": "?0",
+      "Sec-Ch-Ua-Platform": "\"Windows\"",
+    },
   },
   prime_video: {
     agDesenleri: [
