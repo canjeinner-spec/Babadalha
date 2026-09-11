@@ -52,6 +52,7 @@ export type OynaticiOlayi =
   | { tur: "renk"; renk: string }
   | { tur: "netflix-yerel"; videoId: string }
   | { tur: "max-yerel"; icerikId: string }
+  | { tur: "youtube-yerel"; videoId: string }
   | { tur: "yok" };
 
 function masaustuOrtami(safari: boolean, platformAdi = "MacIntel"): string {
@@ -2358,11 +2359,41 @@ const HBO_MAX_ANDROID_EK = `
 })();
 `;
 
+const YOUTUBE_ANDROID_EK = `
+(function () {
+  if (window.__aronYtYerel) return;
+  window.__aronYtYerel = true;
+  var yolla = window.__aronYolla || function () {};
+  var gonderildi = '';
+  function idAl() {
+    try {
+      var m = location.search.match(/[?&]v=([\\w-]{11})/);
+      if (m) return m[1];
+      var m2 = location.pathname.match(/^\\/shorts\\/([\\w-]{11})/);
+      if (m2) return m2[1];
+      var m3 = location.pathname.match(/^\\/embed\\/([\\w-]{11})/);
+      if (m3) return m3[1];
+    } catch (e) {}
+    return '';
+  }
+  setInterval(function () {
+    try {
+      var kod = idAl();
+      if (!kod) { gonderildi = ''; return; }
+      if (kod === gonderildi) return;
+      gonderildi = kod;
+      yolla({ tur: 'youtube-yerel', videoId: kod });
+    } catch (e) {}
+  }, 1500);
+})();
+`;
+
 export function kopruBetigi(platform: PlatformKodu): string {
   const ajan = kullaniciAjani(platform);
   const safari = ajan === MASAUSTU_SAFARI;
   const netflixAndroid = Platform.OS === "android" && platform === "netflix";
   const maxAndroid = Platform.OS === "android" && platform === "hbo_max";
+  const youtubeAndroid = Platform.OS === "android" && platform === "youtube";
   let ortam: string;
   if (netflixAndroid) ortam = TURTLE_ORTAM;
   else if (ORTAM_YAMASIZ.has(platform)) ortam = "";
@@ -2370,7 +2401,8 @@ export function kopruBetigi(platform: PlatformKodu): string {
   const av1 = Platform.OS === "android" ? AV1_ENGEL : "";
   const nfYerel = netflixAndroid ? NETFLIX_ANDROID_EK : "";
   const maxYerel = maxAndroid ? HBO_MAX_ANDROID_EK : "";
-  return `${ortam}\n${MSE}\n${av1}\n${MEDYA}\n${TEMEL}\n${EKLER[platform] ?? ""}\n${nfYerel}\n${maxYerel}\n${ORTAK}\n${TANI}\ntrue;`;
+  const ytYerel = youtubeAndroid ? YOUTUBE_ANDROID_EK : "";
+  return `${ortam}\n${MSE}\n${av1}\n${MEDYA}\n${TEMEL}\n${EKLER[platform] ?? ""}\n${nfYerel}\n${maxYerel}\n${ytYerel}\n${ORTAK}\n${TANI}\ntrue;`;
 }
 
 function komut(kod: string): string {

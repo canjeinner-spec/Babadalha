@@ -76,6 +76,19 @@ class AronPlayerModule : Module() {
       )
     }
 
+    AsyncFunction("youtubeManifestAl") { videoId: String, dil: String ->
+      val ctx = appContext.reactContext ?: throw IllegalStateException("context yok")
+      val istemci = YoutubeInnertubeIstemcisi(ctx)
+      val bilgi = istemci.oynatimBilgisiAl(videoId, dil)
+      mapOf(
+        "manifestUrl" to bilgi.manifestUrl,
+        "baslik" to bilgi.baslik,
+        "yazar" to bilgi.yazar,
+        "sureMs" to bilgi.sureMs.toDouble(),
+        "streamingJson" to bilgi.streamingJson
+      )
+    }
+
     OnActivityEntersBackground {
       elci.post { AronPlayerView.hepsi().forEach { it.onArkaPlan() } }
     }

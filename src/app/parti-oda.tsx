@@ -63,7 +63,7 @@ import {
 } from "@/parti/senkron";
 import { ODAM_ID, kendiOdaKimligi, usePartiOdam } from "@/parti/odam";
 import { type OynaticiOlayi } from "@/parti/kopru";
-import { maxManifestAl, netflixManifestAl, nativeOynaticiVar } from "../../modules/aron-player";
+import { maxManifestAl, netflixManifestAl, nativeOynaticiVar, youtubeManifestAl } from "../../modules/aron-player";
 import { cerezAl } from "../../modules/aron-webview";
 import { type PartiSecim, usePartiKuyruk } from "@/parti/kuyruk";
 import { icerikAnahtari } from "@/parti/icerik";
@@ -399,6 +399,8 @@ export default function PartiOda() {
   const [maxYerelAdres, setMaxYerelAdres] = useState<string | null>(null);
   const [maxLisansUrl, setMaxLisansUrl] = useState<string | null>(null);
   const maxYerelYukleniyor = useRef(false);
+  const [ytYerelAdres, setYtYerelAdres] = useState<string | null>(null);
+  const ytYerelYukleniyor = useRef(false);
   const [ek, setEk] = useState<PartiSohbetOgesi[]>([]);
   const [bildirim, setBildirim] = useState("");
   const [atilma, setAtilma] = useState<PartiRol | null>(null);
@@ -485,6 +487,7 @@ export default function PartiOda() {
     setNfYerelAdres(null);
     setMaxYerelAdres(null);
     setMaxLisansUrl(null);
+    setYtYerelAdres(null);
     setOynatilan({ platform: s.platform, adres: s.adres });
     setSimdiSecim(s);
     setSimdiki(s.baslik);
@@ -579,6 +582,7 @@ export default function PartiOda() {
       setNfYerelAdres(null);
       setMaxYerelAdres(null);
       setMaxLisansUrl(null);
+      setYtYerelAdres(null);
       setOynatilan({ platform: d.platform, adres: d.adres });
       setSimdiki(d.baslik);
       setSimdikiKapak(d.kapak ?? null);
@@ -938,6 +942,21 @@ export default function PartiOda() {
       })();
       return;
     }
+    if (o.tur === "youtube-yerel" && Platform.OS === "android" && nativeOynaticiVar()) {
+      if (ytYerelYukleniyor.current) return;
+      ytYerelYukleniyor.current = true;
+      (async () => {
+        try {
+          const sonuc = await youtubeManifestAl(o.videoId, "tr");
+          setYtYerelAdres(sonuc.manifestUrl);
+        } catch {
+          setYtYerelAdres(null);
+        } finally {
+          ytYerelYukleniyor.current = false;
+        }
+      })();
+      return;
+    }
     if (o.tur === "sure") {
       setSure(o.sure);
       return;
@@ -1271,11 +1290,16 @@ export default function PartiOda() {
           <View style={styles.oynatici}>
             <Txt size={13} color={C.dim}>Partiye bağlanılıyor…</Txt>
           </View>
-        ) : dogrudanMi(oynatilan.platform) || (oynatilan.platform === "netflix" && Platform.OS === "android" && nfYerelAdres) || (oynatilan.platform === "hbo_max" && Platform.OS === "android" && maxYerelAdres) ? (
+        ) : dogrudanMi(oynatilan.platform) || (oynatilan.platform === "netflix" && Platform.OS === "android" && nfYerelAdres) || (oynatilan.platform === "hbo_max" && Platform.OS === "android" && maxYerelAdres) || (oynatilan.platform === "youtube" && Platform.OS === "android" && ytYerelAdres) ? (
           <PartiNativeOynatici
             key={`dogrudan-${oynatimNo}`}
             ref={oynatici}
-            adres={nfYerelAdres && oynatilan.platform === "netflix" ? nfYerelAdres : maxYerelAdres && oynatilan.platform === "hbo_max" ? maxYerelAdres : oynatilan.adres}
+            adres={
+              nfYerelAdres && oynatilan.platform === "netflix" ? nfYerelAdres
+              : maxYerelAdres && oynatilan.platform === "hbo_max" ? maxYerelAdres
+              : ytYerelAdres && oynatilan.platform === "youtube" ? ytYerelAdres
+              : oynatilan.adres
+            }
             drm={maxYerelAdres && oynatilan.platform === "hbo_max" && maxLisansUrl ? { scheme: "widevine" as const, licenseUrl: maxLisansUrl } : undefined}
             tamEkran={kip === "gezinme" || buyuk}
             kilitli={!kontrolBende}
