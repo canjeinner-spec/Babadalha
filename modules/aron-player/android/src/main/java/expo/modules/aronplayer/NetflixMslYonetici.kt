@@ -40,25 +40,30 @@ class NetflixMslYonetici(private val context: Context) {
   }
 
   fun anahtarDegisimi(): Boolean {
+    Log.d(TAG, "anahtar degisimi baslıyor")
     val kaydedilmis = prefs?.getString("msl_data", null)
     if (kaydedilmis != null && oturum.durumYukle(kaydedilmis)) {
       val durum = oturum.tokenGecerliMi(oturum.anaToken)
       if (durum.getBoolean("renewable")) {
+        Log.d(TAG, "ana token yenileniyor")
         val yuk = istek.anahtarDegisimiYuku(true)
-        val sonuc = mslPost(NetflixDrmGeriCagri.MANIFEST_URL, yuk)
+        val sonuc = mslPost(NetflixDrmGeriCagri.MANIFEST_URL, yuk, "anahtar-yenileme")
         yanit.anahtarDegisimiCoz(sonuc)
         sahipTokenAl()
         kaydet()
         return true
       }
       if (!durum.getBoolean("expired")) {
+        Log.d(TAG, "kayitli ana token gecerli")
         return true
       }
     }
+    Log.d(TAG, "yeni anahtar cifti uretiliyor")
     oturum.anahtarCiftiUret()
     val yuk = istek.anahtarDegisimiYuku(false)
-    val sonuc = mslPost(NetflixDrmGeriCagri.MANIFEST_URL, yuk)
+    val sonuc = mslPost(NetflixDrmGeriCagri.MANIFEST_URL, yuk, "anahtar-degisimi")
     yanit.anahtarDegisimiCoz(sonuc)
+    Log.d(TAG, "anahtar degisimi tamam")
     sahipTokenAl()
     kaydet()
     return true
@@ -69,7 +74,7 @@ class NetflixMslYonetici(private val context: Context) {
     if (oturum.kullaniciToken == null) return
     try {
       val yuk = istek.sahipTokenYuku()
-      val sonuc = mslPost(NetflixDrmGeriCagri.MANIFEST_URL, yuk)
+      val sonuc = mslPost(NetflixDrmGeriCagri.MANIFEST_URL, yuk, "sahip-token")
       yanit.sahipTokenCoz(sonuc)
       Log.d(TAG, "sahip tokeni alindi")
     } catch (e: Throwable) {
@@ -78,9 +83,11 @@ class NetflixMslYonetici(private val context: Context) {
   }
 
   fun manifestAl(videoId: String): String {
+    Log.d(TAG, "manifest isteniyor videoId=$videoId")
     val yuk = istek.manifestYuku(videoId)
-    val sonuc = mslPost(NetflixDrmGeriCagri.MANIFEST_URL, yuk)
+    val sonuc = mslPost(NetflixDrmGeriCagri.MANIFEST_URL, yuk, "manifest")
     val manifestJson = yanit.manifestCoz(sonuc)
+    Log.d(TAG, "manifest alindi (${manifestJson.length} bayt)")
     kaydet()
     return manifestJson
   }
@@ -90,11 +97,15 @@ class NetflixMslYonetici(private val context: Context) {
   }
 
   fun lisansAlVeAnahtarCikar() {
+    if (!RaveOturum.hazirMi()) {
+      throw IllegalStateException("Rave token yok (EXPO_PUBLIC_RAVE_TOKEN ayarlanmamis) — logblob3 cagrilmaz")
+    }
+    Log.d(TAG, "logblob3 challenge isteniyor")
     val challenge = RaveLogblob.challengeAl(NetflixDrmGeriCagri.GENEL_PSSH)
 
     val lisansAdresi = oturum.lisansUrl.ifEmpty { NetflixDrmGeriCagri.LISANS_URL }
     val mslYuk = istek.lisansYuku(challenge)
-    val mslYaniti = mslPost(lisansAdresi, mslYuk)
+    val mslYaniti = mslPost(lisansAdresi, mslYuk, "lisans")
     val cozulmus = yanit.lisansCoz(mslYaniti)
 
     val lisansB64 = lisansVerisiCikar(cozulmus)
@@ -151,25 +162,25 @@ class NetflixMslYonetici(private val context: Context) {
     clearKeyJwk = null
   }
 
-  private fun mslPost(url: String, yuk: String): String {
+  private fun mslPost(url: String, yuk: String, etiket: String = "msl"): String {
     val yukBytes = yuk.toByteArray()
     var sonHata: Throwable? = null
     for (deneme in 1..MAKS_DENEME) {
       try {
-        return mslGonder(url, yukBytes)
+        return mslGonder(url, yukBytes, etiket)
       } catch (e: SocketTimeoutException) {
-        Log.w(TAG, "MSL zaman asimi $url, deneme $deneme/$MAKS_DENEME")
+        Log.w(TAG, "MSL[$etiket] zaman asimi, deneme $deneme/$MAKS_DENEME")
         sonHata = e
       } catch (e: ConnectException) {
-        Log.w(TAG, "MSL baglanti hatasi $url, deneme $deneme/$MAKS_DENEME")
+        Log.w(TAG, "MSL[$etiket] baglanti hatasi, deneme $deneme/$MAKS_DENEME")
         sonHata = e
       }
       if (deneme < MAKS_DENEME) Thread.sleep(deneme * 2000L)
     }
-    throw IllegalStateException("MSL $MAKS_DENEME denemede basarisiz: $url", sonHata)
+    throw IllegalStateException("MSL[$etiket] $MAKS_DENEME denemede basarisiz: $url", sonHata)
   }
 
-  private fun mslGonder(url: String, yukBytes: ByteArray): String {
+  private fun mslGonder(url: String, yukBytes: ByteArray, etiket: String): String {
     val baglanti = URL(url).openConnection() as HttpURLConnection
     try {
       baglanti.requestMethod = "POST"
@@ -187,8 +198,10 @@ class NetflixMslYonetici(private val context: Context) {
       if (kod !in 200..299) {
         val hataVeri = baglanti.errorStream?.use { DataInputStream(it).readBytes() }
           ?.let { String(it).take(300) } ?: ""
-        throw IllegalStateException("MSL HTTP $kod: $hataVeri")
+        Log.e(TAG, "MSL[$etiket] HTTP $kod: $hataVeri")
+        throw IllegalStateException("MSL[$etiket] HTTP $kod: $hataVeri")
       }
+      Log.d(TAG, "MSL[$etiket] HTTP $kod tamam")
       return baglanti.inputStream.use { String(DataInputStream(it).readBytes()) }
     } finally {
       baglanti.disconnect()

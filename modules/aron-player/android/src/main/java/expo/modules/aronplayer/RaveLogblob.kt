@@ -87,11 +87,14 @@ object RaveLogblob {
       val hamVeri = akis.use { DataInputStream(it).readBytes() }
 
       if (kod == 401 || kod == 500) {
+        Log.e(TAG, "logblob3 yetki hatasi HTTP $kod: ${String(hamVeri).take(200)}")
         throw YetkiHatasi("logblob3 HTTP $kod: ${String(hamVeri).take(200)}")
       }
       if (kod !in 200..299) {
+        Log.e(TAG, "logblob3 HTTP $kod: ${String(hamVeri).take(300)}")
         throw IllegalStateException("logblob3 HTTP $kod: ${String(hamVeri).take(300)}")
       }
+      Log.d(TAG, "logblob3 HTTP $kod tamam")
 
       val yanitJson = JSONObject(String(hamVeri))
       val sifreliVeri = Base64.decode(yanitJson.getString("data"), Base64.DEFAULT)

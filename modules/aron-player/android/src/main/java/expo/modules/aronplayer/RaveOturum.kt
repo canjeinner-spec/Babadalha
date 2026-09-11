@@ -249,8 +249,10 @@ object RaveOturum {
       val akis = if (kod in 200..299) baglanti.inputStream else baglanti.errorStream
       val ham = akis?.use { DataInputStream(it).readBytes() } ?: ByteArray(0)
       if (kod !in 200..299) {
+        Log.e(TAG, "$url HTTP $kod: ${String(ham).take(300)}")
         throw IllegalStateException("$url HTTP $kod: ${String(ham).take(300)}")
       }
+      Log.d(TAG, "$url HTTP $kod tamam")
       return String(ham)
     } finally {
       baglanti.disconnect()
