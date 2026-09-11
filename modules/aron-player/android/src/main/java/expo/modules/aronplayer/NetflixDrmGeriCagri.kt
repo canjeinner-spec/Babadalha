@@ -1,7 +1,9 @@
 package expo.modules.aronplayer
 
+import android.net.Uri
 import android.util.Base64
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DataSpec
 import androidx.media3.exoplayer.drm.ExoMediaDrm
 import androidx.media3.exoplayer.drm.MediaDrmCallback
 import androidx.media3.exoplayer.drm.MediaDrmCallbackException
@@ -23,20 +25,20 @@ class NetflixDrmGeriCagri(
   override fun executeKeyRequest(
     uuid: UUID,
     request: ExoMediaDrm.KeyRequest
-  ): ByteArray {
+  ): MediaDrmCallback.Response {
+    val lisansAdresi = oturum.lisansUrl.ifEmpty { LISANS_URL }
     try {
       val challengeB64 = MslOturum.base64Kodla(request.data)
       val yuk = istek.lisansYuku(challengeB64)
-      val lisansAdresi = oturum.lisansUrl.ifEmpty { LISANS_URL }
       val sonuc = mslPost(lisansAdresi, yuk)
       val cozulmus = yanit.lisansCoz(sonuc)
-      return lisansVerisiniCikar(cozulmus)
+      return MediaDrmCallback.Response(lisansVerisiniCikar(cozulmus))
     } catch (e: Exception) {
       throw MediaDrmCallbackException(
-        request.licenseServerUrl?.let { listOf(it) } ?: emptyList(),
-        request.licenseServerUrl ?: URL("https://www.netflix.com"),
-        request.data?.size ?: 0,
-        mapOf(),
+        DataSpec(Uri.parse(lisansAdresi)),
+        Uri.parse(lisansAdresi),
+        emptyMap<String, List<String>>(),
+        0L,
         e
       )
     }
@@ -45,11 +47,14 @@ class NetflixDrmGeriCagri(
   override fun executeProvisionRequest(
     uuid: UUID,
     request: ExoMediaDrm.ProvisionRequest
-  ): ByteArray {
+  ): MediaDrmCallback.Response {
     val provUrl = request.defaultUrl
     if (provUrl.isNullOrBlank()) {
       throw MediaDrmCallbackException(
-        emptyList(), URL("https://www.netflix.com"), 0, mapOf(),
+        DataSpec(Uri.EMPTY),
+        Uri.EMPTY,
+        emptyMap<String, List<String>>(),
+        0L,
         UnsupportedOperationException("Provisioning URL bos")
       )
     }
@@ -67,7 +72,7 @@ class NetflixDrmGeriCagri(
     val veri = girdi.readBytes()
     girdi.close()
     baglanti.disconnect()
-    return veri
+    return MediaDrmCallback.Response(veri)
   }
 
   private fun lisansVerisiniCikar(cozulmus: String): ByteArray {
