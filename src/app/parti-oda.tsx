@@ -8,6 +8,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CenterModal } from "@/components/CenterModal";
 import { GirisGerekli } from "@/components/GirisGerekli";
+import { AyiklamaKatmani } from "@/components/AyiklamaKatmani";
+import { ayiklamaYaz } from "@/lib/ayiklamaGunluk";
 import { KullaniciYanPanel, type YanPanelKisisi } from "@/components/KullaniciYanPanel";
 import { PartiNativeOynatici } from "@/components/PartiNativeOynatici";
 import { PartiOynatici, type OynaticiKolu } from "@/components/PartiOynatici";
@@ -909,18 +911,26 @@ export default function PartiOda() {
   }, [oynatilan.platform, simdiki, simdikiKapak, agKisileri.length, kabaIlerleme]);
 
   const olayGeldi = useCallback((o: OynaticiOlayi) => {
+    if (o.tur === "gunluk") { ayiklamaYaz(`[web/${o.seviye}] ${o.metin}`); return; }
+    if (o.tur === "engel") { ayiklamaYaz(`[engel] ${o.sebep}`); }
+    if (o.tur === "netflix-yerel" && Platform.OS === "android") {
+      ayiklamaYaz(`netflix-yerel geldi videoId=${o.videoId} native=${nativeOynaticiVar()}`);
+    }
     if (o.tur === "netflix-yerel" && Platform.OS === "android" && nativeOynaticiVar()) {
-      if (nfYerelYukleniyor.current) return;
+      if (nfYerelYukleniyor.current) { ayiklamaYaz("netflix-yerel: zaten yukleniyor, atlandi"); return; }
       nfYerelYukleniyor.current = true;
       (async () => {
         try {
           const ham = await cerezAl("https://www.netflix.com");
           const nfId = ham.match(/(?:^|;\s*)NetflixId=([^;]+)/)?.[1] ?? "";
           const secId = ham.match(/(?:^|;\s*)SecureNetflixId=([^;]+)/)?.[1] ?? "";
-          if (!nfId || !secId) { nfYerelYukleniyor.current = false; return; }
+          ayiklamaYaz(`cerez: uzunluk=${ham.length} nfId=${nfId ? "var" : "YOK"} secId=${secId ? "var" : "YOK"}`);
+          if (!nfId || !secId) { ayiklamaYaz("DEVIR DURDU: Netflix cerezi bulunamadi"); nfYerelYukleniyor.current = false; return; }
+          ayiklamaYaz("native oynatici mount ediliyor (netflix://msl)");
           setNfYerelDrm({ netflixId: nfId, secureId: secId, videoId: o.videoId });
           setNfYerelAdres("netflix://msl");
-        } catch {
+        } catch (e) {
+          ayiklamaYaz(`cerez/devir hatasi: ${(e as Error)?.message ?? e}`);
           setNfYerelAdres(null);
           setNfYerelDrm(null);
         } finally {
@@ -1493,6 +1503,7 @@ export default function PartiOda() {
           <Txt weight="extrabold" size={12.5} color="#fff">{bildirim}</Txt>
         </View>
       )}
+      <AyiklamaKatmani />
     </View>
   );
 }
