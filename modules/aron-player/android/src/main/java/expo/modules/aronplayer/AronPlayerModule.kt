@@ -89,6 +89,20 @@ class AronPlayerModule : Module() {
       )
     }
 
+    AsyncFunction("primeManifestAl") { videoId: String, cerezler: String, marketplaceId: String ->
+      val ctx = appContext.reactContext ?: throw IllegalStateException("context yok")
+      val yonetici = PrimeApiYonetici(ctx)
+      val pazar = if (marketplaceId.isNotEmpty()) marketplaceId else PrimeApiYonetici.VARSAYILAN_MARKETPLACE
+      val bilgi = yonetici.oynatimBilgisiAl(videoId, cerezler, pazar)
+      mapOf(
+        "manifestUrl" to bilgi.manifestUrl,
+        "lisansUrl" to bilgi.lisansUrl,
+        "atvUrl" to bilgi.atvUrl,
+        "videoId" to bilgi.videoId,
+        "marketplaceId" to bilgi.marketplaceId
+      )
+    }
+
     OnActivityEntersBackground {
       elci.post { AronPlayerView.hepsi().forEach { it.onArkaPlan() } }
     }

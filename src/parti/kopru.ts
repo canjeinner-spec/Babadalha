@@ -53,6 +53,7 @@ export type OynaticiOlayi =
   | { tur: "netflix-yerel"; videoId: string }
   | { tur: "max-yerel"; icerikId: string }
   | { tur: "youtube-yerel"; videoId: string }
+  | { tur: "prime-yerel"; videoId: string }
   | { tur: "yok" };
 
 function masaustuOrtami(safari: boolean, platformAdi = "MacIntel"): string {
@@ -2359,6 +2360,31 @@ const HBO_MAX_ANDROID_EK = `
 })();
 `;
 
+const PRIME_ANDROID_EK = `
+(function () {
+  if (window.__aronPrimeYerel) return;
+  window.__aronPrimeYerel = true;
+  var yolla = window.__aronYolla || function () {};
+  var gonderildi = '';
+  function asinAl() {
+    try {
+      var m = location.pathname.match(/\\/(?:detail|watch|dp|player)\\/([A-Z0-9]{10})(?:[\\/?]|$)/);
+      if (m) return m[1];
+    } catch (e) {}
+    return '';
+  }
+  setInterval(function () {
+    try {
+      var kod = asinAl();
+      if (!kod) { gonderildi = ''; return; }
+      if (kod === gonderildi) return;
+      gonderildi = kod;
+      yolla({ tur: 'prime-yerel', videoId: kod });
+    } catch (e) {}
+  }, 1500);
+})();
+`;
+
 const YOUTUBE_ANDROID_EK = `
 (function () {
   if (window.__aronYtYerel) return;
@@ -2394,6 +2420,7 @@ export function kopruBetigi(platform: PlatformKodu): string {
   const netflixAndroid = Platform.OS === "android" && platform === "netflix";
   const maxAndroid = Platform.OS === "android" && platform === "hbo_max";
   const youtubeAndroid = Platform.OS === "android" && platform === "youtube";
+  const primeAndroid = Platform.OS === "android" && platform === "prime_video";
   let ortam: string;
   if (netflixAndroid) ortam = TURTLE_ORTAM;
   else if (ORTAM_YAMASIZ.has(platform)) ortam = "";
@@ -2402,7 +2429,8 @@ export function kopruBetigi(platform: PlatformKodu): string {
   const nfYerel = netflixAndroid ? NETFLIX_ANDROID_EK : "";
   const maxYerel = maxAndroid ? HBO_MAX_ANDROID_EK : "";
   const ytYerel = youtubeAndroid ? YOUTUBE_ANDROID_EK : "";
-  return `${ortam}\n${MSE}\n${av1}\n${MEDYA}\n${TEMEL}\n${EKLER[platform] ?? ""}\n${nfYerel}\n${maxYerel}\n${ytYerel}\n${ORTAK}\n${TANI}\ntrue;`;
+  const primeYerel = primeAndroid ? PRIME_ANDROID_EK : "";
+  return `${ortam}\n${MSE}\n${av1}\n${MEDYA}\n${TEMEL}\n${EKLER[platform] ?? ""}\n${nfYerel}\n${maxYerel}\n${ytYerel}\n${primeYerel}\n${ORTAK}\n${TANI}\ntrue;`;
 }
 
 function komut(kod: string): string {

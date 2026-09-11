@@ -13,6 +13,7 @@ import {
   maxManifestAl,
   netflixManifestAl,
   nativeOynaticiVar,
+  primeManifestAl,
   youtubeManifestAl,
   type DrmDestek,
   type NativeBoyutOlayi,
@@ -24,7 +25,7 @@ import {
   type NativeOynaticiRef,
 } from "./native";
 
-export { drmDestegi, maxManifestAl, netflixManifestAl, nativeOynaticiVar, youtubeManifestAl, type DrmDestek };
+export { drmDestegi, maxManifestAl, netflixManifestAl, nativeOynaticiVar, primeManifestAl, youtubeManifestAl, type DrmDestek };
 
 export type DrmSemasi = "widevine";
 
@@ -38,6 +39,10 @@ export type DrmYapilandirma = {
   netflixId?: string;
   netflixSecureId?: string;
   netflixVideoId?: string;
+  primeAmazon?: boolean;
+  primeVideoId?: string;
+  primeCerezler?: string;
+  primeMarketplaceId?: string;
 };
 
 export type PlaybackConfig = {
@@ -146,6 +151,10 @@ export function yapilandirmayaJson(config: PlaybackConfig): string {
     if (config.drm.netflixId) drm.netflixId = config.drm.netflixId;
     if (config.drm.netflixSecureId) drm.netflixSecureId = config.drm.netflixSecureId;
     if (config.drm.netflixVideoId) drm.netflixVideoId = config.drm.netflixVideoId;
+    if (config.drm.primeAmazon) drm.primeAmazon = true;
+    if (config.drm.primeVideoId) drm.primeVideoId = config.drm.primeVideoId;
+    if (config.drm.primeCerezler) drm.primeCerezler = config.drm.primeCerezler;
+    if (config.drm.primeMarketplaceId) drm.primeMarketplaceId = config.drm.primeMarketplaceId;
     govde.drm = drm;
   }
   return JSON.stringify(govde);

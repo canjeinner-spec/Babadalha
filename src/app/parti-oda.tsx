@@ -63,7 +63,7 @@ import {
 } from "@/parti/senkron";
 import { ODAM_ID, kendiOdaKimligi, usePartiOdam } from "@/parti/odam";
 import { type OynaticiOlayi } from "@/parti/kopru";
-import { maxManifestAl, netflixManifestAl, nativeOynaticiVar, youtubeManifestAl } from "../../modules/aron-player";
+import { maxManifestAl, netflixManifestAl, nativeOynaticiVar, primeManifestAl, youtubeManifestAl } from "../../modules/aron-player";
 import { cerezAl } from "../../modules/aron-webview";
 import { type PartiSecim, usePartiKuyruk } from "@/parti/kuyruk";
 import { icerikAnahtari } from "@/parti/icerik";
@@ -401,6 +401,9 @@ export default function PartiOda() {
   const maxYerelYukleniyor = useRef(false);
   const [ytYerelAdres, setYtYerelAdres] = useState<string | null>(null);
   const ytYerelYukleniyor = useRef(false);
+  const [primeYerelAdres, setPrimeYerelAdres] = useState<string | null>(null);
+  const [primeDrm, setPrimeDrm] = useState<{ lisansUrl: string; videoId: string; cerezler: string; marketplaceId: string } | null>(null);
+  const primeYerelYukleniyor = useRef(false);
   const [ek, setEk] = useState<PartiSohbetOgesi[]>([]);
   const [bildirim, setBildirim] = useState("");
   const [atilma, setAtilma] = useState<PartiRol | null>(null);
@@ -488,6 +491,8 @@ export default function PartiOda() {
     setMaxYerelAdres(null);
     setMaxLisansUrl(null);
     setYtYerelAdres(null);
+    setPrimeYerelAdres(null);
+    setPrimeDrm(null);
     setOynatilan({ platform: s.platform, adres: s.adres });
     setSimdiSecim(s);
     setSimdiki(s.baslik);
@@ -583,6 +588,8 @@ export default function PartiOda() {
       setMaxYerelAdres(null);
       setMaxLisansUrl(null);
       setYtYerelAdres(null);
+      setPrimeYerelAdres(null);
+      setPrimeDrm(null);
       setOynatilan({ platform: d.platform, adres: d.adres });
       setSimdiki(d.baslik);
       setSimdikiKapak(d.kapak ?? null);
@@ -957,6 +964,30 @@ export default function PartiOda() {
       })();
       return;
     }
+    if (o.tur === "prime-yerel" && Platform.OS === "android" && nativeOynaticiVar()) {
+      if (primeYerelYukleniyor.current) return;
+      primeYerelYukleniyor.current = true;
+      (async () => {
+        try {
+          const primeHam = await cerezAl("https://www.primevideo.com");
+          const amazonHam = await cerezAl("https://www.amazon.com");
+          const cerezler = [primeHam, amazonHam].filter((x) => x && x.length > 0).join("; ");
+          if (!cerezler) { primeYerelYukleniyor.current = false; return; }
+          const marketplaceId = cerezler.match(/(?:^|;\s*)at-acbtr=([^;]+)/)?.[1]
+            ?? cerezler.match(/(?:^|;\s*)lc-acbtr=([^;]+)/)?.[1]
+            ?? "";
+          const sonuc = await primeManifestAl(o.videoId, cerezler, "");
+          setPrimeYerelAdres(sonuc.manifestUrl);
+          setPrimeDrm({ lisansUrl: sonuc.lisansUrl, videoId: sonuc.videoId, cerezler, marketplaceId: sonuc.marketplaceId || marketplaceId });
+        } catch {
+          setPrimeYerelAdres(null);
+          setPrimeDrm(null);
+        } finally {
+          primeYerelYukleniyor.current = false;
+        }
+      })();
+      return;
+    }
     if (o.tur === "sure") {
       setSure(o.sure);
       return;
@@ -1290,7 +1321,7 @@ export default function PartiOda() {
           <View style={styles.oynatici}>
             <Txt size={13} color={C.dim}>Partiye bağlanılıyor…</Txt>
           </View>
-        ) : dogrudanMi(oynatilan.platform) || (oynatilan.platform === "netflix" && Platform.OS === "android" && nfYerelAdres) || (oynatilan.platform === "hbo_max" && Platform.OS === "android" && maxYerelAdres) || (oynatilan.platform === "youtube" && Platform.OS === "android" && ytYerelAdres) ? (
+        ) : dogrudanMi(oynatilan.platform) || (oynatilan.platform === "netflix" && Platform.OS === "android" && nfYerelAdres) || (oynatilan.platform === "hbo_max" && Platform.OS === "android" && maxYerelAdres) || (oynatilan.platform === "youtube" && Platform.OS === "android" && ytYerelAdres) || (oynatilan.platform === "prime_video" && Platform.OS === "android" && primeYerelAdres) ? (
           <PartiNativeOynatici
             key={`dogrudan-${oynatimNo}`}
             ref={oynatici}
@@ -1298,9 +1329,16 @@ export default function PartiOda() {
               nfYerelAdres && oynatilan.platform === "netflix" ? nfYerelAdres
               : maxYerelAdres && oynatilan.platform === "hbo_max" ? maxYerelAdres
               : ytYerelAdres && oynatilan.platform === "youtube" ? ytYerelAdres
+              : primeYerelAdres && oynatilan.platform === "prime_video" ? primeYerelAdres
               : oynatilan.adres
             }
-            drm={maxYerelAdres && oynatilan.platform === "hbo_max" && maxLisansUrl ? { scheme: "widevine" as const, licenseUrl: maxLisansUrl } : undefined}
+            drm={
+              maxYerelAdres && oynatilan.platform === "hbo_max" && maxLisansUrl
+                ? { scheme: "widevine" as const, licenseUrl: maxLisansUrl }
+                : primeYerelAdres && oynatilan.platform === "prime_video" && primeDrm
+                ? { scheme: "widevine" as const, licenseUrl: primeDrm.lisansUrl, primeAmazon: true, primeVideoId: primeDrm.videoId, primeCerezler: primeDrm.cerezler, primeMarketplaceId: primeDrm.marketplaceId }
+                : undefined
+            }
             tamEkran={kip === "gezinme" || buyuk}
             kilitli={!kontrolBende}
             onOlay={olayGeldi}

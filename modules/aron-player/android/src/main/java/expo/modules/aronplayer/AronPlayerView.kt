@@ -407,6 +407,25 @@ class AronPlayerView(context: Context, appContext: AppContext) : ExpoView(contex
         .build(nfGeriCagri)
     }
 
+    if (d.primeAmazon) {
+      val yonetici = PrimeApiYonetici(context)
+      val marketplace = d.primeMarketplaceId.ifEmpty { PrimeApiYonetici.VARSAYILAN_MARKETPLACE }
+      val bilgi = PrimeOynatimBilgisi(
+        manifestUrl = "",
+        lisansUrl = d.lisansUrl,
+        atvUrl = d.lisansUrl.substringBefore("/cdp/"),
+        cerezler = d.primeCerezler,
+        videoId = d.primeVideoId,
+        marketplaceId = marketplace
+      )
+      val primeGeriCagri = PrimeDrmGeriCagri(yonetici, bilgi)
+      return DefaultDrmSessionManager.Builder()
+        .setUuidAndExoMediaDrmProvider(C.WIDEVINE_UUID, FrameworkMediaDrm.DEFAULT_PROVIDER)
+        .setMultiSession(d.cokluOturum)
+        .setPlayClearSamplesWithoutKeys(d.anahtarsizOynat)
+        .build(primeGeriCagri)
+    }
+
     if (d.sema != "widevine") {
       throw IllegalArgumentException("desteklenmeyen DRM semasi: " + d.sema)
     }

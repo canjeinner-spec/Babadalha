@@ -12,7 +12,11 @@ data class DrmAyari(
   val netflixMsl: Boolean = false,
   val netflixId: String = "",
   val netflixSecureId: String = "",
-  val netflixVideoId: String = ""
+  val netflixVideoId: String = "",
+  val primeAmazon: Boolean = false,
+  val primeVideoId: String = "",
+  val primeCerezler: String = "",
+  val primeMarketplaceId: String = ""
 )
 
 data class OynatimYapilandirma(
@@ -71,7 +75,11 @@ data class OynatimYapilandirma(
         netflixMsl = o.optBoolean("netflixMsl", false),
         netflixId = o.optString("netflixId", ""),
         netflixSecureId = o.optString("netflixSecureId", ""),
-        netflixVideoId = o.optString("netflixVideoId", "")
+        netflixVideoId = o.optString("netflixVideoId", ""),
+        primeAmazon = o.optBoolean("primeAmazon", false),
+        primeVideoId = o.optString("primeVideoId", ""),
+        primeCerezler = o.optString("primeCerezler", ""),
+        primeMarketplaceId = o.optString("primeMarketplaceId", "")
       )
     }
 

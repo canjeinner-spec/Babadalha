@@ -20,6 +20,7 @@ type AronPlayerModulu = {
   netflixManifestAl(netflixId: string, secureId: string, videoId: string, dil: string): Promise<{ manifestUrl: string; manifestJson: string }>;
   maxManifestAl(oturumToken: string, icerikId: string): Promise<{ manifestUrl: string; lisansUrl: string; manifestJson: string }>;
   youtubeManifestAl(videoId: string, dil: string): Promise<{ manifestUrl: string; baslik: string; yazar: string; sureMs: number; streamingJson: string }>;
+  primeManifestAl(videoId: string, cerezler: string, marketplaceId: string): Promise<{ manifestUrl: string; lisansUrl: string; atvUrl: string; videoId: string; marketplaceId: string }>;
 };
 
 export type NativeOlay<T> = { nativeEvent: T };
@@ -121,6 +122,15 @@ export async function youtubeManifestAl(
 ): Promise<{ manifestUrl: string; baslik: string; yazar: string; sureMs: number; streamingJson: string }> {
   if (!nativeOynaticiVar()) throw new Error("Yerel oynatici yok");
   return modul!.youtubeManifestAl(videoId, dil);
+}
+
+export async function primeManifestAl(
+  videoId: string,
+  cerezler: string,
+  marketplaceId = "",
+): Promise<{ manifestUrl: string; lisansUrl: string; atvUrl: string; videoId: string; marketplaceId: string }> {
+  if (!nativeOynaticiVar()) throw new Error("Yerel oynatici yok");
+  return modul!.primeManifestAl(videoId, cerezler, marketplaceId);
 }
 
 export const NativeOynatici: ComponentType<NativeOynaticiProps> | null = nativeOynaticiVar()

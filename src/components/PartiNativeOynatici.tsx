@@ -15,7 +15,7 @@ import { type OynaticiKolu } from "@/components/PartiOynatici";
 
 type Props = {
   adres: string;
-  drm?: Pick<DrmYapilandirma, "scheme" | "licenseUrl" | "headers">;
+  drm?: DrmYapilandirma;
   tamEkran?: boolean;
   kilitli?: boolean;
   onOlay?: (o: OynaticiOlayi) => void;
@@ -53,7 +53,7 @@ export const PartiNativeOynatici = forwardRef<OynaticiKolu, Props>(function Part
     konumRef.current = 0;
     sureRef.current = 0;
     const yapilandirma: Parameters<AronOynaticiKumanda["yukle"]>[0] = { manifestUrl: adres, otomatikBasla: true };
-    if (drm) yapilandirma.drm = { scheme: drm.scheme, licenseUrl: drm.licenseUrl, headers: drm.headers };
+    if (drm) yapilandirma.drm = drm;
     kumanda.current
       ?.yukle(yapilandirma)
       .then(() => {
