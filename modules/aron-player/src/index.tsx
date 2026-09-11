@@ -10,6 +10,7 @@ import { View, type ViewProps } from "react-native";
 import {
   NativeOynatici,
   drmDestegi,
+  maxManifestAl,
   netflixManifestAl,
   nativeOynaticiVar,
   type DrmDestek,
@@ -22,7 +23,7 @@ import {
   type NativeOynaticiRef,
 } from "./native";
 
-export { drmDestegi, netflixManifestAl, nativeOynaticiVar, type DrmDestek };
+export { drmDestegi, maxManifestAl, netflixManifestAl, nativeOynaticiVar, type DrmDestek };
 
 export type DrmSemasi = "widevine";
 

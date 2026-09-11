@@ -125,7 +125,7 @@ class NetflixManifestUretici {
     sb.append("<ContentProtection schemeIdUri=\"urn:mpeg:dash:mp4protection:2011\" value=\"cenc\"")
     if (defaultKid.isNotEmpty()) sb.append(" cenc:default_KID=\"$defaultKid\"")
     sb.append("/>\n")
-    sb.append("<ContentProtection schemeIdUri=\"urn:uuid:e2719d58-a985-b3c9-781a-b030af78d30e\"/>\n")
+    sb.append("<ContentProtection schemeIdUri=\"urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed\"/>\n")
   }
 
   private fun kodekBul(profil: String, tur: String): String {

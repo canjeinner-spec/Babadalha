@@ -65,6 +65,17 @@ class AronPlayerModule : Module() {
       mapOf("manifestUrl" to mpdUri, "manifestJson" to manifestJson)
     }
 
+    AsyncFunction("maxManifestAl") { oturumToken: String, icerikId: String ->
+      val ctx = appContext.reactContext ?: throw IllegalStateException("context yok")
+      val yonetici = MaxApiYonetici(ctx)
+      val bilgi = yonetici.oynatimBilgisiAl(oturumToken, icerikId)
+      mapOf(
+        "manifestUrl" to bilgi.manifestUrl,
+        "lisansUrl" to bilgi.lisansUrl,
+        "manifestJson" to bilgi.manifestJson
+      )
+    }
+
     OnActivityEntersBackground {
       elci.post { AronPlayerView.hepsi().forEach { it.onArkaPlan() } }
     }

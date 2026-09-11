@@ -38,7 +38,7 @@ class MslOturum {
 
   fun esnUret(): String {
     val karakterler = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-    val sb = StringBuilder("NFCDIE-03-")
+    val sb = StringBuilder("NFCDCH-02-")
     val r = Random()
     repeat(30) { sb.append(karakterler[r.nextInt(karakterler.length)]) }
     return sb.toString()

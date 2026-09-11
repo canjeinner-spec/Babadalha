@@ -20,10 +20,6 @@ class NetflixDrmGeriCagri(
   private val yanit: MslYanit
 ) : MediaDrmCallback {
 
-  @Volatile
-  var sonLisansYaniti: String? = null
-    private set
-
   override fun executeKeyRequest(
     uuid: UUID,
     request: ExoMediaDrm.KeyRequest
@@ -31,11 +27,10 @@ class NetflixDrmGeriCagri(
     try {
       val challengeB64 = MslOturum.base64Kodla(request.data)
       val yuk = istek.lisansYuku(challengeB64)
-      val sonuc = mslPost(LISANS_URL, yuk)
-      sonLisansYaniti = sonuc
+      val lisansAdresi = oturum.lisansUrl.ifEmpty { LISANS_URL }
+      val sonuc = mslPost(lisansAdresi, yuk)
       val cozulmus = yanit.lisansCoz(sonuc)
-      val anahtarlar = anahtarlariCikar(cozulmus)
-      return anahtarlar
+      return lisansVerisiniCikar(cozulmus)
     } catch (e: Exception) {
       throw MediaDrmCallbackException(
         request.licenseServerUrl?.let { listOf(it) } ?: emptyList(),
@@ -51,60 +46,62 @@ class NetflixDrmGeriCagri(
     uuid: UUID,
     request: ExoMediaDrm.ProvisionRequest
   ): ByteArray {
-    throw MediaDrmCallbackException(
-      listOf(URL("https://www.netflix.com")),
-      URL("https://www.netflix.com"),
-      0,
-      mapOf(),
-      UnsupportedOperationException("Netflix ClearKey provisioning desteklenmez")
-    )
+    val provUrl = request.defaultUrl
+    if (provUrl.isNullOrBlank()) {
+      throw MediaDrmCallbackException(
+        emptyList(), URL("https://www.netflix.com"), 0, mapOf(),
+        UnsupportedOperationException("Provisioning URL bos")
+      )
+    }
+    val baglanti = URL(provUrl).openConnection() as HttpURLConnection
+    baglanti.requestMethod = "POST"
+    baglanti.setRequestProperty("Content-Type", "application/octet-stream")
+    baglanti.doOutput = true
+    baglanti.connectTimeout = 15_000
+    baglanti.readTimeout = 15_000
+    val os = baglanti.outputStream
+    os.write(request.data)
+    os.flush()
+    os.close()
+    val girdi = DataInputStream(baglanti.inputStream)
+    val veri = girdi.readBytes()
+    girdi.close()
+    baglanti.disconnect()
+    return veri
   }
 
-  private fun anahtarlariCikar(lisansYaniti: String): ByteArray {
-    val json = JSONObject(lisansYaniti)
-    val anahtarlar = JSONArray()
-    if (json.has("keys")) {
-      val keys = json.getJSONArray("keys")
-      for (i in 0 until keys.length()) {
-        val key = keys.getJSONObject(i)
-        val anahtar = JSONObject()
-        anahtar.put("kty", "oct")
-        anahtar.put("kid", b64ToUrlSafe(key.getString("kid")))
-        anahtar.put("k", b64ToUrlSafe(key.getString("key")))
-        anahtarlar.put(anahtar)
-      }
-    } else if (json.has("[0]") || json.optJSONArray("result") != null) {
-      val sonuclar = json.optJSONArray("result") ?: return bos_jwk()
-      for (i in 0 until sonuclar.length()) {
-        val sonuc = sonuclar.getJSONObject(i)
-        if (sonuc.has("keyId") && sonuc.has("keyValue")) {
-          val anahtar = JSONObject()
-          anahtar.put("kty", "oct")
-          anahtar.put("kid", b64ToUrlSafe(sonuc.getString("keyId")))
-          anahtar.put("k", b64ToUrlSafe(sonuc.getString("keyValue")))
-          anahtarlar.put(anahtar)
+  private fun lisansVerisiniCikar(cozulmus: String): ByteArray {
+    try {
+      val dizi = JSONArray(cozulmus)
+      if (dizi.length() > 0) {
+        val ilk = dizi.getJSONObject(0)
+        val sonuclar = ilk.optJSONArray("result")
+        if (sonuclar != null && sonuclar.length() > 0) {
+          val sonuc = sonuclar.getJSONObject(0)
+          val lisanslar = sonuc.optJSONArray("licenses")
+          if (lisanslar != null && lisanslar.length() > 0) {
+            val veri = lisanslar.getJSONObject(0).optString("data", "")
+            if (veri.isNotEmpty()) return Base64.decode(veri, Base64.DEFAULT)
+          }
+          val veri = sonuc.optString("data", "")
+          if (veri.isNotEmpty()) return Base64.decode(veri, Base64.DEFAULT)
         }
       }
-    }
+    } catch (_: Exception) { }
 
-    if (anahtarlar.length() == 0) return bos_jwk()
+    try {
+      val json = JSONObject(cozulmus)
+      val sonuclar = json.optJSONArray("result")
+      if (sonuclar != null && sonuclar.length() > 0) {
+        val sonuc = sonuclar.getJSONObject(0)
+        val veri = sonuc.optString("data", "")
+        if (veri.isNotEmpty()) return Base64.decode(veri, Base64.DEFAULT)
+      }
+      val veri = json.optString("data", "")
+      if (veri.isNotEmpty()) return Base64.decode(veri, Base64.DEFAULT)
+    } catch (_: Exception) { }
 
-    val jwk = JSONObject()
-    jwk.put("type", "temporary")
-    jwk.put("keys", anahtarlar)
-    return jwk.toString().toByteArray()
-  }
-
-  private fun b64ToUrlSafe(b64: String): String {
-    val bytes = Base64.decode(b64, Base64.DEFAULT or Base64.NO_WRAP or Base64.URL_SAFE)
-    return Base64.encodeToString(bytes, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
-  }
-
-  private fun bos_jwk(): ByteArray {
-    val jwk = JSONObject()
-    jwk.put("type", "temporary")
-    jwk.put("keys", JSONArray())
-    return jwk.toString().toByteArray()
+    return Base64.decode(cozulmus, Base64.DEFAULT or Base64.NO_WRAP)
   }
 
   private fun mslPost(url: String, yuk: String): String {
@@ -120,16 +117,16 @@ class NetflixDrmGeriCagri(
     os.flush()
     os.close()
     val girdi = DataInputStream(baglanti.inputStream)
-    val yanit = girdi.readBytes()
+    val sonuc = girdi.readBytes()
     girdi.close()
     baglanti.disconnect()
-    return String(yanit)
+    return String(sonuc)
   }
 
   companion object {
     private const val MSL_TEMEL = "https://www.netflix.com/nq/msl_v1/cadmium/"
-    const val MANIFEST_URL = "${MSL_TEMEL}pbo_manifests/%5E1.0.0/router?reqAttempt=1&reqName=manifest&clienttype=akira&uiversion=v65aacd43&browsername=edgeoss&browserversion=134.0.0&osname=Windows&osversion=10.0"
-    const val LISANS_URL = "${MSL_TEMEL}pbo_licenses/%5E1.0.0/router?reqAttempt=1&reqName=license&clienttype=akira&uiversion=v65aacd43&browsername=edgeoss&browserversion=134.0.0&osname=Windows&osversion=10.0"
-    const val KULLANICI_AJANI = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0"
+    const val MANIFEST_URL = "${MSL_TEMEL}pbo_manifests/%5E1.0.0/router?reqAttempt=1&reqName=manifest&clienttype=akira&uiversion=v65aacd43&browsername=chrome&browserversion=134.0.0&osname=Windows&osversion=10.0"
+    const val LISANS_URL = "${MSL_TEMEL}pbo_licenses/%5E1.0.0/router?reqAttempt=1&reqName=license&clienttype=akira&uiversion=v65aacd43&browsername=chrome&browserversion=134.0.0&osname=Windows&osversion=10.0"
+    const val KULLANICI_AJANI = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
   }
 }

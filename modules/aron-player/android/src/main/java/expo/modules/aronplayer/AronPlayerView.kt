@@ -400,9 +400,8 @@ class AronPlayerView(context: Context, appContext: AppContext) : ExpoView(contex
     if (d.netflixMsl && netflixYonetici != null) {
       val nfGeriCagri = netflixYonetici!!.drmGeriCagri
         ?: throw IllegalStateException("Netflix DRM geri cagrisi hazir degil")
-      val clearKeyUuid = java.util.UUID.fromString("e2719d58-a985-b3c9-781a-b030af78d30e")
       return DefaultDrmSessionManager.Builder()
-        .setUuidAndExoMediaDrmProvider(clearKeyUuid, FrameworkMediaDrm.DEFAULT_PROVIDER)
+        .setUuidAndExoMediaDrmProvider(C.WIDEVINE_UUID, FrameworkMediaDrm.DEFAULT_PROVIDER)
         .setMultiSession(false)
         .setPlayClearSamplesWithoutKeys(true)
         .build(nfGeriCagri)

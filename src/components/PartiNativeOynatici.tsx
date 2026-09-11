@@ -8,12 +8,14 @@ import {
   AronOynatici,
   nativeOynaticiVar,
   type AronOynaticiKumanda,
+  type DrmYapilandirma,
   type OynaticiDurum,
 } from "../../modules/aron-player";
 import { type OynaticiKolu } from "@/components/PartiOynatici";
 
 type Props = {
   adres: string;
+  drm?: Pick<DrmYapilandirma, "scheme" | "licenseUrl" | "headers">;
   tamEkran?: boolean;
   kilitli?: boolean;
   onOlay?: (o: OynaticiOlayi) => void;
@@ -23,7 +25,7 @@ type Props = {
 const YOK_MESAJI = "Doğrudan bağlantı oynatıcısı yalnız Android geliştirme derlemesinde çalışıyor.";
 
 export const PartiNativeOynatici = forwardRef<OynaticiKolu, Props>(function PartiNativeOynatici(
-  { adres, tamEkran, kilitli, onOlay, ustKatman },
+  { adres, drm, tamEkran, kilitli, onOlay, ustKatman },
   ref,
 ) {
   const kumanda = useRef<AronOynaticiKumanda>(null);
@@ -50,8 +52,10 @@ export const PartiNativeOynatici = forwardRef<OynaticiKolu, Props>(function Part
     setHata(null);
     konumRef.current = 0;
     sureRef.current = 0;
+    const yapilandirma: Parameters<AronOynaticiKumanda["yukle"]>[0] = { manifestUrl: adres, otomatikBasla: true };
+    if (drm) yapilandirma.drm = { scheme: drm.scheme, licenseUrl: drm.licenseUrl, headers: drm.headers };
     kumanda.current
-      ?.yukle({ manifestUrl: adres, otomatikBasla: true })
+      ?.yukle(yapilandirma)
       .then(() => {
         if (iptal) return;
         bildir({ tur: "bilgi", baslik: null, yazar: null, adres, kapak: null, izleme: true });
@@ -63,7 +67,7 @@ export const PartiNativeOynatici = forwardRef<OynaticiKolu, Props>(function Part
         bildir({ tur: "engel", sebep });
       });
     return () => { iptal = true; };
-  }, [adres, yenileNo, varMi, bildir]);
+  }, [adres, drm, yenileNo, varMi, bildir]);
 
   useImperativeHandle(ref, () => ({
     oynat: () => { kumanda.current?.oynat(); },

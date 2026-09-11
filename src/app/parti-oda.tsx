@@ -63,7 +63,7 @@ import {
 } from "@/parti/senkron";
 import { ODAM_ID, kendiOdaKimligi, usePartiOdam } from "@/parti/odam";
 import { type OynaticiOlayi } from "@/parti/kopru";
-import { netflixManifestAl, nativeOynaticiVar } from "../../modules/aron-player";
+import { maxManifestAl, netflixManifestAl, nativeOynaticiVar } from "../../modules/aron-player";
 import { cerezAl } from "../../modules/aron-webview";
 import { type PartiSecim, usePartiKuyruk } from "@/parti/kuyruk";
 import { icerikAnahtari } from "@/parti/icerik";
@@ -396,6 +396,9 @@ export default function PartiOda() {
   const [oynatimNo, setOynatimNo] = useState(0);
   const [nfYerelAdres, setNfYerelAdres] = useState<string | null>(null);
   const nfYerelYukleniyor = useRef(false);
+  const [maxYerelAdres, setMaxYerelAdres] = useState<string | null>(null);
+  const [maxLisansUrl, setMaxLisansUrl] = useState<string | null>(null);
+  const maxYerelYukleniyor = useRef(false);
   const [ek, setEk] = useState<PartiSohbetOgesi[]>([]);
   const [bildirim, setBildirim] = useState("");
   const [atilma, setAtilma] = useState<PartiRol | null>(null);
@@ -480,6 +483,8 @@ export default function PartiOda() {
     yuklenenIcerikRef.current = icerikAnahtari(s.platform, s.adres);
     setKip("gezinme");
     setNfYerelAdres(null);
+    setMaxYerelAdres(null);
+    setMaxLisansUrl(null);
     setOynatilan({ platform: s.platform, adres: s.adres });
     setSimdiSecim(s);
     setSimdiki(s.baslik);
@@ -572,6 +577,8 @@ export default function PartiOda() {
       gunluk("icerik", { platform: d.platform, anahtar: gelenAnahtar, yenidenKur: platformDegisti });
       if (platformDegisti) setOynatimNo((n) => n + 1);
       setNfYerelAdres(null);
+      setMaxYerelAdres(null);
+      setMaxLisansUrl(null);
       setOynatilan({ platform: d.platform, adres: d.adres });
       setSimdiki(d.baslik);
       setSimdikiKapak(d.kapak ?? null);
@@ -909,6 +916,28 @@ export default function PartiOda() {
       })();
       return;
     }
+    if (o.tur === "max-yerel" && Platform.OS === "android" && nativeOynaticiVar()) {
+      if (maxYerelYukleniyor.current) return;
+      maxYerelYukleniyor.current = true;
+      (async () => {
+        try {
+          const ham = await cerezAl("https://www.max.com");
+          const token = ham.match(/(?:^|;\s*)st=([^;]+)/)?.[1]
+            ?? ham.match(/(?:^|;\s*)token=([^;]+)/)?.[1]
+            ?? "";
+          if (!token) { maxYerelYukleniyor.current = false; return; }
+          const sonuc = await maxManifestAl(token, o.icerikId);
+          setMaxYerelAdres(sonuc.manifestUrl);
+          setMaxLisansUrl(sonuc.lisansUrl);
+        } catch {
+          setMaxYerelAdres(null);
+          setMaxLisansUrl(null);
+        } finally {
+          maxYerelYukleniyor.current = false;
+        }
+      })();
+      return;
+    }
     if (o.tur === "sure") {
       setSure(o.sure);
       return;
@@ -1242,11 +1271,12 @@ export default function PartiOda() {
           <View style={styles.oynatici}>
             <Txt size={13} color={C.dim}>Partiye bağlanılıyor…</Txt>
           </View>
-        ) : dogrudanMi(oynatilan.platform) || (oynatilan.platform === "netflix" && Platform.OS === "android" && nfYerelAdres) ? (
+        ) : dogrudanMi(oynatilan.platform) || (oynatilan.platform === "netflix" && Platform.OS === "android" && nfYerelAdres) || (oynatilan.platform === "hbo_max" && Platform.OS === "android" && maxYerelAdres) ? (
           <PartiNativeOynatici
             key={`dogrudan-${oynatimNo}`}
             ref={oynatici}
-            adres={nfYerelAdres && oynatilan.platform === "netflix" ? nfYerelAdres : oynatilan.adres}
+            adres={nfYerelAdres && oynatilan.platform === "netflix" ? nfYerelAdres : maxYerelAdres && oynatilan.platform === "hbo_max" ? maxYerelAdres : oynatilan.adres}
+            drm={maxYerelAdres && oynatilan.platform === "hbo_max" && maxLisansUrl ? { scheme: "widevine" as const, licenseUrl: maxLisansUrl } : undefined}
             tamEkran={kip === "gezinme" || buyuk}
             kilitli={!kontrolBende}
             onOlay={olayGeldi}

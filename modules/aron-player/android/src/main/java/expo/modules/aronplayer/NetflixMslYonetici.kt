@@ -90,7 +90,7 @@ class NetflixMslYonetici(private val context: Context) {
     val baglanti = URL(url).openConnection() as HttpURLConnection
     baglanti.requestMethod = "POST"
     baglanti.setRequestProperty("Content-Type", "application/json")
-    baglanti.setRequestProperty("User-Agent", NetflixDrmGeriCagri.KULLANICI_AJANI)
+    baglanti.setRequestProperty("User-Agent", KULLANICI_AJANI)
     baglanti.doOutput = true
     baglanti.connectTimeout = 30_000
     baglanti.readTimeout = 30_000
@@ -107,5 +107,6 @@ class NetflixMslYonetici(private val context: Context) {
 
   companion object {
     private const val TAG = "NetflixMsl"
+    private const val KULLANICI_AJANI = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
   }
 }

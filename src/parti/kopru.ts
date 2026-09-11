@@ -51,6 +51,7 @@ export type OynaticiOlayi =
   | { tur: "durum"; adres: string; baslik: string; videoVar: boolean; hazirDurum: string }
   | { tur: "renk"; renk: string }
   | { tur: "netflix-yerel"; videoId: string }
+  | { tur: "max-yerel"; icerikId: string }
   | { tur: "yok" };
 
 function masaustuOrtami(safari: boolean, platformAdi = "MacIntel"): string {
@@ -2338,17 +2339,38 @@ const NETFLIX_ANDROID_EK = `
 })();
 `;
 
+const HBO_MAX_ANDROID_EK = `
+(function () {
+  if (window.__aronMaxYerel) return;
+  window.__aronMaxYerel = true;
+  var yolla = window.__aronYolla || function () {};
+  var gonderildi = '';
+  setInterval(function () {
+    try {
+      var m = location.pathname.match(/^\\/video\\/watch\\/([a-f0-9-]+)/i);
+      if (!m) { gonderildi = ''; return; }
+      var kod = m[1];
+      if (kod === gonderildi) return;
+      gonderildi = kod;
+      yolla({ tur: 'max-yerel', icerikId: kod });
+    } catch (e) {}
+  }, 1500);
+})();
+`;
+
 export function kopruBetigi(platform: PlatformKodu): string {
   const ajan = kullaniciAjani(platform);
   const safari = ajan === MASAUSTU_SAFARI;
   const netflixAndroid = Platform.OS === "android" && platform === "netflix";
+  const maxAndroid = Platform.OS === "android" && platform === "hbo_max";
   let ortam: string;
   if (netflixAndroid) ortam = TURTLE_ORTAM;
   else if (ORTAM_YAMASIZ.has(platform)) ortam = "";
   else ortam = masaustuOrtami(safari, ajan === MASAUSTU_LINUX_CHROME ? "Linux x86_64" : "MacIntel");
   const av1 = Platform.OS === "android" ? AV1_ENGEL : "";
   const nfYerel = netflixAndroid ? NETFLIX_ANDROID_EK : "";
-  return `${ortam}\n${MSE}\n${av1}\n${MEDYA}\n${TEMEL}\n${EKLER[platform] ?? ""}\n${nfYerel}\n${ORTAK}\n${TANI}\ntrue;`;
+  const maxYerel = maxAndroid ? HBO_MAX_ANDROID_EK : "";
+  return `${ortam}\n${MSE}\n${av1}\n${MEDYA}\n${TEMEL}\n${EKLER[platform] ?? ""}\n${nfYerel}\n${maxYerel}\n${ORTAK}\n${TANI}\ntrue;`;
 }
 
 function komut(kod: string): string {
