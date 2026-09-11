@@ -2349,13 +2349,41 @@ const NETFLIX_ANDROID_EK = `
   document.addEventListener('click', function (ev) {
     try {
       var el = ev.target;
-      for (var n = 0; n < 8 && el; n++) {
-        var href = el.getAttribute ? el.getAttribute('href') : null;
-        if (href) { var m = String(href).match(/\\/watch\\/(\\d+)/); if (m) { yolla({ tur: 'gunluk', seviye: 'nfyerel', metin: 'tiklama /watch/' + m[1] }); yakala('/watch/' + m[1]); return; } }
+      var iz = [];
+      for (var n = 0; n < 8 && el && el.getAttribute; n++) {
+        var bilgi = String(el.tagName || '?');
+        var href = el.getAttribute('href'); if (href) bilgi += ' href=' + href;
+        var attrs = el.attributes || [];
+        for (var a = 0; a < attrs.length; a++) { var an = attrs[a].name; if (/video|movie|title|uia|track|slug|id/i.test(an)) bilgi += ' ' + an + '=' + String(attrs[a].value).slice(0, 40); }
+        iz.push(bilgi);
+        if (href) { var m = String(href).match(/\\/watch\\/(\\d+)/); if (m) { yolla({ tur: 'gunluk', seviye: 'nftik', metin: 'TIK-WATCH /watch/' + m[1] }); yakala('/watch/' + m[1]); return; } }
         el = el.parentNode;
       }
+      yolla({ tur: 'gunluk', seviye: 'nftik', metin: 'TIK: ' + iz.join(' <- ').slice(0, 700) });
     } catch (e) {}
   }, true);
+  var teshisSayac = 0;
+  var teshisZ = setInterval(function () {
+    try {
+      teshisSayac++;
+      if (teshisSayac > 10) { clearInterval(teshisZ); return; }
+      var dd = ['url=' + location.pathname];
+      var vids = document.getElementsByTagName('video');
+      dd.push('video#=' + vids.length);
+      for (var i = 0; i < vids.length && i < 3; i++) { dd.push('v' + i + '(src=' + String(vids[i].currentSrc || vids[i].src || '-').slice(-45) + ' t=' + Math.round(vids[i].currentTime || 0) + ' paused=' + vids[i].paused + ' muted=' + vids[i].muted + ')'); }
+      try {
+        var pa = window.netflix && window.netflix.appContext && window.netflix.appContext.state && window.netflix.appContext.state.playerApp;
+        var st = pa && pa.getState && pa.getState();
+        var vp = st && st.videoPlayer;
+        var ps = vp && vp.playbackStateBySessionId;
+        dd.push('oturum=' + (ps ? JSON.stringify(Object.keys(ps)).slice(0, 130) : 'yok'));
+        var api = pa && pa.getAPI && pa.getAPI();
+        var vp2 = api && api.videoPlayer;
+        if (vp2 && vp2.getAllPlayerSessionIds) dd.push('apiOturum=' + JSON.stringify(vp2.getAllPlayerSessionIds()).slice(0, 130));
+      } catch (e2) { dd.push('paErr=' + ((e2 && e2.message) || e2)); }
+      yolla({ tur: 'gunluk', seviye: 'nftesh', metin: 'TESH: ' + dd.join(' ').slice(0, 850) });
+    } catch (e) {}
+  }, 2000);
   var oturumDokSayac = 0;
   function oynatmaVideoId() {
     try {
