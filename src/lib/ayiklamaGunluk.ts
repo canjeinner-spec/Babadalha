@@ -6,6 +6,7 @@ const dinleyiciler = new Set<Dinleyici>();
 
 export function ayiklamaYaz(metin: string): void {
   const zaman = new Date().toLocaleTimeString("tr-TR", { hour12: false });
+  if (__DEV__) console.log(`[AYIKLA] ${metin}`);
   satirlar = [...satirlar, `${zaman} ${metin}`].slice(-SINIR);
   for (const d of dinleyiciler) d(satirlar);
 }
