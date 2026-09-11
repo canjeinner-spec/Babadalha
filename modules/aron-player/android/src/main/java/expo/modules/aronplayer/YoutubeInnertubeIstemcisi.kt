@@ -32,9 +32,9 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
   ) {
     IOS(
       ad = "IOS",
-      surum = "21.02.3",
+      surum = "19.29.1",
       kimlik = "5",
-      userAgent = "com.google.ios.youtube/21.02.3 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)",
+      userAgent = "com.google.ios.youtube/19.29.1 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)",
       cihazMake = "Apple",
       cihazModel = "iPhone16,2",
       osName = "iPhone",
@@ -86,7 +86,7 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
   private val sigCozucu = YoutubeSignatureCozucu()
 
   fun oynatimBilgisiAl(videoId: String, dil: String = "en"): YoutubeOynatimBilgisi {
-    val sira = listOf(Istemci.IOS, Istemci.ANDROID_VR, Istemci.MWEB, Istemci.ANDROID_TESTSUITE, Istemci.WEB)
+    val sira = listOf(Istemci.IOS, Istemci.ANDROID_VR, Istemci.ANDROID_TESTSUITE)
     val hatalar = mutableListOf<String>()
     var enSonJson: JSONObject? = null
     for (istemci in sira) {
@@ -115,7 +115,16 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
     throw Exception("YouTube tum istemciler basarisiz: ${hatalar.joinToString("; ")}")
   }
 
+  private fun reklamTemizle(json: JSONObject) {
+    json.remove("adPlacements")
+    json.remove("playerAds")
+    json.remove("adSlots")
+    json.remove("adBreakParams")
+    json.remove("adBreakHeartbeatParams")
+  }
+
   private fun bilgiOlustur(json: JSONObject, streamingData: JSONObject, videoId: String): YoutubeOynatimBilgisi {
+    reklamTemizle(json)
     val videoDetaylari = json.optJSONObject("videoDetails")
     val baslik = videoDetaylari?.optString("title", "") ?: ""
     val yazar = videoDetaylari?.optString("author", "") ?: ""

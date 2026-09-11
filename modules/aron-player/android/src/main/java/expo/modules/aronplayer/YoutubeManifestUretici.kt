@@ -76,7 +76,7 @@ class YoutubeManifestUretici {
     sb.append("</Period>\n")
     sb.append("</MPD>")
 
-    val dosya = File(context.cacheDir, "youtube_dash_manifest.xml")
+    val dosya = File(context.cacheDir, "yt_dash_${System.nanoTime()}.xml")
     dosya.writeText(sb.toString())
     return dosya.toURI().toString()
   }
