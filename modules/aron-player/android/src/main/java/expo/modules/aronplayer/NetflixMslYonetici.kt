@@ -31,7 +31,7 @@ class NetflixMslYonetici(private val context: Context) {
 
   fun baslat(netflixId: String, secureNetflixId: String, dil: String = "tr") {
     RaveOturum.yapilandir(context)
-    val esn = oturum.esnUret()
+    val esn = kalitciEsn()
     oturum.baslat(esn, dil)
     oturum.netflixId = netflixId
     oturum.netflixSecureId = secureNetflixId
@@ -181,6 +181,19 @@ class NetflixMslYonetici(private val context: Context) {
     }
   }
 
+  private fun kalitciEsn(): String {
+    val kayitli = prefs?.getString(ESN_ANAHTARI, null)
+    if (kayitli != null && kayitli.startsWith("NFCDIE-03")) return kayitli
+    val yeni = oturum.esnUret()
+    prefs?.edit()?.putString(ESN_ANAHTARI, yeni)?.apply()
+    return yeni
+  }
+
+  fun cihazKimligiSifirla() {
+    prefs?.edit()?.remove(ESN_ANAHTARI)?.apply()
+    temizle()
+  }
+
   fun temizle() {
     prefs?.edit()?.remove("msl_data")?.apply()
     oturum.sifrelemeAnahtari = null
@@ -240,6 +253,7 @@ class NetflixMslYonetici(private val context: Context) {
   companion object {
     private const val TAG = "NetflixMsl"
     private const val MAKS_DENEME = 3
+    private const val ESN_ANAHTARI = "netflix_esn"
     private const val KULLANICI_AJANI = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0"
   }
 }
