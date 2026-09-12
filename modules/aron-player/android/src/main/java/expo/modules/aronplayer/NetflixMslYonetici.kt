@@ -54,7 +54,6 @@ class NetflixMslYonetici(private val context: Context) {
           val sonuc = mslPost(NetflixDrmGeriCagri.ROUTER_URL, yuk, "anahtar-yenileme")
           yanit.anahtarDegisimiCoz(sonuc, "keyexchange-renew")
           sonKeYolu = "renew"
-          sahipTokenAl()
           kaydet()
           return true
         } catch (e: Throwable) {
@@ -70,18 +69,16 @@ class NetflixMslYonetici(private val context: Context) {
       }
     }
     Log.d(TAG, "yeni anahtar cifti uretiliyor")
-    oturum.anahtarCiftiUret()
     val yuk = istek.anahtarDegisimiYuku(false)
     val sonuc = mslPost(NetflixDrmGeriCagri.ROUTER_URL, yuk, "anahtar-degisimi")
     yanit.anahtarDegisimiCoz(sonuc, "keyexchange-fresh")
     Log.d(TAG, "anahtar degisimi tamam")
     sonKeYolu = "fresh"
-    sahipTokenAl()
     kaydet()
     return true
   }
 
-  private fun sahipTokenAl() {
+  fun sahipTokenAl() {
     if (oturum.sahipToken != null) return
     if (oturum.kullaniciToken == null) return
     try {

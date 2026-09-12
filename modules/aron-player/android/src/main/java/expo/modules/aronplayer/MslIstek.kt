@@ -67,7 +67,6 @@ class MslIstek(private val oturum: MslOturum) {
   }
 
   fun sahipTokenYuku(): String {
-    oturum.anahtarCiftiUret()
     val mesajId = MslOturum.mesajKimligi()
     val bl = JSONObject()
     bl.put("sender", oturum.kimlik)
@@ -96,7 +95,6 @@ class MslIstek(private val oturum: MslOturum) {
   }
 
   fun profilDegistirYuku(profilGuid: String): String {
-    oturum.anahtarCiftiUret()
     val mesajId = MslOturum.mesajKimligi()
     val bl = JSONObject()
     bl.put("sender", oturum.kimlik)

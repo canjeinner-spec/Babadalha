@@ -9,6 +9,7 @@ import java.security.KeyPairGenerator
 import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.X509EncodedKeySpec
 import java.security.SecureRandom
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 import javax.crypto.Cipher
 import javax.crypto.Mac
@@ -33,7 +34,14 @@ class MslOturum {
 
   fun baslat(esn: String, dilKodu: String) {
     kimlik = esn
-    dil = dilKodu
+    dil = dilKoduNormalle(dilKodu)
+  }
+
+  private fun dilKoduNormalle(kod: String): String {
+    if (kod.contains("-")) return kod
+    val ulke = Locale.getDefault().country
+    if (ulke.isNotEmpty()) return "$kod-$ulke"
+    return "$kod-" + kod.uppercase(Locale.ENGLISH)
   }
 
   fun esnUret(): String {
