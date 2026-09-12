@@ -177,6 +177,22 @@ function durumCevir(ham: string): OynaticiDurum {
   }
 }
 
+const GORUNUM_YOK = /view with tag|cannot be cast to type/i;
+
+async function gorunumHazirBekle<T>(is: () => Promise<T>): Promise<T> {
+  let sonHata: unknown;
+  for (let deneme = 0; deneme < 14; deneme++) {
+    try {
+      return await is();
+    } catch (e) {
+      sonHata = e;
+      if (!GORUNUM_YOK.test((e as Error)?.message ?? "")) throw e;
+      await new Promise((c) => setTimeout(c, deneme < 4 ? 32 : 80));
+    }
+  }
+  throw sonHata;
+}
+
 function yokKumanda(onHata?: (olay: HataOlayi) => void): AronOynaticiKumanda {
   const bildir = () => {
     onHata?.(YOK_HATASI);
@@ -225,12 +241,20 @@ function AronOynaticiIc(props: AronOynaticiProps, disRef: Ref<AronOynaticiKumand
     const canli = () => nativeRef.current;
     return {
       async yukle(config: PlaybackConfig) {
-        const hedef = canli();
-        if (!hedef) {
-          onHata?.(YOK_HATASI);
-          return;
+        const json = yapilandirmayaJson(config);
+        try {
+          await gorunumHazirBekle(async () => {
+            const hedef = canli();
+            if (!hedef) throw new Error("view with tag hazir degil");
+            return hedef.yukle(json);
+          });
+        } catch (e) {
+          if (!canli()) {
+            onHata?.(YOK_HATASI);
+            return;
+          }
+          throw e;
         }
-        await hedef.yukle(yapilandirmayaJson(config));
       },
       async oynat() {
         await canli()?.oynat();
