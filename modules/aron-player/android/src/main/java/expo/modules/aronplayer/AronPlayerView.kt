@@ -13,6 +13,7 @@ import androidx.media3.common.C
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
+import java.io.File
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
 import androidx.media3.datasource.DataSource
@@ -134,11 +135,17 @@ class AronPlayerView(context: Context, appContext: AppContext) : ExpoView(contex
       val drmHatasi = kod in PlaybackException.ERROR_CODE_DRM_UNSPECIFIED..PlaybackException.ERROR_CODE_DRM_LICENSE_EXPIRED
       durumYayinla("hata")
       ilerlemeDurdur()
+      val ekTani = if (netflixYonetici != null) {
+        try {
+          val mpd = File(context.cacheDir, "netflix_dash_manifest.xml").readText()
+          " || MPD[${mpd.length}]: ${mpd.take(1500)}"
+        } catch (e: Throwable) { " || MPD okunamadi: ${e.message}" }
+      } else ""
       onHata(
         mapOf(
           "kod" to kod,
           "kodAdi" to hata.errorCodeName,
-          "mesaj" to (hata.message ?: hata.errorCodeName),
+          "mesaj" to ((hata.message ?: hata.errorCodeName) + ekTani),
           "drm" to drmHatasi,
           "sebep" to (hata.cause?.javaClass?.simpleName ?: "-")
         )

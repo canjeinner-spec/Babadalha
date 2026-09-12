@@ -166,9 +166,7 @@ class NetflixManifestUretici {
 
   private fun kodekBul(profil: String, tur: String): String {
     return when {
-      profil.contains("h264hpl") -> "avc1.640028"
-      profil.contains("h264mpl") -> "avc1.4D401F"
-      profil.contains("h264") -> "avc1.42E01E"
+      profil.contains("h264") -> "avc1"
       profil.contains("vp9") -> "vp9"
       profil.contains("av1") -> "av01.0.04M.08"
       profil.contains("heaac-5.1") -> "mp4a.40.29"
