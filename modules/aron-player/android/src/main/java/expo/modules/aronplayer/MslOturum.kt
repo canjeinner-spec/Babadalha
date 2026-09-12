@@ -152,6 +152,10 @@ class MslOturum {
   companion object {
     fun base64Kodla(veri: ByteArray): String = Base64.encodeToString(veri, Base64.NO_WRAP)
 
+    fun base64Varsayilan(veri: ByteArray): String = Base64.encodeToString(veri, Base64.DEFAULT)
+
+    fun manifestXidUret(): String = (System.currentTimeMillis() * 1.000000000008E8).toInt().toString()
+
     fun rastgeleIv(): ByteArray {
       val iv = ByteArray(16)
       SecureRandom().nextBytes(iv)

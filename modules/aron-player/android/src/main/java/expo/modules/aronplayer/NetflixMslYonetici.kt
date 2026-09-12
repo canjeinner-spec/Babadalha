@@ -1,6 +1,7 @@
 package expo.modules.aronplayer
 
 import android.content.Context
+import android.util.Base64
 import android.util.Log
 import androidx.media3.common.util.UnstableApi
 import org.json.JSONArray
@@ -10,6 +11,7 @@ import java.net.ConnectException
 import java.net.HttpURLConnection
 import java.net.SocketTimeoutException
 import java.net.URL
+import java.util.concurrent.TimeUnit
 
 @UnstableApi
 class NetflixMslYonetici(private val context: Context) {
@@ -17,6 +19,7 @@ class NetflixMslYonetici(private val context: Context) {
   val istek = MslIstek(oturum)
   val yanit = MslYanit(oturum)
   val manifestUretici = NetflixManifestUretici()
+  var sonKeYolu = "?"
   var drmGeriCagri: NetflixDrmGeriCagri? = null
     private set
   var clearKeyJwk: ByteArray? = null
@@ -50,6 +53,7 @@ class NetflixMslYonetici(private val context: Context) {
           val yuk = istek.anahtarDegisimiYuku(true)
           val sonuc = mslPost(NetflixDrmGeriCagri.ROUTER_URL, yuk, "anahtar-yenileme")
           yanit.anahtarDegisimiCoz(sonuc, "keyexchange-renew")
+          sonKeYolu = "renew"
           sahipTokenAl()
           kaydet()
           return true
@@ -59,6 +63,7 @@ class NetflixMslYonetici(private val context: Context) {
         }
       } else if (!durum.getBoolean("expired")) {
         Log.d(TAG, "kayitli ana token gecerli")
+        sonKeYolu = "kayitli-gecerli"
         return true
       } else {
         temizle()
@@ -70,6 +75,7 @@ class NetflixMslYonetici(private val context: Context) {
     val sonuc = mslPost(NetflixDrmGeriCagri.ROUTER_URL, yuk, "anahtar-degisimi")
     yanit.anahtarDegisimiCoz(sonuc, "keyexchange-fresh")
     Log.d(TAG, "anahtar degisimi tamam")
+    sonKeYolu = "fresh"
     sahipTokenAl()
     kaydet()
     return true
@@ -91,11 +97,31 @@ class NetflixMslYonetici(private val context: Context) {
   fun manifestAl(videoId: String): String {
     Log.d(TAG, "manifest isteniyor videoId=$videoId")
     val yuk = istek.manifestYuku(videoId)
-    val sonuc = mslPost(NetflixDrmGeriCagri.MANIFEST_URL, yuk, "manifest")
-    val manifestJson = yanit.manifestCoz(sonuc)
-    Log.d(TAG, "manifest alindi (${manifestJson.length} bayt)")
-    kaydet()
-    return manifestJson
+    try {
+      val sonuc = mslPost(NetflixDrmGeriCagri.MANIFEST_URL, yuk, "manifest")
+      val manifestJson = yanit.manifestCoz(sonuc)
+      Log.d(TAG, "manifest alindi (${manifestJson.length} bayt)")
+      kaydet()
+      return manifestJson
+    } catch (e: Throwable) {
+      val ozet = tokenDurumOzeti()
+      Log.e(TAG, "manifest basarisiz, msl_data temizleniyor | $ozet", e)
+      temizle()
+      throw IllegalStateException("${e.message} || TANI: $ozet", e)
+    }
+  }
+
+  private fun tokenDurumOzeti(): String {
+    return try {
+      val simdi = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())
+      val kullanici = if (oturum.kullaniciToken != null) "var" else "yok"
+      val t = oturum.anaToken
+        ?: return "keYolu=$sonKeYolu esn=${oturum.kimlik} token=YOK kullaniciToken=$kullanici now=$simdi"
+      val td = JSONObject(String(Base64.decode(t.getString("tokendata"), Base64.NO_WRAP)))
+      "keYolu=$sonKeYolu esn=${oturum.kimlik} seq=${oturum.siraNo} renewalwindow=${td.optLong("renewalwindow")} expiration=${td.optLong("expiration")} now=$simdi kullaniciToken=$kullanici"
+    } catch (e: Throwable) {
+      "tani-uretilemedi: ${e.message}"
+    }
   }
 
   fun mpdOlustur(manifestJson: String): String {
