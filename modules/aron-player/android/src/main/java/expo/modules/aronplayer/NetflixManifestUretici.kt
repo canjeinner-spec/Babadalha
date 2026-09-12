@@ -12,13 +12,16 @@ class NetflixManifestUretici {
     val json = JSONObject(manifestJson)
     val sb = StringBuilder()
     sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
-    sb.append("<MPD xmlns=\"urn:mpeg:dash:schema:mpd:2011\" ")
+    sb.append("<MPD xmlns=\"urn:mpeg:DASH:schema:MPD:2011\" ")
+    sb.append("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" ")
+    sb.append("xmlns:ns2=\"http://www.w3.org/2001/XMLSchema\" ")
     sb.append("xmlns:cenc=\"urn:mpeg:cenc:2013\" ")
+    sb.append("xsi:schemaLocation=\"urn:mpeg:DASH:schema:MPD:2011 DASH-MPD.xsd\" ")
     sb.append("type=\"static\" ")
 
     val sureMs = json.optLong("duration", 0)
     if (sureMs > 0) sb.append("mediaPresentationDuration=\"PT${sureMs / 1000}S\" ")
-    sb.append("minBufferTime=\"PT10S\" ")
+    sb.append("minBufferTime=\"PT1.500S\" ")
     sb.append("profiles=\"urn:mpeg:dash:profile:isoff-on-demand:2011\">\n")
 
     sb.append("<Period>\n")
@@ -28,7 +31,7 @@ class NetflixManifestUretici {
       val videoIz = videolar.getJSONObject(0)
       val akislar = videoIz.optJSONArray("streams") ?: videoIz.optJSONArray("downloadables")
       if (akislar != null) {
-        sb.append("<AdaptationSet mimeType=\"video/mp4\" contentType=\"video\" segmentAlignment=\"true\">\n")
+        sb.append("<AdaptationSet id=\"video\" mimeType=\"video/mp4\" contentType=\"video\" subsegmentAlignment=\"true\">\n")
         ekleKoruma(sb)
         ekleRol(sb)
         for (i in 0 until akislar.length()) {
@@ -39,14 +42,13 @@ class NetflixManifestUretici {
           val profil = akis.optString("content_profile", "")
           val codec = kodekBul(profil, "video")
           val cdnUrl = cdnUrlBul(akis)
-          sb.append("<Representation id=\"video_$i\" bandwidth=\"$bant\" startWithSAP=\"1\" ")
-          sb.append("width=\"$genislik\" height=\"$yukseklik\" codecs=\"$codec\">\n")
+          val boyut = akis.optLong("size", 0)
+          sb.append("<Representation id=\"video_$i\" bandwidth=\"$bant\" mimeType=\"video/mp4\" ")
+          sb.append("codecs=\"$codec\" startWithSAP=\"1\" maxPlayoutRate=\"1\" ")
+          sb.append("width=\"$genislik\" height=\"$yukseklik\">\n")
           if (cdnUrl.isNotEmpty()) {
-            sb.append("<BaseURL>$cdnUrl</BaseURL>\n")
-            val (sidxBas, sidxSon, initUz) = sidxAralik(akis)
-            sb.append("<SegmentBase indexRange=\"$sidxBas-$sidxSon\">\n")
-            sb.append("<Initialization range=\"0-$initUz\"/>\n")
-            sb.append("</SegmentBase>\n")
+            ekleTabanUrl(sb, cdnUrl, boyut)
+            ekleSegmentTabani(sb, akis, boyut)
           }
           sb.append("</Representation>\n")
         }
@@ -61,7 +63,9 @@ class NetflixManifestUretici {
         val dil = sesIz.optString("language", "und")
         val akislar = sesIz.optJSONArray("streams") ?: sesIz.optJSONArray("downloadables")
         if (akislar == null || akislar.length() == 0) continue
-        sb.append("<AdaptationSet mimeType=\"audio/mp4\" contentType=\"audio\" lang=\"$dil\">\n")
+        val kanal = sesIz.optDouble("channels", 2.0).toLong().coerceAtLeast(1L)
+        sb.append("<AdaptationSet id=\"audio_$j\" mimeType=\"audio/mp4\" contentType=\"audio\" lang=\"$dil\" subsegmentAlignment=\"true\">\n")
+        sb.append("<AudioChannelConfiguration schemeIdUri=\"urn:mpeg:dash:23003:3:audio_channel_configuration:2011\" value=\"$kanal\"/>\n")
         ekleRol(sb)
         for (i in 0 until akislar.length()) {
           val akis = akislar.getJSONObject(i)
@@ -69,13 +73,13 @@ class NetflixManifestUretici {
           val profil = akis.optString("content_profile", "")
           val codec = kodekBul(profil, "audio")
           val cdnUrl = cdnUrlBul(akis)
-          sb.append("<Representation id=\"audio_${j}_$i\" bandwidth=\"$bant\" startWithSAP=\"1\" codecs=\"$codec\">\n")
+          val boyut = akis.optLong("size", 0)
+          val ornekleme = (akis.optLong("bitrate", 0) / kanal) * 1000
+          sb.append("<Representation id=\"audio_${j}_$i\" bandwidth=\"$bant\" mimeType=\"audio/mp4\" ")
+          sb.append("codecs=\"$codec\" startWithSAP=\"1\" audioSamplingRate=\"$ornekleme\">\n")
           if (cdnUrl.isNotEmpty()) {
-            sb.append("<BaseURL>$cdnUrl</BaseURL>\n")
-            val (sidxBas, sidxSon, initUz) = sidxAralik(akis)
-            sb.append("<SegmentBase indexRange=\"$sidxBas-$sidxSon\">\n")
-            sb.append("<Initialization range=\"0-$initUz\"/>\n")
-            sb.append("</SegmentBase>\n")
+            ekleTabanUrl(sb, cdnUrl, boyut)
+            ekleSegmentTabani(sb, akis, boyut)
           }
           sb.append("</Representation>\n")
         }
@@ -98,7 +102,8 @@ class NetflixManifestUretici {
           if (urlAlani.length() == 0) continue
           val url = urlAlani.getJSONObject(0).optString("url", "")
           if (url.isEmpty()) continue
-          sb.append("<AdaptationSet mimeType=\"text/vtt\" contentType=\"text\" lang=\"$dil\">\n")
+          sb.append("<AdaptationSet id=\"text_$i\" mimeType=\"text/vtt\" contentType=\"text\" lang=\"$dil\">\n")
+          ekleRol(sb)
           sb.append("<Representation id=\"text_$i\" bandwidth=\"0\">\n")
           sb.append("<BaseURL>${xmlKacis(url)}</BaseURL>\n")
           sb.append("</Representation>\n")
@@ -144,6 +149,19 @@ class NetflixManifestUretici {
 
   private fun ekleRol(sb: StringBuilder) {
     sb.append("<Role schemeIdUri=\"urn:mpeg:DASH:role:2011\" value=\"main\"/>\n")
+  }
+
+  private fun ekleTabanUrl(sb: StringBuilder, cdnUrl: String, boyut: Long) {
+    if (boyut != 0L) sb.append("<BaseURL ns2:contentLength=\"$boyut\">$cdnUrl</BaseURL>\n")
+    else sb.append("<BaseURL>$cdnUrl</BaseURL>\n")
+  }
+
+  private fun ekleSegmentTabani(sb: StringBuilder, akis: JSONObject, boyut: Long) {
+    if (boyut == 0L) return
+    val (sidxBas, sidxSon, initUz) = sidxAralik(akis)
+    sb.append("<SegmentBase indexRange=\"$sidxBas-$sidxSon\">\n")
+    sb.append("<Initialization range=\"0-$initUz\"/>\n")
+    sb.append("</SegmentBase>\n")
   }
 
   private fun kidUuid(ham: String): String {
