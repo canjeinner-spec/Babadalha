@@ -12,6 +12,7 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import java.io.File
 import androidx.media3.common.Player
@@ -220,7 +221,7 @@ class AronPlayerView(context: Context, appContext: AppContext) : ExpoView(contex
       Log.d(TAG, "netflix: lisans ve anahtarlar hazir, oynatici kuruluyor")
       val hazirYapilandirma = OynatimYapilandirma(
         manifestUrl = mpdUri,
-        mimeTuru = yeni.mimeTuru,
+        mimeTuru = MimeTypes.APPLICATION_MPD,
         drm = yeni.drm,
         basliklar = yeni.basliklar,
         baslangicMs = yeni.baslangicMs,
