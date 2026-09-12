@@ -9,21 +9,21 @@ import javax.crypto.spec.SecretKeySpec
 
 class MslYanit(private val oturum: MslOturum) {
 
-  private fun netflixHatasiKontrol(yanit: String) {
+  private fun netflixHatasiKontrol(yanit: String, etiket: String) {
     val ilkParca = try { yanit.substring(0, jsonSiniriBul(yanit)) } catch (e: Throwable) { return }
     val json = try { JSONObject(ilkParca) } catch (e: Throwable) { return }
     if (!json.has("errordata")) return
     val hataVeri = try {
       JSONObject(String(Base64.decode(json.getString("errordata"), Base64.DEFAULT)))
     } catch (e: Throwable) {
-      Log.e(TAG, "Netflix MSL hata yaniti cozulemedi: ${yanit.take(300)}")
-      throw IllegalStateException("Netflix MSL hata yaniti (cozulemedi): ${yanit.take(200)}")
+      Log.e(TAG, "Netflix MSL hata yaniti cozulemedi [$etiket]: ${yanit.take(300)}")
+      throw IllegalStateException("Netflix MSL hata yaniti cozulemedi [$etiket]: ${yanit.take(200)}")
     }
     val kod = hataVeri.optInt("errorcode", -1)
     val ic = hataVeri.optInt("internalcode", -1)
     val mesaj = hataVeri.optString("errormsg", hataVeri.optString("usermsg", ""))
-    Log.e(TAG, "Netflix MSL hatasi: errorcode=$kod internalcode=$ic msg=$mesaj")
-    throw IllegalStateException("Netflix MSL hatasi: errorcode=$kod internalcode=$ic msg=$mesaj")
+    Log.e(TAG, "Netflix MSL hatasi [$etiket]: errorcode=$kod internalcode=$ic msg=$mesaj")
+    throw IllegalStateException("Netflix MSL hatasi [$etiket]: errorcode=$kod internalcode=$ic msg=$mesaj")
   }
 
   fun aesCozJson(sifreli: JSONObject): JSONObject? {
@@ -80,8 +80,8 @@ class MslYanit(private val oturum: MslOturum) {
     return parcalar
   }
 
-  fun mslVerisiCoz(yanit: String): String {
-    netflixHatasiKontrol(yanit)
+  fun mslVerisiCoz(yanit: String, etiket: String = "msl"): String {
+    netflixHatasiKontrol(yanit, etiket)
     val (baslikMetni, yukMetni) = baslikVeYukAyir(yanit)
     val baslikJson = JSONObject(baslikMetni)
     val baslikVeri = JSONObject(String(Base64.decode(baslikJson.getString("headerdata"), Base64.DEFAULT)))
@@ -104,8 +104,8 @@ class MslYanit(private val oturum: MslOturum) {
     return sb.toString()
   }
 
-  fun anahtarDegisimiCoz(yanit: String): Int {
-    netflixHatasiKontrol(yanit)
+  fun anahtarDegisimiCoz(yanit: String, etiket: String = "keyexchange"): Int {
+    netflixHatasiKontrol(yanit, etiket)
     val baslikVeri = JSONObject(String(Base64.decode(JSONObject(yanit).getString("headerdata"), Base64.DEFAULT)))
     val cozulmus = if (baslikVeri.has("ciphertext")) {
       val c = aesCozJson(baslikVeri)!!
@@ -136,7 +136,7 @@ class MslYanit(private val oturum: MslOturum) {
   }
 
   fun manifestCoz(yanit: String): String {
-    val cozulmus = JSONObject(mslVerisiCoz(yanit))
+    val cozulmus = JSONObject(mslVerisiCoz(yanit, "manifest"))
     if (cozulmus.has("result")) {
       val sonuc = cozulmus.getJSONObject("result")
       if (sonuc.has("links")) {
@@ -151,10 +151,10 @@ class MslYanit(private val oturum: MslOturum) {
     throw IllegalStateException("Netflix manifest beklenmeyen yanit: ${cozulmus.toString().take(200)}")
   }
 
-  fun lisansCoz(yanit: String): String = mslVerisiCoz(yanit)
+  fun lisansCoz(yanit: String): String = mslVerisiCoz(yanit, "lisans")
 
   fun sahipTokenCoz(yanit: String) {
-    netflixHatasiKontrol(yanit)
+    netflixHatasiKontrol(yanit, "sahiptoken")
     val (baslikMetni, _) = baslikVeYukAyir(yanit)
     val baslikVeri = JSONObject(String(Base64.decode(JSONObject(baslikMetni).getString("headerdata"), Base64.DEFAULT)))
     val cozulmus = aesCozJson(baslikVeri)!!

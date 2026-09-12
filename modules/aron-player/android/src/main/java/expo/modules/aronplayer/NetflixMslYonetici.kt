@@ -49,7 +49,7 @@ class NetflixMslYonetici(private val context: Context) {
           Log.d(TAG, "ana token yenileniyor")
           val yuk = istek.anahtarDegisimiYuku(true)
           val sonuc = mslPost(NetflixDrmGeriCagri.ROUTER_URL, yuk, "anahtar-yenileme")
-          yanit.anahtarDegisimiCoz(sonuc)
+          yanit.anahtarDegisimiCoz(sonuc, "keyexchange-renew")
           sahipTokenAl()
           kaydet()
           return true
@@ -68,7 +68,7 @@ class NetflixMslYonetici(private val context: Context) {
     oturum.anahtarCiftiUret()
     val yuk = istek.anahtarDegisimiYuku(false)
     val sonuc = mslPost(NetflixDrmGeriCagri.ROUTER_URL, yuk, "anahtar-degisimi")
-    yanit.anahtarDegisimiCoz(sonuc)
+    yanit.anahtarDegisimiCoz(sonuc, "keyexchange-fresh")
     Log.d(TAG, "anahtar degisimi tamam")
     sahipTokenAl()
     kaydet()
