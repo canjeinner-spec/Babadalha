@@ -26,12 +26,14 @@ class NetflixManifestUretici {
 
     sb.append("<Period>\n")
 
+    var uyarlamaNo = 0
+
     val videolar = json.optJSONArray("video_tracks")
     if (videolar != null && videolar.length() > 0) {
       val videoIz = videolar.getJSONObject(0)
       val akislar = videoIz.optJSONArray("streams") ?: videoIz.optJSONArray("downloadables")
       if (akislar != null) {
-        sb.append("<AdaptationSet id=\"video\" mimeType=\"video/mp4\" contentType=\"video\" subsegmentAlignment=\"true\">\n")
+        sb.append("<AdaptationSet id=\"${uyarlamaNo++}\" mimeType=\"video/mp4\" contentType=\"video\" subsegmentAlignment=\"true\">\n")
         ekleKoruma(sb)
         ekleRol(sb)
         for (i in 0 until akislar.length()) {
@@ -64,7 +66,7 @@ class NetflixManifestUretici {
         val akislar = sesIz.optJSONArray("streams") ?: sesIz.optJSONArray("downloadables")
         if (akislar == null || akislar.length() == 0) continue
         val kanal = sesIz.optDouble("channels", 2.0).toLong().coerceAtLeast(1L)
-        sb.append("<AdaptationSet id=\"audio_$j\" mimeType=\"audio/mp4\" contentType=\"audio\" lang=\"$dil\" subsegmentAlignment=\"true\">\n")
+        sb.append("<AdaptationSet id=\"${uyarlamaNo++}\" mimeType=\"audio/mp4\" contentType=\"audio\" lang=\"$dil\" subsegmentAlignment=\"true\">\n")
         sb.append("<AudioChannelConfiguration schemeIdUri=\"urn:mpeg:dash:23003:3:audio_channel_configuration:2011\" value=\"$kanal\"/>\n")
         ekleRol(sb)
         for (i in 0 until akislar.length()) {
@@ -102,7 +104,7 @@ class NetflixManifestUretici {
           if (urlAlani.length() == 0) continue
           val url = urlAlani.getJSONObject(0).optString("url", "")
           if (url.isEmpty()) continue
-          sb.append("<AdaptationSet id=\"text_$i\" mimeType=\"text/vtt\" contentType=\"text\" lang=\"$dil\">\n")
+          sb.append("<AdaptationSet id=\"${uyarlamaNo++}\" mimeType=\"text/vtt\" contentType=\"text\" lang=\"$dil\">\n")
           ekleRol(sb)
           sb.append("<Representation id=\"text_$i\" bandwidth=\"0\">\n")
           sb.append("<BaseURL>${xmlKacis(url)}</BaseURL>\n")
