@@ -135,7 +135,7 @@ class NetflixMslYonetici(private val context: Context) {
     Log.d(TAG, "logblob3 challenge isteniyor")
     val challenge = RaveLogblob.challengeAl(NetflixDrmGeriCagri.GENEL_PSSH)
 
-    val lisansAdresi = oturum.lisansUrl.ifEmpty { NetflixDrmGeriCagri.LISANS_URL }
+    val lisansAdresi = NetflixDrmGeriCagri.LISANS_URL
     val mslYuk = istek.lisansYuku(challenge)
     val mslYaniti = mslPost(lisansAdresi, mslYuk, "lisans")
     val cozulmus = yanit.lisansCoz(mslYaniti)
