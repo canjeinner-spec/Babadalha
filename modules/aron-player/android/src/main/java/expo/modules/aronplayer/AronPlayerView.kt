@@ -136,10 +136,12 @@ class AronPlayerView(context: Context, appContext: AppContext) : ExpoView(contex
       durumYayinla("hata")
       ilerlemeDurdur()
       val ekTani = if (netflixYonetici != null) {
-        try {
-          val mpd = File(context.cacheDir, "netflix_dash_manifest.xml").readText()
-          " || MPD[${mpd.length}]: ${mpd.take(1500)}"
-        } catch (e: Throwable) { " || MPD okunamadi: ${e.message}" }
+        val sebepZinciri = generateSequence(hata.cause) { it.cause }
+          .joinToString(" <- ") { "${it.javaClass.simpleName}:${it.message}" }.take(400)
+        val mpd = try {
+          File(context.cacheDir, "netflix_dash_manifest.xml").readText().take(600)
+        } catch (e: Throwable) { "MPD?:${e.message}" }
+        " || cause=$sebepZinciri || MPD: $mpd"
       } else ""
       onHata(
         mapOf(

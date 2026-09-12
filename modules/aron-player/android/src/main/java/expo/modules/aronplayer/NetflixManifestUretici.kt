@@ -137,12 +137,9 @@ class NetflixManifestUretici {
   }
 
   private fun ekleKoruma(sb: StringBuilder, iz: JSONObject) {
-    val hamKid = iz.optJSONObject("drmHeader")?.optString("keyId", "") ?: ""
-    val kid = kidUuid(hamKid)
-    sb.append("<ContentProtection schemeIdUri=\"urn:mpeg:dash:mp4protection:2011\" value=\"cenc\"")
-    if (kid.isNotEmpty()) sb.append(" cenc:default_KID=\"$kid\"")
-    sb.append("/>\n")
     sb.append("<ContentProtection schemeIdUri=\"urn:uuid:e2719d58-a985-b3c9-781a-b030af78d30e\"/>\n")
+    sb.append("<ContentProtection schemeIdUri=\"urn:mpeg:dash:mp4protection:2011\" value=\"cenc\" cenc:default_KID=\"9eb4050d-e44b-4802-932e-27d75083e266\"/>\n")
+    sb.append("<Role schemeIdUri=\"urn:mpeg:DASH:role:2011\" value=\"main\"/>\n")
   }
 
   private fun kidUuid(ham: String): String {
