@@ -29,7 +29,8 @@ class NetflixManifestUretici {
       val akislar = videoIz.optJSONArray("streams") ?: videoIz.optJSONArray("downloadables")
       if (akislar != null) {
         sb.append("<AdaptationSet mimeType=\"video/mp4\" contentType=\"video\" segmentAlignment=\"true\">\n")
-        ekleKoruma(sb, videoIz)
+        ekleKoruma(sb)
+        ekleRol(sb)
         for (i in 0 until akislar.length()) {
           val akis = akislar.getJSONObject(i)
           val genislik = akis.optInt("res_w", akis.optInt("width", 1920))
@@ -61,7 +62,7 @@ class NetflixManifestUretici {
         val akislar = sesIz.optJSONArray("streams") ?: sesIz.optJSONArray("downloadables")
         if (akislar == null || akislar.length() == 0) continue
         sb.append("<AdaptationSet mimeType=\"audio/mp4\" contentType=\"audio\" lang=\"$dil\">\n")
-        ekleKoruma(sb, sesIz)
+        ekleRol(sb)
         for (i in 0 until akislar.length()) {
           val akis = akislar.getJSONObject(i)
           val bant = bantGenisligi(akis, 128000)
@@ -136,9 +137,12 @@ class NetflixManifestUretici {
     return akis.optLong("avg_bitrate", varsayilan)
   }
 
-  private fun ekleKoruma(sb: StringBuilder, iz: JSONObject) {
+  private fun ekleKoruma(sb: StringBuilder) {
     sb.append("<ContentProtection schemeIdUri=\"urn:uuid:e2719d58-a985-b3c9-781a-b030af78d30e\"/>\n")
     sb.append("<ContentProtection schemeIdUri=\"urn:mpeg:dash:mp4protection:2011\" value=\"cenc\" cenc:default_KID=\"9eb4050d-e44b-4802-932e-27d75083e266\"/>\n")
+  }
+
+  private fun ekleRol(sb: StringBuilder) {
     sb.append("<Role schemeIdUri=\"urn:mpeg:DASH:role:2011\" value=\"main\"/>\n")
   }
 
