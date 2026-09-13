@@ -200,15 +200,12 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
     val yazar = videoDetaylari?.optString("author", "") ?: ""
     val sureSaniye = videoDetaylari?.optString("lengthSeconds", "0")?.toLongOrNull() ?: 0L
 
-    val potKullanilir = webIstemcisi(istemci)
-    if (potKullanilir) {
-      poToken?.oturumToken?.takeIf { it.isNotEmpty() }?.let { potEkle(streamingData, it) }
-    }
+    poToken?.oturumToken?.takeIf { it.isNotEmpty() }?.let { potEkle(streamingData, it) }
 
     YoutubeYenileyici.kaydet(
       videoId = videoId,
       visitorData = oynaticiBilgisi?.visitorData.orEmpty(),
-      oturumToken = if (potKullanilir) poToken?.oturumToken.orEmpty() else "",
+      oturumToken = poToken?.oturumToken.orEmpty(),
       uretici = poUretici,
       akisCozucu = { vid -> akisAdresleriniCoz(vid) }
     )
@@ -610,10 +607,9 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
     playbackContext.put("contentPlaybackContext", contentPlayback)
     govde.put("playbackContext", playbackContext)
 
-    if (webIstemcisi(istemci)) {
-      poToken?.icerikToken?.takeIf { it.isNotEmpty() }?.let {
-        govde.put("serviceIntegrityDimensions", JSONObject().put("poToken", it))
-      }
+    val govdeJetonu = if (webIstemcisi(istemci)) poToken?.icerikToken else poToken?.oturumToken
+    govdeJetonu?.takeIf { it.isNotEmpty() }?.let {
+      govde.put("serviceIntegrityDimensions", JSONObject().put("poToken", it))
     }
 
     return govde.toString()
