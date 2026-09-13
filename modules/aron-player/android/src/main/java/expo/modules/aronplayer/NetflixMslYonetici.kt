@@ -126,6 +126,77 @@ class NetflixMslYonetici(private val context: Context) {
     }
   }
 
+  fun baslikBilgisiAl(videoId: String): Map<String, String> {
+    return try {
+      val adres = "$USTVERI_URL?movieid=$videoId&imageFormat=webp&withSize=true&materialize=true&_=${System.currentTimeMillis()}"
+      val govde = cerezliGetir(adres) ?: return emptyMap()
+      val video = JSONObject(govde).optJSONObject("video") ?: return emptyMap()
+      val anaBaslik = video.optString("title", "")
+      val bolum = bolumBul(video, videoId)
+      val baslik = if (bolum != null) {
+        listOfNotNull(anaBaslik.ifEmpty { null }, bolum).joinToString(" — ")
+      } else anaBaslik
+      val kapak = gorselBul(video)
+      val sonuc = mutableMapOf<String, String>()
+      if (baslik.isNotEmpty()) sonuc["baslik"] = baslik
+      if (kapak.isNotEmpty()) sonuc["kapak"] = kapak
+      Log.d(TAG, "ustveri: baslik=$baslik kapak=${kapak.isNotEmpty()}")
+      sonuc
+    } catch (e: Throwable) {
+      Log.w(TAG, "ustveri alinamadi: ${e.message}")
+      emptyMap()
+    }
+  }
+
+  private fun bolumBul(video: JSONObject, videoId: String): String? {
+    val sezonlar = video.optJSONArray("seasons") ?: return null
+    for (i in 0 until sezonlar.length()) {
+      val sezon = sezonlar.optJSONObject(i) ?: continue
+      val bolumler = sezon.optJSONArray("episodes") ?: continue
+      for (j in 0 until bolumler.length()) {
+        val b = bolumler.optJSONObject(j) ?: continue
+        if (b.optLong("id").toString() != videoId) continue
+        val sezonNo = sezon.optInt("seq", i + 1)
+        val bolumNo = b.optInt("seq", j + 1)
+        val ad = b.optString("title", "")
+        return if (ad.isEmpty()) "S${sezonNo}B$bolumNo" else "S${sezonNo}B$bolumNo - $ad"
+      }
+    }
+    return null
+  }
+
+  private fun gorselBul(video: JSONObject): String {
+    for (alan in listOf("storyart", "boxart", "artwork")) {
+      val dizi = video.optJSONArray(alan) ?: continue
+      for (i in 0 until dizi.length()) {
+        val u = dizi.optJSONObject(i)?.optString("url", "").orEmpty()
+        if (u.isNotEmpty()) return u
+      }
+    }
+    return ""
+  }
+
+  private fun cerezliGetir(adres: String): String? {
+    return try {
+      val baglanti = URL(adres).openConnection() as HttpURLConnection
+      try {
+        baglanti.setRequestProperty(
+          "Cookie",
+          "NetflixId=${oturum.netflixId}; SecureNetflixId=${oturum.netflixSecureId}"
+        )
+        baglanti.setRequestProperty("User-Agent", KULLANICI_AJANI)
+        baglanti.connectTimeout = 20_000
+        baglanti.readTimeout = 20_000
+        baglanti.inputStream.use { String(DataInputStream(it).readBytes()) }
+      } finally {
+        baglanti.disconnect()
+      }
+    } catch (e: Throwable) {
+      Log.w(TAG, "cerezli istek basarisiz ($adres): ${e.message}")
+      null
+    }
+  }
+
   private fun profilGuidAl(): String? {
     val kayitli = prefs?.getString(PROFIL_ANAHTARI, null)
     if (!kayitli.isNullOrBlank()) return kayitli
@@ -334,6 +405,7 @@ class NetflixMslYonetici(private val context: Context) {
     private const val ESN_ANAHTARI = "netflix_esn"
     private const val PROFIL_ANAHTARI = "netflix_profil_guid"
     private const val GOZAT_URL = "https://www.netflix.com/browse"
+    private const val USTVERI_URL = "https://www.netflix.com/nq/website/memberapi/release/metadata"
     private const val VARLIK_YENIDEN_KIMLIK = 3
     private const val VARLIK_VERISI_YENIDEN_KIMLIK = 6
     private const val SON_BASARILI_ANAHTARI = "son_basarili_baslik"

@@ -22,6 +22,7 @@ type AronPlayerModulu = {
   netflixManifestAl(netflixId: string, secureId: string, videoId: string, dil: string): Promise<{ manifestUrl: string; manifestJson: string }>;
   maxManifestAl(oturumToken: string, icerikId: string): Promise<{ manifestUrl: string; lisansUrl: string; manifestJson: string }>;
   youtubeManifestAl(videoId: string, dil: string): Promise<{ manifestUrl: string; baslik: string; yazar: string; sureMs: number; streamingJson: string }>;
+  netflixUstveri(videoId: string, netflixId: string, secureId: string): Promise<{ baslik?: string; kapak?: string }>;
   primeManifestAl(videoId: string, cerezler: string, marketplaceId: string): Promise<{ manifestUrl: string; lisansUrl: string; atvUrl: string; videoId: string; marketplaceId: string; altyazilar?: { kod: string; ad: string; url: string }[] }>;
 };
 
@@ -154,6 +155,19 @@ export async function youtubeManifestAl(
 ): Promise<{ manifestUrl: string; baslik: string; yazar: string; sureMs: number; streamingJson: string }> {
   if (!nativeOynaticiVar()) throw new Error("Yerel oynatici yok");
   return modul!.youtubeManifestAl(videoId, dil);
+}
+
+export async function netflixUstveri(
+  videoId: string,
+  netflixId: string,
+  secureId: string,
+): Promise<{ baslik?: string; kapak?: string }> {
+  if (!nativeOynaticiVar()) return {};
+  try {
+    return await modul!.netflixUstveri(videoId, netflixId, secureId);
+  } catch {
+    return {};
+  }
 }
 
 export async function primeManifestAl(

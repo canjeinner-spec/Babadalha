@@ -21,6 +21,9 @@ const DRM_PLATFORMLARI = new Set<PlatformKodu>([
 const MASAUSTU_LINUX_CHROME =
   "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.7559.172 Safari/537.36";
 
+const IPHONE_SAFARI =
+  "Mozilla/5.0 (iPhone; CPU iPhone OS 13_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/80.0.3987.95 Mobile/15E148 Safari/604.1";
+
 const WINDOWS_EDGE =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0";
 
@@ -31,6 +34,7 @@ export function masaustuIcerikMi(platform: PlatformKodu): boolean {
 export function kullaniciAjani(platform: PlatformKodu): string {
   if (Platform.OS === "ios" && DRM_PLATFORMLARI.has(platform)) return MASAUSTU_SAFARI;
   if (Platform.OS === "android" && platform === "netflix") return WINDOWS_EDGE;
+  if (Platform.OS === "android" && platform === "prime_video") return IPHONE_SAFARI;
   if (Platform.OS === "android" && DRM_PLATFORMLARI.has(platform)) return MASAUSTU_LINUX_CHROME;
   return MASAUSTU_CHROME;
 }

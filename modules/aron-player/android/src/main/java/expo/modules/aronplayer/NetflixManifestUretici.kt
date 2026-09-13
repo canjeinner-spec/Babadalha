@@ -96,21 +96,25 @@ class NetflixManifestUretici {
         val dil = alt.optString("language", alt.optString("bcp47", "und"))
         val turler = alt.optJSONObject("ttDownloadables") ?: alt.optJSONObject("downloadables")
         if (turler == null) continue
+        val adlar = mutableListOf<String>()
         val anahtarlar = turler.keys()
-        while (anahtarlar.hasNext()) {
-          val ad = anahtarlar.next()
-          val veri = turler.getJSONObject(ad)
-          val urlAlani = veri.optJSONArray("urls") ?: continue
-          if (urlAlani.length() == 0) continue
-          val url = urlAlani.getJSONObject(0).optString("url", "")
-          if (url.isEmpty()) continue
-          sb.append("<AdaptationSet id=\"${uyarlamaNo++}\" mimeType=\"text/vtt\" contentType=\"text\" lang=\"$dil\">\n")
-          ekleRol(sb)
-          sb.append("<Representation id=\"text_$i\" bandwidth=\"0\">\n")
-          sb.append("<BaseURL>${xmlKacis(url)}</BaseURL>\n")
-          sb.append("</Representation>\n")
-          sb.append("</AdaptationSet>\n")
-          break
+        while (anahtarlar.hasNext()) adlar.add(anahtarlar.next())
+        val secilen = adlar.firstOrNull { it.contains("webvtt", true) } ?: adlar.firstOrNull()
+        if (secilen != null) {
+          val veri = turler.optJSONObject(secilen)
+          val urlAlani = veri?.optJSONArray("urls")
+          val url = if (urlAlani != null && urlAlani.length() > 0) {
+            urlAlani.getJSONObject(0).optString("url", "")
+          } else ""
+          if (url.isNotEmpty()) {
+            val mim = if (secilen.contains("webvtt", true)) "text/vtt" else "application/ttml+xml"
+            sb.append("<AdaptationSet id=\"${uyarlamaNo++}\" mimeType=\"$mim\" contentType=\"text\" lang=\"$dil\">\n")
+            ekleRol(sb)
+            sb.append("<Representation id=\"text_$i\" bandwidth=\"0\">\n")
+            sb.append("<BaseURL>${xmlKacis(url)}</BaseURL>\n")
+            sb.append("</Representation>\n")
+            sb.append("</AdaptationSet>\n")
+          }
         }
       }
     }

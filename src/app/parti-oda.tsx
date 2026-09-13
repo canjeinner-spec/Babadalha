@@ -65,7 +65,7 @@ import {
 } from "@/parti/senkron";
 import { ODAM_ID, kendiOdaKimligi, usePartiOdam } from "@/parti/odam";
 import { type OynaticiOlayi } from "@/parti/kopru";
-import { maxManifestAl, nativeOynaticiVar, primeManifestAl, youtubeManifestAl } from "../../modules/aron-player";
+import { maxManifestAl, nativeOynaticiVar, netflixUstveri, primeManifestAl, youtubeManifestAl } from "../../modules/aron-player";
 import { cerezAl } from "../../modules/aron-webview";
 import { type PartiSecim, usePartiKuyruk } from "@/parti/kuyruk";
 import { icerikAnahtari } from "@/parti/icerik";
@@ -929,6 +929,12 @@ export default function PartiOda() {
           ayiklamaYaz("native oynatici mount ediliyor (netflix://msl)");
           setNfYerelDrm({ netflixId: nfId, secureId: secId, videoId: o.videoId });
           setNfYerelAdres("netflix://msl");
+          netflixUstveri(o.videoId, nfId, secId)
+            .then((u) => {
+              if (u.baslik) { setSimdiki(u.baslik); ayiklamaYaz(`ustveri: ${u.baslik}`); }
+              if (u.kapak) setSimdikiKapak(u.kapak);
+            })
+            .catch(() => {});
         } catch (e) {
           ayiklamaYaz(`cerez/devir hatasi: ${(e as Error)?.message ?? e}`);
           setNfYerelAdres(null);
@@ -1324,12 +1330,22 @@ export default function PartiOda() {
           ]}
           onLayout={(e) => setUstYukseklik(e.nativeEvent.layout.height)}
         >
-          <UstBar
-            kisi={kisiler.length}
-            onKapat={() => setCikisOnayi(true)}
-            onGezin={() => router.push({ pathname: "/parti-platform", params: { secim: "1" } })}
-            onKisiler={() => setKisilerAcik(true)}
-          />
+          {kip === "gezinme" ? (
+            <Pressable
+              onPress={() => setCikisOnayi(true)}
+              hitSlop={12}
+              style={styles.gezinmeKapat}
+            >
+              <Icon name="x" size={26} sw={2.6} color="#fff" />
+            </Pressable>
+          ) : (
+            <UstBar
+              kisi={kisiler.length}
+              onKapat={() => setCikisOnayi(true)}
+              onGezin={() => router.push({ pathname: "/parti-platform", params: { secim: "1" } })}
+              onKisiler={() => setKisilerAcik(true)}
+            />
+          )}
         </View>
         )}
 
@@ -1540,6 +1556,10 @@ const styles = StyleSheet.create({
   yanSutun: { width: "32%", minWidth: 240 },
   ustZemin: { paddingHorizontal: 18 },
   ustYuzen: { position: "absolute", top: 0, left: 0, right: 0, zIndex: 10 },
+  gezinmeKapat: {
+    alignSelf: "flex-start", width: 38, height: 38, borderRadius: 19, marginVertical: 6,
+    alignItems: "center", justifyContent: "center", backgroundColor: "rgba(0,0,0,.45)",
+  },
   ustBar: {
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
     paddingVertical: 14,

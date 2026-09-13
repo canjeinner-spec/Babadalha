@@ -103,6 +103,14 @@ class AronPlayerModule : Module() {
       )
     }
 
+    AsyncFunction("netflixUstveri") { videoId: String, netflixId: String, secureId: String ->
+      val ctx = appContext.reactContext ?: throw IllegalStateException("context yok")
+      val yonetici = NetflixMslYonetici(ctx)
+      yonetici.oturum.netflixId = netflixId
+      yonetici.oturum.netflixSecureId = secureId
+      yonetici.baslikBilgisiAl(videoId)
+    }
+
     AsyncFunction("primeManifestAl") { videoId: String, cerezler: String, marketplaceId: String ->
       val ctx = appContext.reactContext ?: throw IllegalStateException("context yok")
       val yonetici = PrimeApiYonetici(ctx)

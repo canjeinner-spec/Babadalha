@@ -196,7 +196,7 @@ class AronWebView(context: Context, appContext: AppContext) : ExpoView(context, 
     s.useWideViewPort = true
     s.builtInZoomControls = false
     s.displayZoomControls = false
-    s.setSupportZoom(false)
+    s.setSupportZoom(true)
     s.javaScriptCanOpenWindowsAutomatically = true
     s.setSupportMultipleWindows(true)
     s.cacheMode = WebSettings.LOAD_DEFAULT
