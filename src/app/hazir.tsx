@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { AltinAmblem } from "@/components/AltinAmblem";
 import { Konfeti } from "@/components/Konfeti";
 import { Txt } from "@/components/Txt";
 import { Icon } from "@/icons/Icon";
@@ -39,8 +40,7 @@ export default function Hazir() {
       <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
         <View style={styles.orta}>
           <Animated.View entering={FadeInDown.duration(560)} style={styles.amblem}>
-            <Gradient colors={[C.gold2, "rgba(232,179,65,.35)"]} deg={150} style={StyleSheet.absoluteFill} />
-            <Icon name="check" size={34} sw={2.6} color="#241A05" />
+            <AltinAmblem ad="hazir" yedek="check" boyut={48} />
           </Animated.View>
 
           <Animated.View entering={FadeIn.duration(520).delay(220)}>
@@ -72,8 +72,10 @@ const styles = StyleSheet.create({
   isik: { position: "absolute", top: 0, left: 0, right: 0, height: 400 },
   orta: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 28 },
   amblem: {
-    width: 82, height: 82, borderRadius: 28, overflow: "hidden",
+    width: 86, height: 86, borderRadius: 28,
     alignItems: "center", justifyContent: "center",
+    backgroundColor: "rgba(232,179,65,.08)",
+    borderWidth: 1, borderColor: "rgba(232,179,65,.22)",
   },
   baslik: { marginTop: 26 },
   altYazi: { marginTop: 12, paddingHorizontal: 4 },

@@ -1,13 +1,13 @@
-# Premium ayrıcalık amblemleri
+# Altın amblemler
 
-`assets/premium/` altındaki beş webp, premium ekranındaki ayrıcalık
-satırlarının simgesi. `src/components/PremiumAmblem.tsx` bunları yüklüyor;
-dosya açılamazsa aynı çizgi ikonuna düşüyor, ekran hiçbir durumda boş
-kalmıyor.
+`assets/amblem/` altındaki webp'ler premium ve kutlama ekranlarının
+simgeleri. `src/components/AltinAmblem.tsx` bunları yüklüyor; dosya
+açılamazsa aynı çizgi ikonuna düşüyor, ekran hiçbir durumda boş kalmıyor.
 
 | dosya | satır | yedek ikon |
 | --- | --- | --- |
-| `tac.webp` | ekranın tepesindeki amblem | `crown` |
+| `tac.webp` | premium ekranının tepesi | `crown` |
+| `hazir.webp` | kutlama ekranının tepesi | `check` |
 | `reklamsiz.webp` | Reklamsız | `ban` |
 | `ad-rengi.webp` | Özel ad rengin | `evStar` |
 | `mikrofon.webp` | Sınırsız mikrofon | `mic` |
@@ -37,9 +37,12 @@ Dosya adları ve yolları aynı kalmalı, kod onları arıyor. İstenen biçim:
 Dosyaları değiştirdikten sonra Metro'yu yeniden başlat, expo-image
 önbelleği eski görseli tutabiliyor.
 
-## Taç
+## Taç ve onay
 
-Diğerlerinden ayrı üretildi: çizgi değil dolu. Gövde soldan sağa açılan
+Taç diğerlerinden ayrı üretildi: çizgi değil dolu. Gövde soldan sağa açılan
 altın degrade, alt bandında hafif beyaz aydınlanma, üç ucunda inci var.
 Kenar çizgisi yok; denendi, koyu zeminde gri bir hale bırakıyordu.
 80pt koyu kutunun içinde 46pt çiziliyor.
+
+Kutlama ekranının onay işareti aynı degradeyle ama kalın çizgi olarak
+basıldı (2.9 birim, yuvarlak uç). 86pt kutunun içinde 48pt çiziliyor.

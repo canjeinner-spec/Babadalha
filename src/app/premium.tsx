@@ -6,7 +6,7 @@ import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Portrait } from "@/components/Portrait";
-import { PremiumAmblem, type PremiumAmblemAdi } from "@/components/PremiumAmblem";
+import { AltinAmblem, type AltinAmblemAdi } from "@/components/AltinAmblem";
 import { RenkliAd } from "@/components/RenkliAd";
 import { Txt } from "@/components/Txt";
 import { Icon } from "@/icons/Icon";
@@ -29,7 +29,7 @@ const FIYATLAR: Record<string, Record<Paket, string>> = {
 };
 
 const AYRICALIKLAR: {
-  amblem: PremiumAmblemAdi;
+  amblem: AltinAmblemAdi;
   simge: IconName;
   baslik: string;
   metin: string;
@@ -104,7 +104,7 @@ function SohbetKirpmasi({ ad, mesaj, ad2, mesaj2 }: {
 }
 
 function Ayricalik({ amblem, simge, baslik, metin, sira, onizleme }: {
-  amblem: PremiumAmblemAdi;
+  amblem: AltinAmblemAdi;
   simge: IconName;
   baslik: string;
   metin: string;
@@ -114,7 +114,7 @@ function Ayricalik({ amblem, simge, baslik, metin, sira, onizleme }: {
   return (
     <Animated.View entering={FadeInDown.duration(460).delay(240 + sira * 110)} style={styles.ayricalik}>
       <View style={styles.ayricalikSimge}>
-        <PremiumAmblem ad={amblem} yedek={simge} boyut={24} />
+        <AltinAmblem ad={amblem} yedek={simge} boyut={24} />
       </View>
       <View style={{ flex: 1, minWidth: 0 }}>
         <Txt weight="extrabold" size={14.5} color="#fff">{baslik}</Txt>
@@ -177,7 +177,7 @@ export default function Premium() {
 
         <ScrollView contentContainerStyle={styles.govde} showsVerticalScrollIndicator={false}>
           <Animated.View entering={FadeInDown.duration(520)} style={styles.amblem}>
-            <PremiumAmblem ad="tac" yedek="crown" boyut={46} />
+            <AltinAmblem ad="tac" yedek="crown" boyut={46} />
           </Animated.View>
 
           <Animated.View entering={FadeIn.duration(460).delay(120)}>
