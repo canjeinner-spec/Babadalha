@@ -1308,14 +1308,15 @@ const NETFLIX = `
 
   function mslSifirlaVeYenile(kod) {
     if (mslHatasi === kod) return;
-    if (window.__aronNfYerel) {
+    var yerel = !!window.__aronNfYerel;
+    if (yerel) {
       if (window.__aronYolla) window.__aronYolla({ tur: 'gunluk', seviye: 'msl', metin: kod + ' yerel oynatici devralacak' });
       setTimeout(function () { if (!mslHatasi) mslHatasi = kod; }, 8000);
-      return;
+    } else {
+      mslHatasi = kod;
+      if (window.__aronYolla) window.__aronYolla({ tur: 'gunluk', seviye: 'msl', metin: 'cihaz durumu hatasi ' + kod });
+      depoDok(kod);
     }
-    mslHatasi = kod;
-    if (window.__aronYolla) window.__aronYolla({ tur: 'gunluk', seviye: 'msl', metin: 'cihaz durumu hatasi ' + kod });
-    depoDok(kod);
     var simdi = Date.now();
     var sonAn = 0;
     try { sonAn = parseInt(localStorage.getItem('aron_kurtarma_an') || '0', 10) || 0; } catch (e) {}
@@ -1325,7 +1326,8 @@ const NETFLIX = `
     }
     try { localStorage.setItem('aron_kurtarma_an', String(simdi)); } catch (e) {}
     var silinen = mslDepoTemizle();
-    if (window.__aronYolla) window.__aronYolla({ tur: 'gunluk', seviye: 'msl', metin: kod + ' msl anahtarlari silindi (' + silinen + '), sayfa yenileniyor. Cerezlere dokunulmadi.' });
+    if (window.__aronYolla) window.__aronYolla({ tur: 'gunluk', seviye: 'msl', metin: kod + ' msl anahtarlari silindi (' + silinen + ')' + (yerel ? ', yerel oynatici surdugu icin sayfa yenilenmiyor' : ', sayfa yenileniyor') + '. Cerezlere dokunulmadi.' });
+    if (yerel) return;
     setTimeout(function () { try { location.reload(); } catch (e) {} }, 900);
   }
   window.addEventListener('unhandledrejection', function (e) {
