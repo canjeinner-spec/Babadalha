@@ -79,7 +79,9 @@ class NetflixMslYonetici(private val context: Context) {
   }
 
   fun sahipTokenAl() {
-    if (oturum.sahipToken != null) return
+    val mevcut = oturum.sahipToken
+    if (mevcut != null && !oturum.tokenGecerliMi(mevcut).getBoolean("expired")) return
+    oturum.sahipToken = null
     try {
       val yuk = istek.sahipTokenYuku()
       val sonuc = mslPost(NetflixDrmGeriCagri.ROUTER_URL, yuk, "sahip-token")
@@ -91,7 +93,12 @@ class NetflixMslYonetici(private val context: Context) {
   }
 
   fun kullaniciTokenHazirla() {
-    if (oturum.kullaniciToken != null) return
+    val mevcut = oturum.kullaniciToken
+    if (mevcut != null && !oturum.tokenGecerliMi(mevcut).getBoolean("expired")) return
+    if (mevcut != null) {
+      Log.d(TAG, "kullanici tokeninin suresi dolmus, yeniden aliniyor")
+      oturum.kullaniciToken = null
+    }
     sahipTokenAl()
     if (oturum.sahipToken == null) return
     val guid = profilGuidAl() ?: return
