@@ -19,64 +19,49 @@ Bunun yerine pasif hâller `belgeler/amblem_uret.py` ile aktiften
 türetiliyor (doygunluk düşürülüp karartılıyor), yani üretilecek dosya
 sayısı dört.
 
-## Ortak üslup bloğu
+## Tek prompt
 
-Her promptun başına aynen bu konur; setin birbirini tutması buna bağlı.
-
-```
-Flat vector app icon, single centred object, transparent background,
-1024x1024 PNG with alpha.
-Polished gold gradient fill, light coming from the top-left:
-#FFF6DE highlight, into #F8D98A, #EFC25C in the middle, #D9A238,
-down to #B8811F in the lower right.
-Soft warm golden glow hugging the shape. No drop shadow, no ground
-shadow, no reflection.
-Uniform rounded stroke weight, roughly 8% of the canvas width; no
-hairlines, no thin details.
-Bold simple silhouette that stays readable when scaled down to 26 px.
-No text, no letters, no numbers, no background elements, no frame,
-no border, no card, no container, no gradient background.
-```
-
-## Tek tek promptlar
-
-**1. Ev** — ortak blok + `A simple house seen straight on: a wide pitched
-roof and a plain rectangular body with one rounded door opening in the
-middle. Symmetrical, no windows, no chimney.`
-
-**2. Partiler (kapı)** — ortak blok + `A single door seen straight on: a
-tall rounded-top rectangle with a thick frame, standing slightly open,
-with one small round door knob on the right side. No wall, no floor, no
-handle plate, no keyhole.`
-
-Küre yerine kapı seçildi: "oda" kelimesinin birebir karşılığı, 26 px'te
-okunuyor ve Rave ile Turtle'ın küresine benzemiyor.
-
-**3. Kişi** — ortak blok + `A single person symbol: one circle for the
-head above a rounded shoulders shape. Symmetrical, no facial features,
-no arms, no neck.`
-
-## Set birbirini tutmazsa
-
-Model ikonları tek tek üretirken üslubu kaydırıyorsa, dördünü tek
-görselde iste:
+Üçü tek görselde yan yana üretilir, sonra kesilip ayrılır.
 
 ```
-One image, 2048x2048, transparent background, containing exactly four
-icons in a 2x2 grid, evenly spaced, each centred in its own quadrant and
-filling about 70% of that quadrant. Same drawing style, same stroke
-weight and same gold gradient for all four.
-Top-left: a simple house with a pitched roof and one door opening.
-Top-right: a single door, tall rounded-top rectangle with a thick frame,
-standing slightly open, one round knob. Bottom-left: a person symbol, circle head over rounded shoulders.
-Bottom-right: a play triangle with rounded corners pointing right.
-No text, no frame, no background.
+One single image, 3072 x 1024 pixels, fully transparent background,
+containing exactly three separate icons laid out side by side in one
+horizontal row. Divide the canvas into three equal 1024 x 1024 squares;
+place one icon dead centre in each square, each icon filling about 62%
+of its own square so there is clean empty margin around every icon.
+Never let an icon touch or cross the boundary between squares.
+
+All three icons share one style:
+flat vector app icons, polished gold gradient fill with the light coming
+from the top-left: #FFF6DE highlight, into #F8D98A, #EFC25C in the
+middle, #D9A238, down to #B8811F in the lower right. A soft warm golden
+glow hugs each shape. No drop shadow, no ground shadow, no reflection.
+One uniform rounded stroke weight across all three, roughly 8% of a
+single square's width; no hairlines, no thin decorative details. Bold
+simple silhouettes that stay readable when scaled down to 26 px.
+
+Left square: a simple house seen straight on, a wide pitched roof over a
+plain rectangular body with one rounded door opening in the middle,
+symmetrical, no windows, no chimney.
+
+Middle square: a single door seen straight on, a tall rounded-top
+rectangle with a thick frame, standing slightly open, with one small
+round knob on the right side, no wall, no floor, no keyhole.
+
+Right square: a single person symbol, one circle for the head above a
+rounded shoulders shape, symmetrical, no facial features, no arms,
+no neck.
+
+No text, no letters, no numbers, no dividing lines, no frames, no
+borders, no cards, no containers, no background colour, no scenery.
 ```
 
-Üçü kesilip ayrılır.
+Arka plan saydam çıkmazsa yeniden üretilir; beyaz zeminli olanı kabul
+etme, kesince kenarlarda beyaz hâle kalıyor.
 
-## Dosyalar geldiğinde
+## Görsel geldiğinde
 
-PNG de olur, webp'ye çeviririm. `assets/amblem/` altına yukarıdaki adlarla
-konur. Açılmazsa `AltinAmblem` eski çizgi ikona düşüyor, çubuk hiçbir
-durumda boş kalmıyor.
+Üç kareye bölünüp `ev.webp`, `kapi.webp`, `kisi.webp` olarak kaydedilir,
+pasif hâlleri de aktiften türetilir. Kesme ve dönüştürme
+`belgeler/amblem_uret.py` yanında yapılır.
+
