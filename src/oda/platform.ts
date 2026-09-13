@@ -5,13 +5,14 @@ export type PlatformKodu =
   | "hulu" | "crunchyroll" | "apple_tv" | "plex" | "google_drive"
   | "twitch" | "dailymotion" | "reddit" | "tubi" | "vimeo"
   | "peacock" | "pluto" | "vk" | "rutube" | "twitter"
+  | "exxen" | "blutv" | "puhutv" | "tabii" | "tod" | "gain"
   | "dogrudan";
 
 export type Platform = {
   kod: PlatformKodu;
   ad: string;
   adres: string;
-  logo: ImageSourcePropType;
+  logo?: ImageSourcePropType;
   hesapGerekir: boolean;
   vurgu: string;
 };
@@ -38,6 +39,12 @@ export const PLATFORMLAR: Platform[] = [
   { kod: "vk", ad: "VK Video", adres: "https://vk.com/video", logo: require("@/assets/platform/vk.png"), hesapGerekir: false, vurgu: "#0077FF" },
   { kod: "rutube", ad: "Rutube", adres: "https://rutube.ru", logo: require("@/assets/platform/rutube.png"), hesapGerekir: false, vurgu: "#1D1D1D" },
   { kod: "twitter", ad: "X (Twitter)", adres: "https://x.com", logo: require("@/assets/platform/twitter.png"), hesapGerekir: false, vurgu: "#000000" },
+  { kod: "exxen", ad: "Exxen", adres: "https://www.exxen.com", hesapGerekir: true, vurgu: "#00E676" },
+  { kod: "blutv", ad: "BluTV", adres: "https://www.blutv.com", hesapGerekir: true, vurgu: "#00A0E9" },
+  { kod: "puhutv", ad: "puhutv", adres: "https://puhutv.com", hesapGerekir: false, vurgu: "#F5C518" },
+  { kod: "tabii", ad: "tabii", adres: "https://tabii.com", hesapGerekir: true, vurgu: "#E3002B" },
+  { kod: "tod", ad: "TOD", adres: "https://www.todtv.com.tr", hesapGerekir: true, vurgu: "#6A1B9A" },
+  { kod: "gain", ad: "Gain", adres: "https://www.gain.tv", hesapGerekir: true, vurgu: "#FF5722" },
 ];
 
 export const DOGRUDAN_ADI = "Doğrudan bağlantı";

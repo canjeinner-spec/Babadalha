@@ -5,6 +5,7 @@ import { FlatList, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Anim } from "@/components/Anim";
+import { PlatformSimge } from "@/components/PlatformSimge";
 import { girisEkraniGecildi, karsilamaGoruldu } from "@/lib/ilkAcilis";
 import { BaslatAmblemi } from "@/components/BaslatAmblemi";
 import { Portrait } from "@/components/Portrait";
@@ -33,7 +34,7 @@ function OdaSatiri({ oda, onBas }: { oda: LobiOdasi; onBas: () => void }) {
         )}
         {!!platform && (
           <View style={styles.platformRozet}>
-            <Image source={platform.logo} style={{ width: 14, height: 14 }} contentFit="contain" />
+            <PlatformSimge platform={platform} boyut={14} style={{ width: 14, height: 14 }} />
           </View>
         )}
       </View>

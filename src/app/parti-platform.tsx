@@ -4,6 +4,7 @@ import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { DogrudanLogo } from "@/components/DogrudanMarka";
+import { PlatformSimge } from "@/components/PlatformSimge";
 import { Txt } from "@/components/Txt";
 import { Icon } from "@/icons/Icon";
 import { haptic } from "@/lib/haptics";
@@ -60,11 +61,10 @@ export default function PartiPlatform() {
                   }}
                   style={styles.hucre}
                 >
-                  <Image
-                    source={p.logo}
+                  <PlatformSimge
+                    platform={p}
+                    boyut={46}
                     style={[styles.logo, !!kilit && styles.logoKilitli]}
-                    contentFit="contain"
-                    transition={0}
                   />
                   {!!kilit && (
                     <Txt size={10} color={C.dim} align="center" style={styles.kilitNotu}>{kilit}</Txt>

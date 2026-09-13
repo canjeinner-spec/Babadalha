@@ -2,6 +2,7 @@ import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState }
 import { AppState, Platform, type StyleProp, StyleSheet, type ViewStyle } from "react-native";
 import { WebView } from "react-native-webview";
 
+import { ayiklamaYaz } from "@/lib/ayiklamaGunluk";
 import { type PlatformKodu, platformBul } from "@/oda/platform";
 import { nativeWebYapilandirma } from "@/parti/webAyar";
 import {
@@ -147,6 +148,19 @@ export const KopruWeb = forwardRef<KopruWebKolu, Props>(function KopruWeb(
   const bekleyen = useRef(new Map<string, (v: string) => void>());
   const [dirilisNo, setDirilisNo] = useState(0);
 
+  const sorCalistir = (js: string): Promise<string> => {
+    if (!native) return Promise.resolve("null");
+    sorSayac.current += 1;
+    const id = `s${sorSayac.current}`;
+    return new Promise<string>((coz) => {
+      bekleyen.current.set(id, coz);
+      setSor({ n: sorSayac.current, id, js });
+      setTimeout(() => {
+        if (bekleyen.current.delete(id)) coz("zaman-asimi");
+      }, 8000);
+    });
+  };
+
   useImperativeHandle(ref, () => ({
     enjekte: (js: string) => {
       if (native) {
@@ -171,18 +185,7 @@ export const KopruWeb = forwardRef<KopruWebKolu, Props>(function KopruWeb(
       temizleSayac.current += 1;
       setTemizleIstek({ n: temizleSayac.current, kapsam });
     },
-    sor: (js: string) => {
-      if (!native) return Promise.resolve("null");
-      sorSayac.current += 1;
-      const id = `s${sorSayac.current}`;
-      return new Promise<string>((coz) => {
-        bekleyen.current.set(id, coz);
-        setSor({ n: sorSayac.current, id, js });
-        setTimeout(() => {
-          if (bekleyen.current.delete(id)) coz("zaman-asimi");
-        }, 8000);
-      });
-    },
+    sor: sorCalistir,
     duraklat: (deger: boolean) => setDuraklat(deger),
   }));
 
@@ -202,6 +205,44 @@ export const KopruWeb = forwardRef<KopruWebKolu, Props>(function KopruWeb(
   }, [native, platform]);
 
   const yapi = useMemo(() => nativeWebYapilandirma(platform), [platform]);
+
+  const gorulenAg = useRef(new Set<string>());
+  const agYaz = (yontem: string, url: string) => {
+    let anahtar = url;
+    try {
+      const u = new URL(url);
+      anahtar = u.host + u.pathname;
+    } catch {
+      anahtar = url.slice(0, 120);
+    }
+    if (gorulenAg.current.has(anahtar)) return;
+    gorulenAg.current.add(anahtar);
+    ayiklamaYaz(`ag ${yontem} ${anahtar.slice(0, 130)}`);
+  };
+
+  const anahtarDokuldu = useRef(false);
+  const anahtarDok = () => {
+    if (anahtarDokuldu.current) return;
+    anahtarDokuldu.current = true;
+    const js =
+      "(function(){try{" +
+      "var c=document.cookie.split(';').map(function(p){return p.trim().split('=')[0];}).filter(Boolean);" +
+      "var l=[];try{for(var i=0;i<localStorage.length;i++){l.push(localStorage.key(i));}}catch(e){l=['ERISIM-YOK'];}" +
+      "return JSON.stringify({c:c,l:l});" +
+      "}catch(e){return JSON.stringify({hata:String(e)});}})()";
+    sorCalistir(js)
+      .then((ham) => {
+        try {
+          const o = JSON.parse(ham) as { c?: string[]; l?: string[]; hata?: string };
+          if (o.hata) { ayiklamaYaz(`anahtar hatasi: ${o.hata.slice(0, 90)}`); return; }
+          ayiklamaYaz(`cerez(${o.c?.length ?? 0}): ${(o.c ?? []).join(",").slice(0, 150) || "yok"}`);
+          ayiklamaYaz(`yerel(${o.l?.length ?? 0}): ${(o.l ?? []).join(",").slice(0, 150) || "yok"}`);
+        } catch {
+          ayiklamaYaz(`anahtar okunamadi: ${String(ham).slice(0, 90)}`);
+        }
+      })
+      .catch(() => {});
+  };
   const nativeBetik = useMemo(() => SHIM + betik, [betik]);
 
   if (native && AronNativeWeb) {
@@ -227,11 +268,14 @@ export const KopruWeb = forwardRef<KopruWebKolu, Props>(function KopruWeb(
         durdurNo={durdurNo}
         onMessage={(e) => { if (e.nativeEvent.data) onMesaj(e.nativeEvent.data); }}
         onLoadStart={(e) => onYukleBasla?.(e.nativeEvent.url)}
-        onLoadEnd={(e) => onYukleBit?.(e.nativeEvent.url)}
+        onLoadEnd={(e) => { onYukleBit?.(e.nativeEvent.url); if (yapi.kesif) anahtarDok(); }}
         onError={(e) => onHata?.(e.nativeEvent.aciklama, e.nativeEvent.url)}
         onHttpError={(e) => console.warn(`[kopru-web] http ${e.nativeEvent.durum} ${e.nativeEvent.url}`)}
         onKonsol={(e) => console.warn(`[sayfa-konsol] ${platform} ${e.nativeEvent.seviye}: ${e.nativeEvent.metin}`)}
-        onAg={(e) => console.warn(`[sayfa-ag] ${platform} ${e.nativeEvent.yontem} ${e.nativeEvent.url}`)}
+        onAg={(e) => {
+          console.warn(`[sayfa-ag] ${platform} ${e.nativeEvent.yontem} ${e.nativeEvent.url}`);
+          if (yapi.kesif) agYaz(e.nativeEvent.yontem, e.nativeEvent.url);
+        }}
         onIzin={(e) => console.warn(`[kopru-web] izin istendi: ${e.nativeEvent.kaynaklar}`)}
         onTamEkran={(e) => console.warn(`[kopru-web] tam ekran ${e.nativeEvent.acik ? "acildi" : "kapandi"}`)}
         onPencere={(e) => console.warn(`[kopru-web] pencere ${e.nativeEvent.tur} ${e.nativeEvent.url}`)}
