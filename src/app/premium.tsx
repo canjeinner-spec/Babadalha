@@ -35,7 +35,7 @@ function Ayricalik({ simge, baslik, metin, sira }: {
   sira: number;
 }) {
   return (
-    <Animated.View entering={FadeInDown.duration(460).delay(240 + sira * 110)} style={styles.ayricalik}>
+    <Animated.View entering={FadeInDown.duration(460).delay(560 + sira * 110)} style={styles.ayricalik}>
       <View style={styles.ayricalikSimge}>
         <Icon name={simge} size={18} sw={2} color={C.gold2} />
       </View>
@@ -96,12 +96,18 @@ export default function Premium() {
         </View>
 
         <ScrollView contentContainerStyle={styles.govde} showsVerticalScrollIndicator={false}>
-          <Animated.View entering={FadeInDown.duration(520)} style={styles.amblem}>
+          <Animated.View entering={FadeIn.duration(620)}>
+            <Txt weight="bold" size={13} color="rgba(255,255,255,.6)" align="center" style={styles.girisCumlesi}>
+              {t("premium.girisCumlesi")}
+            </Txt>
+          </Animated.View>
+
+          <Animated.View entering={FadeInDown.duration(520).delay(320)} style={styles.amblem}>
             <Gradient colors={[C.gold2, "rgba(232,179,65,.35)"]} deg={150} style={StyleSheet.absoluteFill} />
             <Icon name="crown" size={30} color="#241A05" fill="#241A05" />
           </Animated.View>
 
-          <Animated.View entering={FadeIn.duration(460).delay(120)}>
+          <Animated.View entering={FadeIn.duration(460).delay(440)}>
             <Txt weight="displayBold" size={23} color="#fff" align="center" style={styles.baslik}>
               {t("premium.baslik")}
             </Txt>
@@ -125,7 +131,7 @@ export default function Premium() {
             ))}
           </View>
 
-          <Animated.View entering={FadeInDown.duration(460).delay(700)} style={styles.paketler}>
+          <Animated.View entering={FadeInDown.duration(460).delay(1020)} style={styles.paketler}>
             <Pressable
               style={[styles.paket, paket === "aylik" && styles.paketSecili]}
               onPress={() => { haptic.select(); setPaket("aylik"); }}
@@ -154,7 +160,7 @@ export default function Premium() {
             </Pressable>
           </Animated.View>
 
-          <Animated.View entering={FadeIn.duration(460).delay(820)}>
+          <Animated.View entering={FadeIn.duration(460).delay(1140)}>
             <Txt size={12.5} color="rgba(255,255,255,.62)" align="center" lh={1.5} style={styles.gerekce}>
               {t("premium.gerekce")}
             </Txt>
@@ -188,6 +194,7 @@ const styles = StyleSheet.create({
   tepe: { flexDirection: "row", alignItems: "center", paddingHorizontal: 14, paddingTop: 4 },
   kapatDugmesi: { width: 34, height: 34, alignItems: "center", justifyContent: "center" },
   govde: { paddingHorizontal: 20, paddingBottom: 20, alignItems: "center" },
+  girisCumlesi: { letterSpacing: 0.4, marginBottom: 18 },
   amblem: {
     width: 64, height: 64, borderRadius: 22, overflow: "hidden",
     alignItems: "center", justifyContent: "center", marginTop: 4,

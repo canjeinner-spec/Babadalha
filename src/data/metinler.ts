@@ -167,6 +167,7 @@ export const METINLER = {
   "karsilama.ileri": { tr: "İleri", en: "Next" },
   "karsilama.dokunarakGec": { tr: "dokunarak geç", en: "tap to skip" },
 
+  "premium.girisCumlesi": { tr: "Bir şey daha…", en: "One more thing…" },
   "premium.baslik": { tr: "ARON PREMIUM", en: "ARON PREMIUM" },
   "premium.altYazi": { tr: "İsteğe bağlı. Gerçekten.", en: "Optional. Really." },
   "premium.giris": {
