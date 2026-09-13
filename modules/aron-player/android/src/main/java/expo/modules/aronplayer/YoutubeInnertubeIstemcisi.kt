@@ -86,6 +86,7 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
 
   private val manifestUretici = YoutubeManifestUretici()
   private val sigCozucu = YoutubeSignatureCozucu()
+  private val poUretici = YoutubePoTokenUretici(context)
 
   fun oynatimBilgisiAl(videoId: String, dil: String = "en"): YoutubeOynatimBilgisi {
     val sira = listOf(Istemci.MWEB, Istemci.ANDROID_VR, Istemci.ANDROID_TESTSUITE, Istemci.WEB, Istemci.IOS)
@@ -98,16 +99,23 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
       Log.w(TAG, "oynatici bilgisi alinamadi: ${e.message}")
       null
     }
+    val poToken = try {
+      poUretici.uret(oynaticiBilgisi?.visitorData.orEmpty(), videoId)
+    } catch (e: Throwable) {
+      Log.w(TAG, "potoken atlandi: ${e.message}")
+      null
+    }
+    Log.d(TAG, "potoken: oturum=${poToken?.oturumToken?.isNotEmpty() == true} icerik=${poToken?.icerikToken?.isNotEmpty() == true}")
     for (istemci in sira) {
       try {
-        val yanit = istemciDene(istemci, videoId, dil, oynaticiBilgisi)
+        val yanit = istemciDene(istemci, videoId, dil, oynaticiBilgisi, poToken)
         val json = JSONObject(yanit)
         val ps = json.optJSONObject("playabilityStatus")
         val durum = ps?.optString("status", "") ?: ""
         if (durum == "OK" || durum == "LIVE_STREAM_OFFLINE") {
           val streaming = json.optJSONObject("streamingData")
           if (streaming != null && (streaming.optJSONArray("adaptiveFormats")?.length() ?: 0) > 0) {
-            return bilgiOlustur(json, streaming, videoId, istemci, oynaticiBilgisi)
+            return bilgiOlustur(json, streaming, videoId, istemci, oynaticiBilgisi, poToken)
           }
         }
         hatalar.add("${istemci.ad}: $durum ${ps?.optString("reason", "") ?: ""}")
@@ -120,7 +128,7 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
     }
     if (enSonJson != null) {
       val streaming = enSonJson!!.optJSONObject("streamingData")
-      if (streaming != null) return bilgiOlustur(enSonJson!!, streaming, videoId, enSonIstemci, oynaticiBilgisi)
+      if (streaming != null) return bilgiOlustur(enSonJson!!, streaming, videoId, enSonIstemci, oynaticiBilgisi, poToken)
     }
     throw Exception("YouTube tum istemciler basarisiz: ${hatalar.joinToString("; ")}")
   }
@@ -138,7 +146,8 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
     streamingData: JSONObject,
     videoId: String,
     istemci: Istemci,
-    oynaticiBilgisi: OynaticiBilgisi?
+    oynaticiBilgisi: OynaticiBilgisi?,
+    poToken: PoTokenSonucu?
   ): YoutubeOynatimBilgisi {
     reklamTemizle(json)
     val videoDetaylari = json.optJSONObject("videoDetails")
@@ -155,6 +164,7 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
     }
 
     if (betik != null) urlleriTazele(streamingData, betik)
+    poToken?.oturumToken?.takeIf { it.isNotEmpty() }?.let { potEkle(streamingData, it) }
 
     val hlsAdres = streamingData.optString("hlsManifestUrl", "")
     val canliMi = videoDetaylari?.optBoolean("isLive", false) == true ||
@@ -182,6 +192,23 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
       streamingJson = streamingData.toString(),
       userAgent = istemci.userAgent
     )
+  }
+
+  private fun potEkle(streamingData: JSONObject, pot: String) {
+    for (ad in listOf("adaptiveFormats", "formats")) {
+      val dizi = streamingData.optJSONArray(ad) ?: continue
+      for (i in 0 until dizi.length()) {
+        val fmt = dizi.optJSONObject(i) ?: continue
+        val url = fmt.optString("url", "")
+        if (url.isEmpty() || url.contains("&pot=") || url.contains("?pot=")) continue
+        val ayrac = if (url.contains("?")) "&" else "?"
+        fmt.put("url", url + ayrac + "pot=" + pot)
+      }
+    }
+    val hls = streamingData.optString("hlsManifestUrl", "")
+    if (hls.isNotEmpty() && !hls.contains("pot=")) {
+      streamingData.put("hlsManifestUrl", hls + (if (hls.contains("?")) "&" else "?") + "pot=" + pot)
+    }
   }
 
   private fun urlleriTazele(streamingData: JSONObject, betik: YoutubeSignatureCozucu.PlayerBetigi) {
@@ -316,9 +343,10 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
     istemci: Istemci,
     videoId: String,
     dil: String,
-    oynaticiBilgisi: OynaticiBilgisi?
+    oynaticiBilgisi: OynaticiBilgisi?,
+    poToken: PoTokenSonucu?
   ): String {
-    val govde = istemciGovdesi(istemci, videoId, dil, oynaticiBilgisi)
+    val govde = istemciGovdesi(istemci, videoId, dil, oynaticiBilgisi, poToken)
     val baglanti = URL(PLAYER_URL).openConnection() as HttpURLConnection
     baglanti.requestMethod = "POST"
     baglanti.setRequestProperty("User-Agent", istemci.userAgent)
@@ -355,7 +383,8 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
     istemci: Istemci,
     videoId: String,
     dil: String,
-    oynaticiBilgisi: OynaticiBilgisi?
+    oynaticiBilgisi: OynaticiBilgisi?,
+    poToken: PoTokenSonucu?
   ): String {
     val govde = JSONObject()
     val istek = JSONObject()
@@ -401,6 +430,10 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
     }
     playbackContext.put("contentPlaybackContext", contentPlayback)
     govde.put("playbackContext", playbackContext)
+
+    poToken?.icerikToken?.takeIf { it.isNotEmpty() }?.let {
+      govde.put("serviceIntegrityDimensions", JSONObject().put("poToken", it))
+    }
 
     return govde.toString()
   }

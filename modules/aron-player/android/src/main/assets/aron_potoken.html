@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en"><head><title></title><script>
+function botguardYukle(meydan) {
+  this.vm = this[meydan.globalName];
+  this.program = meydan.program;
+  this.vmFunctions = {};
+  this.syncSnapshotFunction = null;
+
+  if (!this.vm) throw new Error('BotGuard: VM yok');
+  if (!this.vm.a) throw new Error('BotGuard: program yuklenemedi');
+
+  var geriCagri = function (asyncSnapshotFunction, shutdownFunction, passEventFunction, checkCameraFunction) {
+    this.vmFunctions = {
+      asyncSnapshotFunction: asyncSnapshotFunction,
+      shutdownFunction: shutdownFunction,
+      passEventFunction: passEventFunction,
+      checkCameraFunction: checkCameraFunction
+    };
+  };
+
+  this.syncSnapshotFunction = this.vm.a(this.program, geriCagri, true, this.userInteractionElement, function () {}, [[], []])[0];
+
+  return new Promise(function (resolve, reject) {
+    var i = 0;
+    var z = setInterval(function () {
+      if (!!this.vmFunctions.asyncSnapshotFunction) { resolve(this); clearInterval(z); }
+      if (i >= 10000) { reject('asyncSnapshotFunction 10 saniyede gelmedi'); clearInterval(z); }
+      i += 1;
+    }, 1);
+  });
+}
+
+function anlikGoruntu(args) {
+  return new Promise(function (resolve, reject) {
+    if (!this.vmFunctions.asyncSnapshotFunction)
+      return reject(new Error('BotGuard: asyncSnapshotFunction yok'));
+    this.vmFunctions.asyncSnapshotFunction(function (yanit) { resolve(yanit); }, [
+      args.contentBinding,
+      args.signedTimestamp,
+      args.webPoSignalOutput,
+      args.skipPrivacyBuffer
+    ]);
+  });
+}
+
+function botguardCalistir(meydan) {
+  var yorumlayici = meydan.interpreterJavascript;
+  if (yorumlayici) { new Function(yorumlayici)(); } else { throw new Error('VM yuklenemedi'); }
+
+  var webPoSignalOutput = [];
+  window.webPoSignalOutputGlobal = webPoSignalOutput;
+  return botguardYukle({
+    globalName: meydan.globalName,
+    globalObj: this,
+    program: meydan.program
+  }).then(function (bg) {
+    return anlikGoruntu.call(bg, { webPoSignalOutput: webPoSignalOutput });
+  }).then(function (yanit) {
+    return { webPoSignalOutput: webPoSignalOutput, botguardResponse: yanit };
+  });
+}
+
+var __basici = null;
+var __basiciJeton = null;
+
+function poTokenUret(webPoSignalOutput, integrityToken, kimlik) {
+  var basiciAl = webPoSignalOutput[0];
+  if (!basiciAl) throw new Error('PMD:Undefined');
+
+  var jetonAnahtari = String(integrityToken);
+  if (!__basici || __basiciJeton !== jetonAnahtari) {
+    __basici = basiciAl(integrityToken);
+    __basiciJeton = jetonAnahtari;
+  }
+  var basici = __basici;
+
+  if (!(basici instanceof Function)) throw new Error('APF:Failed');
+  var sonuc = basici(kimlik);
+  if (!sonuc) throw new Error('YNJ:Undefined');
+  if (!(sonuc instanceof Uint8Array)) throw new Error('ODM:Invalid');
+  return sonuc;
+}
+</script></head><body></body></html>
