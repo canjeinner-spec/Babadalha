@@ -109,30 +109,33 @@ export const METINLER = {
   "rol.yardimci": { tr: "Parti Yardımcısı", en: "Party Moderator" },
   "rol.uye": { tr: "İzleyici", en: "Viewer" },
 
-  "sistem.katildinBen": { tr: "Partiye katıldın", en: "You joined the party" },
-  "sistem.katildi": { tr: "{0} partiye katıldı", en: "{0} joined the party" },
-  "sistem.ayrildinBen": { tr: "Partiden ayrıldın", en: "You left the party" },
-  "sistem.ayrildi": { tr: "{0} partiden ayrıldı", en: "{0} left the party" },
+  "sistem.katildinBen": { tr: "Partiye katıldın.", en: "You joined the party." },
+  "sistem.katildi": { tr: "{0} partiye katıldı.", en: "{0} joined the party." },
+  "sistem.ayrildinBen": { tr: "Partiden ayrıldın.", en: "You left the party." },
+  "sistem.ayrildi": { tr: "{0} partiden ayrıldı.", en: "{0} left the party." },
   "sistem.yardimciAlindiBen": {
-    tr: "{0} yardımcılığını aldı",
-    en: "{0} removed you as a moderator",
+    tr: "{0} tarafından Parti Yardımcılığından alındın.",
+    en: "You were removed as a Party Moderator by {0}.",
   },
   "sistem.yardimciAlindi": {
-    tr: "{0}, {1} kullanıcısının yardımcılığını aldı",
-    en: "{0} removed {1} as a moderator",
+    tr: "{0}, {1} tarafından Parti Yardımcılığından alındı.",
+    en: "{0} was removed as a Party Moderator by {1}.",
   },
-  "sistem.rolVerildiBen": { tr: "{0} seni {1} yaptı", en: "{0} made you a {1}" },
+  "sistem.rolVerildiBen": {
+    tr: "{0} tarafından {1} olarak atandın.",
+    en: "You were made a {1} by {0}.",
+  },
   "sistem.rolVerildi": {
-    tr: "{0}, {1} kullanıcısını {2} yaptı",
-    en: "{0} made {1} a {2}",
+    tr: "{0}, {1} tarafından {2} olarak atandı.",
+    en: "{0} was made a {2} by {1}.",
   },
   "sistem.atildinBen": {
-    tr: "{0} tarafından partiden atıldın",
-    en: "You were removed from the party by the {0}",
+    tr: "{0} tarafından partiden atıldın.",
+    en: "You were removed from the party by {0}.",
   },
   "sistem.atildi": {
-    tr: "{0}, {1} tarafından partiden atıldı",
-    en: "{0} was removed from the party by the {1}",
+    tr: "{0}, {1} tarafından partiden atıldı.",
+    en: "{0} was removed from the party by {1}.",
   },
 
   "odaEkran.davetLinki": { tr: "Davet linki: ", en: "Invite link: " },

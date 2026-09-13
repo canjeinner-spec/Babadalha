@@ -730,7 +730,14 @@ export default function PartiOda() {
         setAtilma(o.atanRol);
       } else {
         const hedef = agKisileriRef.current.find((k) => k.anahtar === o.anahtar);
-        if (hedef) sistemEkle(sistemKisi(hedef), { cesit: "atildi", atanRol: o.atanRol });
+        const atan = agKisileriRef.current.find((k) => k.anahtar === o.atan);
+        if (hedef) {
+          sistemEkle(sistemKisi(hedef), {
+            cesit: "atildi",
+            atan: atan ? sistemKisi(atan) : undefined,
+            atanRol: o.atanRol,
+          });
+        }
         setAgKisileri((liste) => liste.filter((k) => k.anahtar !== o.anahtar));
       }
     } else if (o.tur === "odaAyari") {

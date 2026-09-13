@@ -14,7 +14,7 @@ export type SistemOlayi =
   | { cesit: "katildi" }
   | { cesit: "ayrildi" }
   | { cesit: "rol"; veren: SistemKisi; rol: PartiRol }
-  | { cesit: "atildi"; atanRol: PartiRol };
+  | { cesit: "atildi"; atan?: SistemKisi; atanRol: PartiRol };
 
 export type SistemParcasi =
   | { tur: "etiket"; kisi: SistemKisi }
@@ -58,14 +58,13 @@ export function sistemParcalari(
     if (olay.rol === "uye") {
       return benim
         ? kur("sistem.yardimciAlindiBen", [olay.veren])
-        : kur("sistem.yardimciAlindi", [olay.veren, kisi]);
+        : kur("sistem.yardimciAlindi", [kisi, olay.veren]);
     }
     return benim
       ? kur("sistem.rolVerildiBen", [olay.veren, rolAdi(olay.rol)])
-      : kur("sistem.rolVerildi", [olay.veren, kisi, rolAdi(olay.rol)]);
+      : kur("sistem.rolVerildi", [kisi, olay.veren, rolAdi(olay.rol)]);
   }
 
-  return benim
-    ? kur("sistem.atildinBen", [rolAdi(olay.atanRol)])
-    : kur("sistem.atildi", [kisi, rolAdi(olay.atanRol)]);
+  const eden: SistemKisi | string = olay.atan ?? rolAdi(olay.atanRol);
+  return benim ? kur("sistem.atildinBen", [eden]) : kur("sistem.atildi", [kisi, eden]);
 }
