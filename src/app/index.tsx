@@ -21,37 +21,112 @@ import { Gradient } from "@/theme/Gradient";
 import { TEMA_YAZI_GOLGESI, useTema } from "@/theme/tema";
 import { Zemin } from "@/theme/Zemin";
 
-function OdaSatiri({ oda, onBas }: { oda: LobiOdasi; onBas: () => void }) {
+const ORNEK_ODALAR: LobiOdasi[] = [
+  {
+    odaId: "ornek-1", ad: "Gece Kuşları", sahip: "Deniz", platform: "netflix",
+    baslik: "Sessiz Sokaklar · 3. Bölüm", kapak: null, kisi: 6, ilerleme: 0.34, an: 0,
+    katilimcilar: [{ ad: "Deniz" }, { ad: "Ece" }, { ad: "Kaan" }, { ad: "Mert" }],
+    konusan: 2, sureSn: 52 * 60, arkadas: true,
+  },
+  {
+    odaId: "ornek-2", ad: "Pazar Filmi", sahip: "Selin", platform: "prime_video",
+    baslik: "Uzun Yol", kapak: null, kisi: 3, ilerleme: 0.86, an: 0,
+    katilimcilar: [{ ad: "Selin" }, { ad: "Bora" }, { ad: "Ayşe" }],
+    konusan: 0, sureSn: 118 * 60,
+  },
+  {
+    odaId: "ornek-3", ad: "Akşam Listesi", sahip: "Efe", platform: "youtube",
+    baslik: "Haftanın seçkisi", kapak: null, kisi: 11, ilerleme: 0.05, an: 0,
+    katilimcilar: [{ ad: "Efe" }, { ad: "Zeynep" }, { ad: "Can" }, { ad: "Nil" }],
+    konusan: 4, sureSn: 26 * 60, arkadas: true,
+  },
+  {
+    odaId: "ornek-4", ad: "Canlı Yayın", sahip: "Barış", platform: "youtube_live",
+    baslik: "Stüdyo sohbeti", kapak: null, kisi: 2, ilerleme: 0, an: 0,
+    katilimcilar: [{ ad: "Barış" }, { ad: "Ela" }], konusan: 1, canli: true,
+  },
+  {
+    odaId: "ornek-5", ad: "Anime Gecesi", sahip: "Tuna", platform: "crunchyroll",
+    baslik: "Rüzgârın Çocukları · 12. Bölüm", kapak: null, kisi: 4, ilerleme: 0.52, an: 0,
+    katilimcilar: [{ ad: "Tuna" }, { ad: "Irmak" }, { ad: "Sinan" }], konusan: 0, sureSn: 24 * 60,
+  },
+];
+
+function durumYazisi(oda: LobiOdasi): string {
+  if (oda.canli) return "Canlı";
+  const o = Math.min(1, Math.max(0, oda.ilerleme));
+  if (o < 0.12) return "Yeni başladı";
+  if (o > 0.8) return "Bitmek üzere";
+  if (oda.sureSn) return `${Math.max(1, Math.round((oda.sureSn * (1 - o)) / 60))} dk kaldı`;
+  return "Yarısında";
+}
+
+function OdaKarti({ oda, onBas }: { oda: LobiOdasi; onBas: () => void }) {
   const platform = platformBul(oda.platform);
+  const katilimcilar = oda.katilimcilar ?? [];
+  const gorunen = katilimcilar.slice(0, 4);
+  const artan = Math.max(0, oda.kisi - gorunen.length);
+  const konusan = oda.konusan ?? 0;
+  const oran = Math.min(1, Math.max(0, oda.ilerleme));
+
   return (
-    <Pressable onPress={onBas} style={styles.satir}>
+    <Pressable onPress={onBas} style={[styles.kart, oda.arkadas && styles.kartArkadas]}>
       <View style={styles.kapak}>
         {oda.kapak ? (
           <Image source={{ uri: oda.kapak }} style={StyleSheet.absoluteFill} contentFit="cover" transition={140} />
         ) : (
-          <Gradient colors={["#241B3A", "#12101C"]} deg={135} style={StyleSheet.absoluteFill} />
+          <Gradient colors={["#2A2014", "#14100A"]} deg={135} style={StyleSheet.absoluteFill} />
         )}
         {!!platform && (
           <View style={styles.platformRozet}>
-            <Image source={platform.logo} style={{ width: 14, height: 14 }} contentFit="contain" />
+            <Image source={platform.logo} style={styles.platformLogo} contentFit="contain" />
+          </View>
+        )}
+        {oda.canli && (
+          <View style={styles.canliRozet}>
+            <View style={styles.canliNokta} />
+            <Txt weight="extrabold" size={8.5} color="#fff">CANLI</Txt>
           </View>
         )}
       </View>
 
-      <View style={{ flex: 1, minWidth: 0 }}>
-        <Txt weight="extrabold" size={13.5} color="#fff" numberOfLines={1}>{oda.ad}</Txt>
-        <Txt size={11} color={C.dim} numberOfLines={1} style={{ marginTop: 2 }}>
-          {oda.baslik ?? platform?.ad ?? "Parti"}
+      <View style={styles.sag}>
+        <Txt weight="extrabold" size={13.5} color={C.text} numberOfLines={2}>
+          {oda.baslik ?? oda.ad}
         </Txt>
-        <View style={styles.altSatir}>
-          <Portrait name={oda.sahip} size={16} photo={oda.sahipFoto} halkasiz />
-          <Txt size={10.5} color={C.dim2} numberOfLines={1} style={{ flexShrink: 1 }}>{oda.sahip}</Txt>
-        </View>
-      </View>
 
-      <View style={styles.kisiCipi}>
-        <Icon name="users" size={12} color={C.gold2} />
-        <Txt weight="extrabold" size={11.5} color={C.gold2}>{oda.kisi}</Txt>
+        <View style={styles.kisiSatiri}>
+          <View style={styles.avatarSira}>
+            {gorunen.map((k, i) => (
+              <View key={k.ad + i} style={[styles.avatar, i > 0 && styles.avatarUstuste]}>
+                <Portrait name={k.ad} size={20} photo={k.foto} halkasiz />
+              </View>
+            ))}
+            {artan > 0 && (
+              <View style={[styles.artan, gorunen.length > 0 && styles.avatarUstuste]}>
+                <Txt weight="extrabold" size={9.5} color={C.dim}>+{artan}</Txt>
+              </View>
+            )}
+          </View>
+          <View style={{ flex: 1 }} />
+          {konusan > 0 && (
+            <View style={styles.sesKutu}>
+              <Icon name="mic" size={11} color={C.gold2} />
+              <Txt weight="extrabold" size={10.5} color={C.gold2}>{konusan}</Txt>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.ilerlemeSatiri}>
+          {!oda.canli && (
+            <View style={styles.ilerlemeYol}>
+              <View style={[styles.ilerlemeDolu, { width: `${Math.round(oran * 100)}%` }]} />
+            </View>
+          )}
+          <Txt size={10} color={oda.canli ? C.gold2 : C.dim2} numberOfLines={1}>
+            {durumYazisi(oda)}
+          </Txt>
+        </View>
       </View>
     </Pressable>
   );
@@ -80,6 +155,7 @@ export default function PartiAnaEkran() {
   const userPhoto = useApp((s) => s.userPhoto);
   const userName = useApp((s) => s.userName);
   const [odalar, setOdalar] = useState<LobiOdasi[]>([]);
+  const gosterilecek = odalar.length > 0 ? odalar : __DEV__ ? ORNEK_ODALAR : odalar;
   const { ic, renk } = useTema();
   const altPay = useSafeAreaInsets().bottom;
   const temali = !!ic?.ustGorsel;
@@ -126,16 +202,16 @@ export default function PartiAnaEkran() {
         <View style={styles.listeBasligi}>
           <Txt weight="extrabold" size={12.5} color={C.text}>Canlı partiler</Txt>
           <View style={{ flex: 1 }} />
-          <Txt size={11} color={C.dim2}>{odalar.length}</Txt>
+          <Txt size={11} color={C.dim2}>{gosterilecek.length}</Txt>
         </View>
 
         <FlatList
-          data={odalar}
+          data={gosterilecek}
           keyExtractor={(o) => o.odaId}
           contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 108 }}
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
-            <OdaSatiri
+            <OdaKarti
               oda={item}
               onBas={() => {
                 haptic.select();
@@ -173,30 +249,38 @@ const styles = StyleSheet.create({
   },
   baslat: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 14 },
   listeBasligi: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingTop: 22, paddingBottom: 10 },
-  satir: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    padding: 10,
-    borderRadius: 16,
-    marginBottom: 10,
-    backgroundColor: C.card,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,.075)",
+  kart: {
+    flexDirection: "row", gap: 11, padding: 10, borderRadius: 16, marginBottom: 10,
+    backgroundColor: C.kart, borderWidth: 1, borderColor: C.line,
   },
-  kapak: { width: 62, height: 62, borderRadius: 13, overflow: "hidden", backgroundColor: C.kontrol },
+  kartArkadas: { borderColor: "rgba(232,179,65,.30)" },
+  kapak: { width: 116, aspectRatio: 16 / 9, borderRadius: 10, overflow: "hidden", backgroundColor: "#14100A" },
   platformRozet: {
-    position: "absolute", left: 4, bottom: 4,
-    width: 20, height: 20, borderRadius: 7,
-    alignItems: "center", justifyContent: "center",
-    backgroundColor: "rgba(10,8,3,.8)",
+    position: "absolute", left: 5, bottom: 5, paddingHorizontal: 4, paddingVertical: 3,
+    borderRadius: 6, backgroundColor: "rgba(0,0,0,.55)",
   },
-  altSatir: { flexDirection: "row", alignItems: "center", gap: 5, marginTop: 5, minWidth: 0 },
-  kisiCipi: {
-    flexDirection: "row", alignItems: "center", gap: 5,
-    paddingVertical: 6, paddingHorizontal: 11, borderRadius: 999,
-    backgroundColor: C.gold + "14", borderWidth: 1, borderColor: C.gold + "33",
+  platformLogo: { width: 30, height: 10 },
+  canliRozet: {
+    position: "absolute", right: 5, top: 5, flexDirection: "row", alignItems: "center", gap: 3,
+    paddingHorizontal: 5, paddingVertical: 2.5, borderRadius: 6, backgroundColor: "rgba(220,38,38,.92)",
   },
+  canliNokta: { width: 5, height: 5, borderRadius: 3, backgroundColor: "#fff" },
+  sag: { flex: 1, minWidth: 0, justifyContent: "space-between", paddingVertical: 1 },
+  kisiSatiri: { flexDirection: "row", alignItems: "center", marginTop: 7 },
+  avatarSira: { flexDirection: "row", alignItems: "center" },
+  avatar: { borderRadius: 12, borderWidth: 1.5, borderColor: C.bg },
+  avatarUstuste: { marginLeft: -7 },
+  artan: {
+    minWidth: 23, height: 23, borderRadius: 12, alignItems: "center", justifyContent: "center",
+    paddingHorizontal: 4, backgroundColor: "rgba(255,255,255,.08)", borderWidth: 1.5, borderColor: C.bg,
+  },
+  sesKutu: {
+    flexDirection: "row", alignItems: "center", gap: 3, paddingHorizontal: 6, paddingVertical: 3,
+    borderRadius: 8, backgroundColor: C.gold + "1A",
+  },
+  ilerlemeSatiri: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 8 },
+  ilerlemeYol: { flex: 1, height: 3, borderRadius: 2, backgroundColor: "rgba(255,255,255,.10)", overflow: "hidden" },
+  ilerlemeDolu: { height: 3, borderRadius: 2, backgroundColor: C.gold },
   bos: { alignItems: "center", paddingTop: 28, paddingHorizontal: 40 },
   bosAnim: { width: 210, height: 149 },
 });

@@ -15,6 +15,11 @@ export type LobiOdasi = {
   kisi: number;
   ilerleme: number;
   an: number;
+  katilimcilar?: { ad: string; foto?: string }[];
+  konusan?: number;
+  sureSn?: number;
+  canli?: boolean;
+  arkadas?: boolean;
 };
 
 const LOBI = "parti-lobi";
