@@ -8,9 +8,9 @@
 | `assets/amblem/kapi.webp` | Partiler |
 | `assets/amblem/kisi.webp` | Profil |
 
-Ortadaki yükseltilmiş düğme dördüncü dosya: `assets/amblem/baslat.webp`.
-Zemini altın degrade olduğu için bu tek ikon **koyu mürekkep**, üstüne
-altın konursa okunmuyor.
+Başlat da dördüncü dosya: `assets/amblem/baslat.webp`. Yükseltilmiş altın
+düğme kaldırıldı, Başlat artık diğer üçüyle aynı kalıpta duruyor, o yüzden
+o da altın.
 
 ## Neden pasif hâlini üretmeye gerek yok
 
@@ -76,26 +76,26 @@ kareye ortalıyor, %8 kenar payı bırakıp 192×192 webp yazıyor.
 Pasif hâller dosya olarak üretilmiyor; `AltinAmblem` sönük istendiğinde
 aynı görseli düşük saydamlıkla çiziyor.
 
-## Ortadaki düğme için ayrı prompt
+## Başlat için ayrı prompt
 
-Zemini altın olduğundan üç sekmeyle aynı görselde üretilemiyor, tek
-başına isteniyor. Çizim dili aynı kalmalı: aynı kalınlık, aynı yuvarlak
-uçlar, aynı sadelik.
+Üç sekme üretildikten sonra istendiği için tek başına, ama aynı üslupla.
 
 ```
 One single icon, 1024 x 1024 pixels, fully transparent background.
-Flat vector app icon, solid flat fill in one single dark colour #241A05,
-no gradient, no glow, no shadow, no outline in any other colour.
-A party popper burst: a short cone opening towards the upper right with
-a play triangle sitting inside its mouth, and five or six thick rounded
-confetti shards flying out around it. Bold rounded shapes, one uniform
+Flat vector app icon, polished gold gradient fill with the light coming
+from the top-left: #FFF6DE highlight, into #F8D98A, #EFC25C in the
+middle, #D9A238, down to #B8811F in the lower right. A soft warm golden
+glow hugs the shape. No drop shadow, no ground shadow, no reflection.
+A party popper: a short thick cone tilted towards the upper right with a
+play triangle sitting inside its mouth, and four or five thick rounded
+confetti shards flying out above it. Bold rounded shapes, one uniform
 stroke weight roughly 8% of the canvas, no hairlines, no thin streamers.
-The whole mark reads as one compact silhouette that stays legible when
-scaled down to 30 px.
-Centred, filling about 70% of the canvas, symmetrical weight.
+Reads as one compact silhouette that stays legible at 26 px, with the
+same visual weight as a solid house or person icon.
+Centred, filling about 62% of the canvas.
 No text, no letters, no numbers, no frame, no border, no circle or
 square container, no background colour.
 ```
 
-Gelince `assets/amblem/baslat.webp` olarak kaydedilir, alt çubuğun
-ortasındaki `BaslatAmblemi` onu okuyacak biçimde bağlanır.
+Gelince `belgeler/amblem_kes.py` ile tek ikon olarak kesilip
+`assets/amblem/baslat.webp` üstüne yazılır.
