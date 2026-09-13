@@ -9,7 +9,7 @@ export function icerikAnahtari(platform: PlatformKodu, adres: string | null | un
   } catch {
     return `${platform}:${ham.toLowerCase()}`;
   }
-  if (platform === "youtube") {
+  if (platform === "youtube" || platform === "youtube_live") {
     const v = u.searchParams.get("v");
     if (v) return `youtube:v:${v}`;
     const kisa = u.pathname.match(/^\/(shorts|embed|live)\/([^/?#]+)/);

@@ -8,7 +8,7 @@ const require0 = createRequire(import.meta.url);
 const dosya = "src/parti/kopru.ts";
 
 const PLATFORMLAR = [
-  "youtube", "netflix", "prime_video", "disney_plus", "hbo_max",
+  "youtube", "youtube_live", "netflix", "prime_video", "disney_plus", "hbo_max",
   "hulu", "crunchyroll", "apple_tv", "plex", "google_drive",
 ];
 

@@ -33,6 +33,7 @@ export function masaustuIcerikMi(platform: PlatformKodu): boolean {
 }
 
 export function kullaniciAjani(platform: PlatformKodu): string {
+  if (Platform.OS === "android" && (platform === "youtube" || platform === "youtube_live")) return "";
   if (Platform.OS === "ios" && DRM_PLATFORMLARI.has(platform)) return MASAUSTU_SAFARI;
   if (Platform.OS === "android" && platform === "netflix") return WINDOWS_EDGE;
   if (Platform.OS === "android" && platform === "prime_video") return IPHONE_SAFARI;
@@ -2298,6 +2299,7 @@ const GOOGLE_DRIVE = `
 
 const EKLER: Partial<Record<PlatformKodu, string>> = {
   youtube: YOUTUBE,
+  youtube_live: YOUTUBE,
   netflix: NETFLIX,
   disney_plus: DISNEY,
   prime_video: PRIME,
@@ -2319,7 +2321,7 @@ const EKLER: Partial<Record<PlatformKodu, string>> = {
   google_drive: GOOGLE_DRIVE,
 };
 
-const ORTAM_YAMASIZ = new Set<PlatformKodu>(["prime_video"]);
+const ORTAM_YAMASIZ = new Set<PlatformKodu>(["prime_video", "youtube", "youtube_live"]);
 
 const NETFLIX_ANDROID_EK = `
 (function () {
@@ -2569,13 +2571,61 @@ const YOUTUBE_ANDROID_EK = `
 })();
 `;
 
+const YOUTUBE_CANLI_EK = `
+(function () {
+  if (window.__aronYtCanli) return;
+  window.__aronYtCanli = true;
+  var SUZGEC = 'EgJAAQ%3D%3D';
+  var sonAdres = '';
+
+  function suzgecliAdres(adres) {
+    if (adres.indexOf('/results') === -1) return '';
+    var parca = adres.split('#');
+    var govde = parca[0];
+    var capa = parca.length > 1 ? '#' + parca.slice(1).join('#') : '';
+    var yer = govde.indexOf('?');
+    if (yer === -1) return govde + '?sp=' + SUZGEC + capa;
+    var yol = govde.slice(0, yer);
+    var ciftler = govde.slice(yer + 1).split('&');
+    var yeni = [];
+    var bulundu = false;
+    for (var i = 0; i < ciftler.length; i++) {
+      if (!ciftler[i]) continue;
+      if (ciftler[i].split('=')[0] === 'sp') {
+        yeni.push('sp=' + SUZGEC);
+        bulundu = true;
+      } else {
+        yeni.push(ciftler[i]);
+      }
+    }
+    if (!bulundu) yeni.push('sp=' + SUZGEC);
+    return yol + '?' + yeni.join('&') + capa;
+  }
+
+  function uygula() {
+    try {
+      var suzgecli = suzgecliAdres(location.href);
+      if (!suzgecli) { sonAdres = ''; return; }
+      if (suzgecli === location.href) { sonAdres = suzgecli; return; }
+      if (suzgecli === sonAdres) return;
+      sonAdres = suzgecli;
+      location.replace(suzgecli);
+    } catch (e) {}
+  }
+
+  setInterval(uygula, 900);
+  uygula();
+})();
+`;
+
 export function kopruBetigi(platform: PlatformKodu): string {
   const ajan = kullaniciAjani(platform);
   const safari = ajan === MASAUSTU_SAFARI;
   const netflixAndroid = Platform.OS === "android" && platform === "netflix";
   const maxAndroid = Platform.OS === "android" && platform === "hbo_max";
-  const youtubeAndroid = Platform.OS === "android" && platform === "youtube";
+  const youtubeAndroid = Platform.OS === "android" && (platform === "youtube" || platform === "youtube_live");
   const primeAndroid = Platform.OS === "android" && platform === "prime_video";
+  const youtubeCanli = platform === "youtube_live";
   let ortam: string;
   if (netflixAndroid) ortam = TURTLE_ORTAM;
   else if (ORTAM_YAMASIZ.has(platform)) ortam = "";
@@ -2585,7 +2635,8 @@ export function kopruBetigi(platform: PlatformKodu): string {
   const maxYerel = maxAndroid ? HBO_MAX_ANDROID_EK : "";
   const ytYerel = youtubeAndroid ? YOUTUBE_ANDROID_EK : "";
   const primeYerel = primeAndroid ? PRIME_ANDROID_EK : "";
-  return `${ortam}\n${MSE}\n${av1}\n${MEDYA}\n${TEMEL}\n${EKLER[platform] ?? ""}\n${nfYerel}\n${maxYerel}\n${ytYerel}\n${primeYerel}\n${ORTAK}\n${TANI}\ntrue;`;
+  const ytCanli = youtubeCanli ? YOUTUBE_CANLI_EK : "";
+  return `${ortam}\n${MSE}\n${av1}\n${MEDYA}\n${TEMEL}\n${EKLER[platform] ?? ""}\n${nfYerel}\n${maxYerel}\n${ytYerel}\n${ytCanli}\n${primeYerel}\n${ORTAK}\n${TANI}\ntrue;`;
 }
 
 function komut(kod: string): string {

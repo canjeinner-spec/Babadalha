@@ -1356,14 +1356,14 @@ export default function PartiOda() {
           <View style={styles.oynatici}>
             <Txt size={13} color={C.dim}>Partiye bağlanılıyor…</Txt>
           </View>
-        ) : dogrudanMi(oynatilan.platform) || (oynatilan.platform === "netflix" && Platform.OS === "android" && nfYerelAdres) || (oynatilan.platform === "hbo_max" && Platform.OS === "android" && maxYerelAdres) || (oynatilan.platform === "youtube" && Platform.OS === "android" && ytYerelAdres) || (oynatilan.platform === "prime_video" && Platform.OS === "android" && primeYerelAdres) ? (
+        ) : dogrudanMi(oynatilan.platform) || (oynatilan.platform === "netflix" && Platform.OS === "android" && nfYerelAdres) || (oynatilan.platform === "hbo_max" && Platform.OS === "android" && maxYerelAdres) || ((oynatilan.platform === "youtube" || oynatilan.platform === "youtube_live") && Platform.OS === "android" && ytYerelAdres) || (oynatilan.platform === "prime_video" && Platform.OS === "android" && primeYerelAdres) ? (
           <PartiNativeOynatici
             key={`dogrudan-${oynatimNo}`}
             ref={oynatici}
             adres={
               nfYerelAdres && oynatilan.platform === "netflix" ? nfYerelAdres
               : maxYerelAdres && oynatilan.platform === "hbo_max" ? maxYerelAdres
-              : ytYerelAdres && oynatilan.platform === "youtube" ? ytYerelAdres
+              : ytYerelAdres && (oynatilan.platform === "youtube" || oynatilan.platform === "youtube_live") ? ytYerelAdres
               : primeYerelAdres && oynatilan.platform === "prime_video" ? primeYerelAdres
               : oynatilan.adres
             }
@@ -1376,7 +1376,7 @@ export default function PartiOda() {
                 ? { scheme: "widevine" as const, licenseUrl: primeDrm.lisansUrl, primeAmazon: true, primeVideoId: primeDrm.videoId, primeCerezler: primeDrm.cerezler, primeMarketplaceId: primeDrm.marketplaceId, altyazilar: primeDrm.altyazilar }
                 : undefined
             }
-            basliklar={ytYerelAdres && oynatilan.platform === "youtube" ? ytBasliklar : null}
+            basliklar={ytYerelAdres && (oynatilan.platform === "youtube" || oynatilan.platform === "youtube_live") ? ytBasliklar : null}
             baslik={simdiki}
             altBaslik={platformBul(oynatilan.platform)?.ad ?? null}
             tamEkran={kip === "gezinme" || buyuk}
