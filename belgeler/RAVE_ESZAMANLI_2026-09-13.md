@@ -364,3 +364,99 @@ yaklaşımın iOS karşılığı olması muhtemel.
    reklam bölümleri duruyor. Yukarıdaki CSS seçicileri doğrudan
    kullanılabilir.
 3. **Arka plan kipleri.** `audio` ve `voip` bizde de gerekiyor.
+
+---
+
+## 12. iOS ikilisinin sökümü (disassembly)
+
+String çekmekle yetinmeyip ikiliyi gerçekten söktük. Yöntem: Mach-O
+segment tablosundan sanal adres → dosya konumu haritası çıkarıldı,
+`llvm-objdump --macho --syms` ile 1.43 milyon sembol alındı, capstone
+ile ARM64 çözümü yapıldı. Swift mangled adlardan `<uzunluk><ad>`
+dizileri ayrıştırılarak 2213 tip ve üyeleri çıkarıldı.
+
+### 12.1 `CustomAVPlayer` — eşzamanlı oynatmanın kalbi
+
+Sınıfın üyeleri:
+
+```
+DEADBAND, playLater, pauseAt, wallTimeToCMTime, dispatchTimeFrom,
+internalPlayAsThoughStartedFrom, internalPauseAsThoughPausedFrom,
+getOffset, driftDebug, lastTarget, pastTargetingResults,
+seekTo, tinySeekTo, cancelPending, doAThingLater, currentPlayPauseId,
+cmTimeToSeconds, secondsToCMTime, videoPosition, isHLS, isReady,
+isPlaying, isPaused, playerItem, instanceCount, tearDown, url, delegate
+```
+
+Mangled adlardan çözülen imzalar:
+
+| üye | imza |
+|---|---|
+| `playLater` | `(Double, position: Double) -> ()` |
+| `pauseAt` | `(Double, position: Double) -> ()` |
+| `wallTimeToCMTime` | `(Double) -> CMTime` |
+| `tinySeekTo` | `(Double, completionHandler: (Bool) -> ()) -> ()` |
+| `internalPlayAsThoughStartedFrom` | `(Double) -> ()` |
+| `DEADBAND` | `Double` (salt okunur) |
+
+Bu tablo mimariyi tek başına anlatıyor:
+
+- **`playLater(an, position:)` / `pauseAt(an, position:)`** — "şimdi
+  oynat" değil, **"şu duvar saatinde, şu konumdan oynat"**. Mesaj
+  gecikmesindeki adaletsizliği ortadan kaldıran zamanlanmış başlatma
+  tam olarak burada.
+- **`wallTimeToCMTime`** — duvar saatini AVFoundation'ın `CMTime`
+  eksenine çeviriyor; `dispatchTimeFrom` ile de GCD zamanlamasına.
+- **`internalPlayAsThoughStartedFrom(t)`** — oynatmayı "sanki t anında
+  başlamış gibi" kurmak; geç katılanın doğru yerden devam etmesi.
+- **`seekTo` ile `tinySeekTo` ayrı** — Android'deki makro/mikro senkron
+  ayrımının iOS karşılığı. Küçük kayma için ayrı bir yol var.
+- **`DEADBAND`** — Android'deki 20 ms'lik ölü bandın karşılığı.
+- **`lastTarget`, `pastTargetingResults`, `driftDebug`, `getOffset`** —
+  hedefleme geçmişi tutuluyor, yani düzeltmenin ne kadar tuttuğu
+  ölçülüp bir sonraki kararda kullanılıyor.
+- **`cancelPending`, `currentPlayPauseId`** — zamanlanmış bir oynatma
+  beklerken yeni komut gelirse eskisi iptal ediliyor; kimlikle
+  eşleştirme yarış durumlarını engelliyor.
+
+### 12.2 Sökümden çıkan sayılar
+
+`CustomAVPlayer`'ın 93 fonksiyonu tarandı. Komuta gömülü (`fmov`)
+kayan nokta sabitleri: **4.0, 1.0, 0.5, 5.0**. Havuzdan yüklenen
+çiftlerde anlamlı tek değer 1.7777… (16/9 en-boy oranı).
+
+**DEADBAND'in sayısal değeri çıkarılamadı.** Getter'ı
+(`0x10020027c`) bir stub ve Swift'in tembel başlatılan global
+erişimcisine dallanıyor; sabit `__const` havuzunda durmuyor, çalışma
+anında kuruluyor. Statik sökümle okunamaz. Android'deki karşılığı
+20 ms idi.
+
+### 12.3 Yanında çıkan iki sınıf
+
+- **`EchoSocket`** — WebSocket sarmalayıcı: `connect`, `disconnect`,
+  `send`, `sendWithAck`, `register`/`unregister`, gözlemci listesi ve
+  `AckCall`/`AckCallable`. Yani iOS'ta istek-yanıt eşleşmesi ack
+  geri çağrılarıyla yapılıyor.
+- **`DynamicTimeoutInterceptor`** — Alamofire araya girici:
+  `current`, `min`, `max`, `increase`, `increaseMultiplier`, `decay`,
+  `decayInterval`, `applyJitter`, `maxJitterFraction`, `scheduleDecay`,
+  `lastChangeTime`, `retry`. Ağ zaman aşımı sabit değil; hata alınca
+  çarpanla büyüyor, sonra zamanla geri çekiliyor, üstüne jitter
+  ekleniyor. Bizim Supabase çağrılarımızda böyle bir uyarlama yok.
+
+### 12.4 Bizim senkron tasarımımıza etkisi
+
+`playLater` / `pauseAt` ikilisi, tartıştığımız zamanlanmış başlatmanın
+üretimde çalışmış hâli. Bizde karşılığı yok: şu an "oynat" komutu
+gelince herkes kendi eline geçtiği anda oynatıyor, konumu sonradan
+düzeltiyoruz. Eklenmesi gereken üç parça:
+
+1. Komutu `{durum, hedefAn, konum}` olarak yayınlamak — "şimdi" değil
+   "şu anda"
+2. `ortakSimdi()` hedefe ulaşana kadar bekleyip o anda başlatmak
+3. Hedef an geçmişse doğrudan `konum + (ortakSimdi − hedefAn)`
+   noktasından başlamak — `internalPlayAsThoughStartedFrom`'un yaptığı
+
+Bekleyen komutun iptali (`cancelPending` + `currentPlayPauseId`) da
+gerekiyor; art arda gelen oynat/duraklat komutlarında eski zamanlayıcı
+ateşlenirse oynatma geri teper.
