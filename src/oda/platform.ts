@@ -18,7 +18,7 @@ export type Platform = {
 
 export const PLATFORMLAR: Platform[] = [
   { kod: "youtube", ad: "YouTube", adres: "https://www.youtube.com", logo: require("@/assets/platform/youtube.png"), hesapGerekir: false, vurgu: "#FF0000" },
-  { kod: "youtube_live", ad: "YouTube Live", adres: "https://www.youtube.com/results?search_query=live&sp=EgJAAQ%3D%3D", logo: require("@/assets/platform/youtube.png"), hesapGerekir: false, vurgu: "#FF0000" },
+  { kod: "youtube_live", ad: "YouTube Live", adres: "https://www.youtube.com/results?search_query=live&sp=EgJAAQ%3D%3D", logo: require("@/assets/platform/youtube_live.png"), hesapGerekir: false, vurgu: "#FF0000" },
   { kod: "netflix", ad: "Netflix", adres: "https://www.netflix.com/browse", logo: require("@/assets/platform/netflix.png"), hesapGerekir: true, vurgu: "#E50914" },
   { kod: "prime_video", ad: "Prime Video", adres: "https://www.primevideo.com", logo: require("@/assets/platform/prime_video.png"), hesapGerekir: true, vurgu: "#00A8E1" },
   { kod: "disney_plus", ad: "Disney+", adres: "https://www.disneyplus.com/home", logo: require("@/assets/platform/disney_plus.png"), hesapGerekir: true, vurgu: "#0063E5" },
