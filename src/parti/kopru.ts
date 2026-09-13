@@ -1042,6 +1042,25 @@ const YOUTUBE = `
     return /^\\/(watch|shorts)/.test(location.pathname);
   };
 
+  window.__aronReklam = function () {
+    try {
+      var p = document.getElementById('movie_player');
+      if (p && /(^|\\s)ad-(showing|interrupting)(\\s|$)/.test(p.className || '')) return true;
+      if (document.querySelector('.ytp-ad-player-overlay, .ytp-ad-text, .video-ads .ad-showing')) return true;
+    } catch (e) {}
+    return false;
+  };
+
+  setInterval(function () {
+    try {
+      if (!window.__aronReklam()) return;
+      var d = document.querySelector(
+        '.ytp-ad-skip-button, .ytp-skip-ad-button, .ytp-ad-skip-button-modern, .ytp-ad-skip-button-slot button'
+      );
+      if (d && d.offsetParent !== null) d.click();
+    } catch (e) {}
+  }, 700);
+
   window.__aronAtla = function (t) {
     try {
       var p = document.getElementById('movie_player');

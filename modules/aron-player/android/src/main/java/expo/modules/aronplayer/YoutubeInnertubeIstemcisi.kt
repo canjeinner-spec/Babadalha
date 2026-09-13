@@ -74,7 +74,7 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
     ),
     WEB(
       ad = "WEB",
-      surum = "2.20250219.01.00",
+      surum = "2.20221122.06.00",
       kimlik = "1",
       userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
       cihazMake = "",
@@ -88,7 +88,7 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
   private val sigCozucu = YoutubeSignatureCozucu()
 
   fun oynatimBilgisiAl(videoId: String, dil: String = "en"): YoutubeOynatimBilgisi {
-    val sira = listOf(Istemci.IOS, Istemci.ANDROID_VR, Istemci.ANDROID_TESTSUITE)
+    val sira = listOf(Istemci.MWEB, Istemci.ANDROID_VR, Istemci.ANDROID_TESTSUITE, Istemci.WEB, Istemci.IOS)
     val hatalar = mutableListOf<String>()
     var enSonJson: JSONObject? = null
     var enSonIstemci: Istemci = Istemci.IOS
