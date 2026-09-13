@@ -4,6 +4,7 @@ import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AltCubuk, CUBUK_YUKSEKLIGI } from "@/components/AltCubuk";
+import { DogrudanLogo } from "@/components/DogrudanMarka";
 import { TanitimBanner } from "@/components/TanitimBanner";
 import { Image } from "expo-image";
 import { Portrait } from "@/components/Portrait";
@@ -119,6 +120,13 @@ export default function AnaSayfa() {
                 </Pressable>
               );
             })}
+
+            <Pressable
+              style={styles.hucre}
+              onPress={() => { haptic.select(); router.push({ pathname: "/parti-dogrudan", params: {} }); }}
+            >
+              <DogrudanLogo />
+            </Pressable>
           </View>
         </ScrollView>
       </SafeAreaView>
