@@ -995,14 +995,12 @@ export default function PartiOda() {
           const amazonHam = await cerezAl("https://www.amazon.com");
           const cerezler = [primeHam, amazonHam].filter((x) => x && x.length > 0).join("; ");
           if (!cerezler) { primeYerelYukleniyor.current = false; return; }
-          const marketplaceId = cerezler.match(/(?:^|;\s*)at-acbtr=([^;]+)/)?.[1]
-            ?? cerezler.match(/(?:^|;\s*)lc-acbtr=([^;]+)/)?.[1]
-            ?? "";
-          const sonuc = await primeManifestAl(o.videoId, cerezler, "");
-          setPrimeDrm({ lisansUrl: sonuc.lisansUrl, videoId: sonuc.videoId, cerezler, marketplaceId: sonuc.marketplaceId || marketplaceId, altyazilar: sonuc.altyazilar });
+          const sonuc = await primeManifestAl(o.videoId, cerezler, o.marketplaceId ?? "");
+          setPrimeDrm({ lisansUrl: sonuc.lisansUrl, videoId: sonuc.videoId, cerezler, marketplaceId: sonuc.marketplaceId, altyazilar: sonuc.altyazilar });
           setPrimeYerelAdres(sonuc.manifestUrl);
-          ayiklamaYaz(`prime: altyazi izi=${sonuc.altyazilar?.length ?? 0}`);
-        } catch {
+          ayiklamaYaz(`prime: id=${o.videoId.slice(0, 28)} pazar=${o.marketplaceId || "-"} altyazi=${sonuc.altyazilar?.length ?? 0}`);
+        } catch (e) {
+          ayiklamaYaz(`prime hata: ${(e as Error)?.message ?? "?"}`);
           setPrimeYerelAdres(null);
           setPrimeDrm(null);
         } finally {

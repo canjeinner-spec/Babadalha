@@ -164,7 +164,7 @@ class PrimeApiYonetici(private val context: Context) {
       "deviceID" to CIHAZ_KIMLIGI,
       "deviceTypeID" to CIHAZ_TIPI,
       "firmware" to "1",
-      "gascEnabled" to "true",
+      "gascEnabled" to "false",
       "marketplaceID" to marketplaceId,
       "audioTrackId" to "all",
       "resourceUsage" to "CacheResources",
@@ -193,7 +193,7 @@ class PrimeApiYonetici(private val context: Context) {
     private const val CIHAZ_KIMLIGI = "93aa62b4ec5d52b8db3e0af4854a5ca7507e8622348981bf33998a95"
     private const val CIHAZ_TIPI = "AOAGZA014O5RE"
     private const val KULLANICI_AJANI = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
-    const val VARSAYILAN_MARKETPLACE = "ATVPDKIKX0DER"
+    const val VARSAYILAN_MARKETPLACE = "ART4WZ8MWBX2Y"
     private const val ATV_VARSAYILAN = "https://atv-ps.primevideo.com"
     private val ATV_URLS = mapOf(
       "A1PA6795UKMFR9" to "https://atv-ps-eu.amazon.de",
@@ -202,7 +202,8 @@ class PrimeApiYonetici(private val context: Context) {
       "A1VC38T7YXB528" to "https://atv-ps-fe.amazon.co.jp",
       "A3K6Y4MI8GDYMT" to "https://atv-ps-eu.primevideo.com",
       "A2MFUE2XK8ZSSY" to "https://atv-ps-eu.primevideo.com",
-      "A15PK738MTQHSO" to "https://atv-ps-fe.primevideo.com"
+      "A15PK738MTQHSO" to "https://atv-ps-fe.primevideo.com",
+      "ART4WZ8MWBX2Y" to ATV_VARSAYILAN
     )
   }
 }

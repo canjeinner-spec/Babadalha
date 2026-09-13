@@ -22,6 +22,9 @@ const MASAUSTU_LINUX_CHROME =
   "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.7559.172 Safari/537.36";
 
 
+const IPHONE_SAFARI =
+  "Mozilla/5.0 (iPhone; CPU iPhone OS 13_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/80.0.3987.95 Mobile/15E148 Safari/604.1";
+
 const WINDOWS_EDGE =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0";
 
@@ -32,6 +35,7 @@ export function masaustuIcerikMi(platform: PlatformKodu): boolean {
 export function kullaniciAjani(platform: PlatformKodu): string {
   if (Platform.OS === "ios" && DRM_PLATFORMLARI.has(platform)) return MASAUSTU_SAFARI;
   if (Platform.OS === "android" && platform === "netflix") return WINDOWS_EDGE;
+  if (Platform.OS === "android" && platform === "prime_video") return IPHONE_SAFARI;
   if (Platform.OS === "android" && DRM_PLATFORMLARI.has(platform)) return MASAUSTU_LINUX_CHROME;
   return MASAUSTU_CHROME;
 }
@@ -54,7 +58,7 @@ export type OynaticiOlayi =
   | { tur: "netflix-yerel"; videoId: string }
   | { tur: "max-yerel"; icerikId: string }
   | { tur: "youtube-yerel"; videoId: string }
-  | { tur: "prime-yerel"; videoId: string }
+  | { tur: "prime-yerel"; videoId: string; marketplaceId?: string }
   | { tur: "yok" };
 
 function masaustuOrtami(safari: boolean, platformAdi = "MacIntel"): string {
@@ -2458,23 +2462,77 @@ const PRIME_ANDROID_EK = `
   if (window.__aronPrimeYerel) return;
   window.__aronPrimeYerel = true;
   function yolla(m) { try { if (window.__aronYolla) window.__aronYolla(m); } catch (e) {} }
+  var kaliplar = [
+    /primevideo\\.com\\/watch\\?gti=([^&]+)/i,
+    /amazon[^\\/]*\\/watch\\?(?:asin|gti)=([^&]+)/i
+  ];
+  var pazar = '';
   var gonderildi = '';
-  function asinAl() {
+
+  function pazarAl() {
     try {
-      var m = location.pathname.match(/\\/(?:detail|watch|dp|player)\\/([A-Z0-9]{10})(?:[\\/?]|$)/);
-      if (m) return m[1];
+      var ham = document.documentElement.outerHTML.toString().split('\\\\').join('');
+      var m = ham.match(/marketplaceID":"([a-zA-Z0-9]+)/);
+      if (m) pazar = m[1];
     } catch (e) {}
+    return pazar;
+  }
+
+  function kimlikCoz(adres) {
+    for (var i = 0; i < kaliplar.length; i++) {
+      var m = adres.match(kaliplar[i]);
+      if (m) {
+        try { return decodeURIComponent(m[1]); } catch (e) { return m[1]; }
+      }
+    }
     return '';
   }
+
+  function devret(kimlik) {
+    if (!kimlik || kimlik === gonderildi) return;
+    gonderildi = kimlik;
+    yolla({ tur: 'prime-yerel', videoId: kimlik, marketplaceId: pazarAl() });
+  }
+
+  document.addEventListener('click', function (olay) {
+    try {
+      var yol;
+      if (olay.composedPath) {
+        yol = olay.composedPath();
+      } else {
+        yol = [];
+        var d = olay.target;
+        while (d) { yol.push(d); d = d.parentElement; }
+      }
+      var bag = null;
+      for (var i = 0; i < yol.length; i++) {
+        var dugum = yol[i];
+        if (dugum && dugum.tagName && dugum.tagName.toUpperCase() === 'A') {
+          var ham = dugum.getAttribute('href') || '';
+          for (var j = 0; j < kaliplar.length; j++) {
+            if (kaliplar[j].test(ham)) { bag = dugum; break; }
+          }
+          if (bag) break;
+        }
+      }
+      if (!bag) return;
+      var kimlik = kimlikCoz(bag.href);
+      if (!kimlik) return;
+      if (olay.preventDefault) olay.preventDefault();
+      if (olay.stopPropagation) olay.stopPropagation();
+      devret(kimlik);
+    } catch (e) {}
+  }, true);
+
   setInterval(function () {
     try {
-      var kod = asinAl();
-      if (!kod) { gonderildi = ''; return; }
-      if (kod === gonderildi) return;
-      gonderildi = kod;
-      yolla({ tur: 'prime-yerel', videoId: kod });
+      var kimlik = kimlikCoz(location.href);
+      if (!kimlik) { gonderildi = ''; return; }
+      devret(kimlik);
     } catch (e) {}
   }, 1500);
+
+  setTimeout(pazarAl, 2500);
 })();
 `;
 
