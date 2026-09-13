@@ -260,6 +260,8 @@ class MslIstek(private val oturum: MslOturum) {
 
   companion object {
     val ICERIK_PROFILLERI = listOf(
+      "playready-h264bpl30-dash",
+      "playready-h264mpl13-dash",
       "playready-h264mpl22-dash",
       "playready-h264mpl30-dash",
       "playready-h264mpl31-dash",
