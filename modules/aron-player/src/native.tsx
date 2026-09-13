@@ -21,7 +21,7 @@ type AronPlayerModulu = {
   raveGoogleGiris(idToken: string): Promise<{ hazir: boolean }>;
   netflixManifestAl(netflixId: string, secureId: string, videoId: string, dil: string): Promise<{ manifestUrl: string; manifestJson: string }>;
   maxManifestAl(oturumToken: string, icerikId: string): Promise<{ manifestUrl: string; lisansUrl: string; manifestJson: string }>;
-  youtubeManifestAl(videoId: string, dil: string): Promise<{ manifestUrl: string; baslik: string; yazar: string; sureMs: number; streamingJson: string; canli: boolean; userAgent: string }>;
+  youtubeManifestAl(videoId: string, dil: string): Promise<{ manifestUrl: string; baslik: string; yazar: string; sureMs: number; streamingJson: string; canli: boolean; userAgent: string; istemci: string }>;
   netflixUstveri(videoId: string, netflixId: string, secureId: string): Promise<{ baslik?: string; kapak?: string }>;
   primeManifestAl(videoId: string, cerezler: string, marketplaceId: string): Promise<{ manifestUrl: string; lisansUrl: string; atvUrl: string; videoId: string; marketplaceId: string; altyazilar?: { kod: string; ad: string; url: string }[] }>;
 };
@@ -152,7 +152,7 @@ export async function maxManifestAl(
 export async function youtubeManifestAl(
   videoId: string,
   dil = "en",
-): Promise<{ manifestUrl: string; baslik: string; yazar: string; sureMs: number; streamingJson: string; canli: boolean; userAgent: string }> {
+): Promise<{ manifestUrl: string; baslik: string; yazar: string; sureMs: number; streamingJson: string; canli: boolean; userAgent: string; istemci: string }> {
   if (!nativeOynaticiVar()) throw new Error("Yerel oynatici yok");
   return modul!.youtubeManifestAl(videoId, dil);
 }

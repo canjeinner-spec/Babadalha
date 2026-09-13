@@ -977,7 +977,7 @@ export default function PartiOda() {
           setYtBasliklar(sonuc.userAgent ? { "User-Agent": sonuc.userAgent } : null);
           setYtYerelAdres(sonuc.manifestUrl);
           if (sonuc.baslik) setSimdiki(sonuc.baslik);
-          ayiklamaYaz(`yt yerel: canli=${sonuc.canli ? 1 : 0} ajan=${sonuc.userAgent.slice(0, 24)}`);
+          ayiklamaYaz(`yt yerel: ${sonuc.istemci} canli=${sonuc.canli ? 1 : 0} sure=${Math.round(sonuc.sureMs / 1000)}s`);
         } catch (e) {
           ayiklamaYaz(`yt yerel HATA: ${String((e as Error)?.message ?? e).slice(0, 220)}`);
           setYtBasliklar(null);

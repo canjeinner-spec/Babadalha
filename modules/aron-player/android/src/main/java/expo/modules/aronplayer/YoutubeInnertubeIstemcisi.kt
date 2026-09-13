@@ -17,7 +17,8 @@ data class YoutubeOynatimBilgisi(
   val sureMs: Long,
   val streamingJson: String,
   val canli: Boolean = false,
-  val userAgent: String = ""
+  val userAgent: String = "",
+  val istemci: String = ""
 )
 
 class YoutubeInnertubeIstemcisi(private val context: Context) {
@@ -91,8 +92,6 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
   fun oynatimBilgisiAl(videoId: String, dil: String = "en"): YoutubeOynatimBilgisi {
     val sira = listOf(Istemci.MWEB, Istemci.ANDROID_VR, Istemci.ANDROID_TESTSUITE, Istemci.WEB, Istemci.IOS)
     val hatalar = mutableListOf<String>()
-    var enSonJson: JSONObject? = null
-    var enSonIstemci: Istemci = Istemci.IOS
     val oynaticiBilgisi = try {
       oynaticiBilgisiAl(videoId)
     } catch (e: Throwable) {
@@ -106,29 +105,36 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
       null
     }
     Log.d(TAG, "potoken: oturum=${poToken?.oturumToken?.isNotEmpty() == true} icerik=${poToken?.icerikToken?.isNotEmpty() == true}")
+    val betik = betigiCoz(oynaticiBilgisi)
     for (istemci in sira) {
       try {
         val yanit = istemciDene(istemci, videoId, dil, oynaticiBilgisi, poToken)
         val json = JSONObject(yanit)
         val ps = json.optJSONObject("playabilityStatus")
         val durum = ps?.optString("status", "") ?: ""
-        if (durum == "OK" || durum == "LIVE_STREAM_OFFLINE") {
-          val streaming = json.optJSONObject("streamingData")
-          if (streaming != null && (streaming.optJSONArray("adaptiveFormats")?.length() ?: 0) > 0) {
-            return bilgiOlustur(json, streaming, videoId, istemci, oynaticiBilgisi, poToken)
-          }
+        if (durum != "OK" && durum != "LIVE_STREAM_OFFLINE") {
+          hatalar.add("${istemci.ad}: $durum ${ps?.optString("reason", "") ?: ""}")
+          Log.w(TAG, "istemci ${istemci.ad} atlandi: durum=$durum")
+          continue
         }
-        hatalar.add("${istemci.ad}: $durum ${ps?.optString("reason", "") ?: ""}")
-        enSonJson = json
-        enSonIstemci = istemci
+        val streaming = json.optJSONObject("streamingData")
+        if (streaming == null) {
+          hatalar.add("${istemci.ad}: streamingData yok")
+          continue
+        }
+        if (betik != null) urlleriTazele(streaming, betik)
+        val eksik = akisEksigi(json, streaming)
+        if (eksik != null) {
+          hatalar.add("${istemci.ad}: $eksik")
+          Log.w(TAG, "istemci ${istemci.ad} atlandi: $eksik")
+          continue
+        }
+        Log.d(TAG, "istemci secildi: ${istemci.ad}")
+        return bilgiOlustur(json, streaming, videoId, istemci, oynaticiBilgisi, poToken)
       } catch (e: Throwable) {
         hatalar.add("${istemci.ad}: ${e.message}")
         Log.w(TAG, "istemci ${istemci.ad} basarisiz", e)
       }
-    }
-    if (enSonJson != null) {
-      val streaming = enSonJson!!.optJSONObject("streamingData")
-      if (streaming != null) return bilgiOlustur(enSonJson!!, streaming, videoId, enSonIstemci, oynaticiBilgisi, poToken)
     }
     throw Exception("YouTube tum istemciler basarisiz: ${hatalar.joinToString("; ")}")
   }
@@ -155,15 +161,6 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
     val yazar = videoDetaylari?.optString("author", "") ?: ""
     val sureSaniye = videoDetaylari?.optString("lengthSeconds", "0")?.toLongOrNull() ?: 0L
 
-    val betik = try {
-      val playerUrl = oynaticiBilgisi?.playerUrl ?: throw Exception("player.js adresi yok")
-      sigCozucu.betigiHazirla(playerUrl)
-    } catch (e: Throwable) {
-      Log.w(TAG, "player.js hazirlanamadi, cipher/n cozulmeden devam: ${e.message}")
-      null
-    }
-
-    if (betik != null) urlleriTazele(streamingData, betik)
     poToken?.oturumToken?.takeIf { it.isNotEmpty() }?.let { potEkle(streamingData, it) }
 
     YoutubeYenileyici.kaydet(
@@ -175,9 +172,7 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
     )
 
     val hlsAdres = streamingData.optString("hlsManifestUrl", "")
-    val canliMi = videoDetaylari?.optBoolean("isLive", false) == true ||
-      json.optJSONObject("playabilityStatus")?.has("liveStreamability") == true
-    if (canliMi && hlsAdres.isNotEmpty()) {
+    if (canliMi(json) && hlsAdres.isNotEmpty()) {
       Log.d(TAG, "canli yayin, HLS kullaniliyor")
       return YoutubeOynatimBilgisi(
         manifestUrl = hlsAdres,
@@ -186,7 +181,8 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
         sureMs = 0L,
         streamingJson = streamingData.toString(),
         canli = true,
-        userAgent = istemci.userAgent
+        userAgent = istemci.userAgent,
+        istemci = istemci.ad
       )
     }
 
@@ -198,8 +194,53 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
       yazar = yazar,
       sureMs = sureSaniye * 1000L,
       streamingJson = streamingData.toString(),
-      userAgent = istemci.userAgent
+      userAgent = istemci.userAgent,
+      istemci = istemci.ad
     )
+  }
+
+  private fun betigiCoz(oynaticiBilgisi: OynaticiBilgisi?): YoutubeSignatureCozucu.PlayerBetigi? {
+    return try {
+      val playerUrl = oynaticiBilgisi?.playerUrl ?: throw Exception("player.js adresi yok")
+      sigCozucu.betigiHazirla(playerUrl)
+    } catch (e: Throwable) {
+      Log.w(TAG, "player.js hazirlanamadi, cipher/n cozulmeden devam: ${e.message}")
+      null
+    }
+  }
+
+  private fun canliMi(json: JSONObject): Boolean {
+    return json.optJSONObject("videoDetails")?.optBoolean("isLive", false) == true ||
+      json.optJSONObject("playabilityStatus")?.has("liveStreamability") == true
+  }
+
+  private fun akisEksigi(json: JSONObject, streamingData: JSONObject): String? {
+    if (canliMi(json) && streamingData.optString("hlsManifestUrl", "").isNotEmpty()) return null
+
+    var video = 0
+    var ses = 0
+    val adaptive = streamingData.optJSONArray("adaptiveFormats") ?: JSONArray()
+    for (i in 0 until adaptive.length()) {
+      val f = adaptive.optJSONObject(i) ?: continue
+      if (f.optString("url", "").isEmpty()) continue
+      val mime = f.optString("mimeType", "")
+      when {
+        mime.startsWith("video/") -> video++
+        mime.startsWith("audio/") -> ses++
+      }
+    }
+    if (video > 0 && ses > 0) return null
+
+    var birlesik = 0
+    val progressive = streamingData.optJSONArray("formats") ?: JSONArray()
+    for (i in 0 until progressive.length()) {
+      val f = progressive.optJSONObject(i) ?: continue
+      if (f.optString("url", "").isEmpty()) continue
+      if (f.optString("mimeType", "").startsWith("video/")) birlesik++
+    }
+    if (birlesik > 0) return null
+
+    return "adreslenebilir akis yok (video=$video ses=$ses birlesik=$birlesik ham=${adaptive.length()})"
   }
 
   private fun akisAdresleriniCoz(vid: String): Map<String, String> {

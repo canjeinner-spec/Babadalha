@@ -35,6 +35,10 @@ class YoutubeManifestUretici {
       }
     }
 
+    if (videolar.isEmpty() && sesler.isEmpty()) {
+      throw IllegalStateException("DASH uretilemedi: adreslenebilir format yok")
+    }
+
     val sb = StringBuilder()
     val sureSaniye = sureMs / 1000.0
     sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")

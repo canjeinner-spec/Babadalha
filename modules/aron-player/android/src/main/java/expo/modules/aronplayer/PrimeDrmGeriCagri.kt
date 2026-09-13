@@ -49,16 +49,36 @@ class PrimeDrmGeriCagri(
         UnsupportedOperationException("Provisioning URL bos")
       )
     }
+    val govde = "{\"signedRequest\":\"".toByteArray(Charsets.UTF_8) +
+      request.data +
+      "\"}".toByteArray(Charsets.UTF_8)
     val baglanti = URL(provUrl).openConnection() as HttpURLConnection
     baglanti.requestMethod = "POST"
-    baglanti.setRequestProperty("Content-Type", "application/octet-stream")
+    baglanti.setRequestProperty("Content-Type", "application/json; charset=utf-8")
+    baglanti.setRequestProperty("Content-Length", govde.size.toString())
     baglanti.doOutput = true
     baglanti.connectTimeout = 15_000
     baglanti.readTimeout = 15_000
     val os = baglanti.outputStream
-    os.write(request.data)
+    os.write(govde)
     os.flush()
     os.close()
+    val kod = baglanti.responseCode
+    if (kod !in 200..299) {
+      val hataMetni = try {
+        baglanti.errorStream?.let { DataInputStream(it).readBytes() }?.let { String(it) }.orEmpty()
+      } catch (e: Throwable) {
+        ""
+      }
+      baglanti.disconnect()
+      throw MediaDrmCallbackException(
+        DataSpec(Uri.parse(provUrl)),
+        Uri.parse(provUrl),
+        emptyMap<String, List<String>>(),
+        0L,
+        Exception("provisioning HTTP $kod ${hataMetni.take(200)}")
+      )
+    }
     val girdi = DataInputStream(baglanti.inputStream)
     val veri = girdi.readBytes()
     girdi.close()

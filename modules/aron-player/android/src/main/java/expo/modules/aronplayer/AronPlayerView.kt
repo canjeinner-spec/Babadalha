@@ -403,12 +403,17 @@ class AronPlayerView(context: Context, appContext: AppContext) : ExpoView(contex
     )
   }
 
+  private fun sureDegeri(p: ExoPlayer?): Long {
+    val sure = p?.duration ?: C.TIME_UNSET
+    if (sure == C.TIME_UNSET || sure <= 0L || sure > AZAMI_SURE_MS) return 0L
+    return sure
+  }
+
   fun konumBilgisi(): Map<String, Any> {
     val p = oynatici
-    val sure = p?.duration ?: C.TIME_UNSET
     return mapOf(
       "konumMs" to (p?.currentPosition ?: 0L).toDouble(),
-      "sureMs" to (if (sure == C.TIME_UNSET) 0L else sure).toDouble(),
+      "sureMs" to sureDegeri(p).toDouble(),
       "tamponMs" to (p?.bufferedPosition ?: 0L).toDouble(),
       "oynuyor" to (p?.isPlaying ?: false),
       "durum" to sonDurum
@@ -624,13 +629,12 @@ class AronPlayerView(context: Context, appContext: AppContext) : ExpoView(contex
     if (durum == sonDurum) return
     sonDurum = durum
     val p = oynatici
-    val sure = p?.duration ?: C.TIME_UNSET
     onDurum(
       mapOf(
         "durum" to durum,
         "oynuyor" to (p?.isPlaying ?: false),
         "konumMs" to (p?.currentPosition ?: 0L).toDouble(),
-        "sureMs" to (if (sure == C.TIME_UNSET) 0L else sure).toDouble(),
+        "sureMs" to sureDegeri(p).toDouble(),
         "canliYayin" to (p?.isCurrentMediaItemLive ?: false)
       )
     )
@@ -654,8 +658,7 @@ class AronPlayerView(context: Context, appContext: AppContext) : ExpoView(contex
   private fun ilerlemeYayinla() {
     if (yokEdildi) return
     val p = oynatici ?: return
-    val hamSure = p.duration
-    val sure = if (hamSure == C.TIME_UNSET) 0L else hamSure
+    val sure = sureDegeri(p)
     val konum = p.currentPosition
     onIlerleme(
       mapOf(
@@ -668,6 +671,7 @@ class AronPlayerView(context: Context, appContext: AppContext) : ExpoView(contex
   }
 
   companion object {
+    private const val AZAMI_SURE_MS = 30L * 24L * 60L * 60L * 1000L
     private val canlilar = mutableListOf<WeakReference<AronPlayerView>>()
 
     private fun kayitAc(view: AronPlayerView) {

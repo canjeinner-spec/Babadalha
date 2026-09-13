@@ -101,7 +101,8 @@ class AronPlayerModule : Module() {
         "sureMs" to bilgi.sureMs.toDouble(),
         "streamingJson" to bilgi.streamingJson,
         "canli" to bilgi.canli,
-        "userAgent" to bilgi.userAgent
+        "userAgent" to bilgi.userAgent,
+        "istemci" to bilgi.istemci
       )
     }
 
