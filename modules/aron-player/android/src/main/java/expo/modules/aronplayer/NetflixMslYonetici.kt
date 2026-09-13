@@ -242,7 +242,11 @@ class NetflixMslYonetici(private val context: Context) {
       return manifestJson
     } catch (e: Throwable) {
       val ozet = tokenDurumOzeti()
-      val varlikReddi = e is MslHatasi && (e.kod == VARLIK_YENIDEN_KIMLIK || e.kod == VARLIK_VERISI_YENIDEN_KIMLIK)
+      val varlikReddi = e is MslHatasi && (
+        e.kod == VARLIK_YENIDEN_KIMLIK ||
+          e.kod == VARLIK_VERISI_YENIDEN_KIMLIK ||
+          e.icKod == GECERSIZ_CIHAZ_DURUMU
+        )
       Log.e(TAG, "manifest basarisiz, msl_data temizleniyor (esnYenile=$varlikReddi) | $ozet", e)
       temizle(varlikReddi)
       throw IllegalStateException("${e.message} || TANI: $ozet", e)
@@ -408,6 +412,7 @@ class NetflixMslYonetici(private val context: Context) {
     private const val USTVERI_URL = "https://www.netflix.com/nq/website/memberapi/release/metadata"
     private const val VARLIK_YENIDEN_KIMLIK = 3
     private const val VARLIK_VERISI_YENIDEN_KIMLIK = 6
+    private const val GECERSIZ_CIHAZ_DURUMU = 205064
     private const val SON_BASARILI_ANAHTARI = "son_basarili_baslik"
     private const val KULLANICI_AJANI = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0"
   }

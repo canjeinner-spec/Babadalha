@@ -14,6 +14,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
+import androidx.media3.common.text.CueGroup
 import java.io.File
 import java.util.Locale
 import androidx.media3.common.Player
@@ -34,6 +35,8 @@ import androidx.media3.exoplayer.drm.MediaDrmCallback
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.ui.AspectRatioFrameLayout
+import androidx.media3.ui.CaptionStyleCompat
+import androidx.media3.ui.SubtitleView
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.viewevent.EventDispatcher
 import expo.modules.kotlin.views.ExpoView
@@ -54,6 +57,7 @@ class AronPlayerView(context: Context, appContext: AppContext) : ExpoView(contex
 
   private val cerceve = AspectRatioFrameLayout(context)
   private val yuzey = SurfaceView(context)
+  private val altyaziYuzeyi = SubtitleView(context)
 
   private var oynatici: ExoPlayer? = null
   private var yapilandirma: OynatimYapilandirma? = null
@@ -87,6 +91,23 @@ class AronPlayerView(context: Context, appContext: AppContext) : ExpoView(contex
       ViewGroup.LayoutParams.MATCH_PARENT
     )
     cerceve.addView(yuzey)
+    altyaziYuzeyi.layoutParams = ViewGroup.LayoutParams(
+      ViewGroup.LayoutParams.MATCH_PARENT,
+      ViewGroup.LayoutParams.MATCH_PARENT
+    )
+    altyaziYuzeyi.setStyle(
+      CaptionStyleCompat(
+        Color.WHITE,
+        Color.TRANSPARENT,
+        Color.TRANSPARENT,
+        CaptionStyleCompat.EDGE_TYPE_OUTLINE,
+        Color.BLACK,
+        null
+      )
+    )
+    altyaziYuzeyi.setFractionalTextSize(SubtitleView.DEFAULT_TEXT_SIZE_FRACTION)
+    altyaziYuzeyi.setApplyEmbeddedStyles(true)
+    cerceve.addView(altyaziYuzeyi)
     addView(
       cerceve,
       ViewGroup.LayoutParams(
@@ -132,6 +153,10 @@ class AronPlayerView(context: Context, appContext: AppContext) : ExpoView(contex
           "oran" to oran.toDouble()
         )
       )
+    }
+
+    override fun onCues(cueGroup: CueGroup) {
+      altyaziYuzeyi.setCues(cueGroup.cues)
     }
 
     override fun onPlayerError(hata: PlaybackException) {
