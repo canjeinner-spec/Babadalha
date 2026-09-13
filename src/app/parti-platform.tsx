@@ -4,6 +4,7 @@ import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { DogrudanLogo } from "@/components/DogrudanMarka";
+import { useCeviri } from "@/lib/ceviri";
 import { Txt } from "@/components/Txt";
 import { Icon } from "@/icons/Icon";
 import { haptic } from "@/lib/haptics";
@@ -13,6 +14,7 @@ import { useApp } from "@/store/appStore";
 import { C } from "@/theme/colors";
 
 export default function PartiPlatform() {
+  const t = useCeviri();
   const router = useRouter();
   const { secim } = useLocalSearchParams<{ secim?: string }>();
   const sec = usePartiKuyruk((s) => s.sec);
@@ -26,7 +28,7 @@ export default function PartiPlatform() {
           <Pressable onPress={() => router.back()} hitSlop={10} style={styles.geri}>
             <Icon name="back" size={22} color="#fff" />
           </Pressable>
-          <Txt weight="displayBold" size={17} color="#fff">Ne izleyeceğiz?</Txt>
+          <Txt weight="displayBold" size={17} color="#fff">{t("platform.baslik")}</Txt>
           <View style={{ width: 30 }} />
         </View>
 

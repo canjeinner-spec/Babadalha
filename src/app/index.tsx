@@ -5,6 +5,7 @@ import { FlatList, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Anim } from "@/components/Anim";
+import { useCeviri } from "@/lib/ceviri";
 import { girisEkraniGecildi, karsilamaGoruldu } from "@/lib/ilkAcilis";
 import { BaslatAmblemi } from "@/components/BaslatAmblemi";
 import { Portrait } from "@/components/Portrait";
@@ -52,16 +53,18 @@ const ORNEK_ODALAR: LobiOdasi[] = [
   },
 ];
 
-function durumYazisi(oda: LobiOdasi): string {
-  if (oda.canli) return "Canlı";
+function durumAnahtari(oda: LobiOdasi): { anahtar: string; deger?: number } {
+  if (oda.canli) return { anahtar: "oda.canli" };
   const o = Math.min(1, Math.max(0, oda.ilerleme));
-  if (o < 0.12) return "Yeni başladı";
-  if (o > 0.8) return "Bitmek üzere";
-  if (oda.sureSn) return `${Math.max(1, Math.round((oda.sureSn * (1 - o)) / 60))} dk kaldı`;
-  return "Yarısında";
+  if (o < 0.12) return { anahtar: "oda.yeniBasladi" };
+  if (o > 0.8) return { anahtar: "oda.bitmekUzere" };
+  if (oda.sureSn) return { anahtar: "oda.kalanDk", deger: Math.max(1, Math.round((oda.sureSn * (1 - o)) / 60)) };
+  return { anahtar: "oda.yarisinda" };
 }
 
 function OdaKarti({ oda, onBas }: { oda: LobiOdasi; onBas: () => void }) {
+  const t = useCeviri();
+  const durum = durumAnahtari(oda);
   const platform = platformBul(oda.platform);
   const katilimcilar = oda.katilimcilar ?? [];
   const gorunen = katilimcilar.slice(0, 4);
@@ -85,7 +88,7 @@ function OdaKarti({ oda, onBas }: { oda: LobiOdasi; onBas: () => void }) {
         {oda.canli && (
           <View style={styles.canliRozet}>
             <View style={styles.canliNokta} />
-            <Txt weight="extrabold" size={8.5} color="#fff">CANLI</Txt>
+            <Txt weight="extrabold" size={8.5} color="#fff">{t("oda.canli").toLocaleUpperCase()}</Txt>
           </View>
         )}
       </View>
@@ -124,7 +127,7 @@ function OdaKarti({ oda, onBas }: { oda: LobiOdasi; onBas: () => void }) {
             </View>
           )}
           <Txt size={10} color={oda.canli ? C.gold2 : C.dim2} numberOfLines={1}>
-            {durumYazisi(oda)}
+            {durum.deger === undefined ? t(durum.anahtar) : t(durum.anahtar, durum.deger)}
           </Txt>
         </View>
       </View>
@@ -133,6 +136,7 @@ function OdaKarti({ oda, onBas }: { oda: LobiOdasi; onBas: () => void }) {
 }
 
 export default function PartiAnaEkran() {
+  const t = useCeviri();
   const router = useRouter();
 
   useEffect(() => {
@@ -180,14 +184,14 @@ export default function PartiAnaEkran() {
               color={temali ? renk.ana : "#fff"}
               style={temali ? TEMA_YAZI_GOLGESI : undefined}
             >
-              Parti
+              {t("ana.baslik")}
             </Txt>
             <Txt
               size={11.5}
               color={temali ? renk.solgun : C.dim}
               style={[{ marginTop: 2 }, temali ? TEMA_YAZI_GOLGESI : undefined]}
             >
-              Birlikte izle, birlikte konuş
+              {t("ana.altBaslik")}
             </Txt>
           </View>
           <Pressable onPress={() => router.push("/parti-profil")} hitSlop={8}>
@@ -200,7 +204,7 @@ export default function PartiAnaEkran() {
         </View>
 
         <View style={styles.listeBasligi}>
-          <Txt weight="extrabold" size={12.5} color={C.text}>Canlı partiler</Txt>
+          <Txt weight="extrabold" size={12.5} color={C.text}>{t("ana.canliPartiler")}</Txt>
           <View style={{ flex: 1 }} />
         </View>
 
@@ -221,7 +225,7 @@ export default function PartiAnaEkran() {
           ListEmptyComponent={
             <View style={styles.bos}>
               <Anim kaynak={require("@/assets/anim/parti-yok.json")} style={styles.bosAnim} />
-              <Txt weight="bold" size={13.5} color={C.text} style={{ marginTop: 6 }}>Şu an açık parti yok</Txt>
+              <Txt weight="bold" size={13.5} color={C.text} style={{ marginTop: 6 }}>{t("ana.partiYok")}</Txt>
             </View>
           }
         />
@@ -230,7 +234,7 @@ export default function PartiAnaEkran() {
       <Pressable onPress={partiBaslat} style={[styles.baslatSar, { bottom: altPay + 16 }]}>
         <Gradient colors={[C.gold2, "#C8922B"]} deg={135} style={styles.baslat}>
           <BaslatAmblemi />
-          <Txt weight="extrabold" size={14} color="#241A05">Parti başlat</Txt>
+          <Txt weight="extrabold" size={14} color="#241A05">{t("ana.partiBaslat")}</Txt>
         </Gradient>
       </Pressable>
     </View>

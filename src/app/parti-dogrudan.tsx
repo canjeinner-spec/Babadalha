@@ -4,6 +4,7 @@ import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput, View 
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { BaslatAmblemi } from "@/components/BaslatAmblemi";
+import { useCeviri } from "@/lib/ceviri";
 import { Txt } from "@/components/Txt";
 import { Icon } from "@/icons/Icon";
 import { haptic } from "@/lib/haptics";
@@ -14,6 +15,7 @@ import { C } from "@/theme/colors";
 import { Zemin } from "@/theme/Zemin";
 
 export default function PartiDogrudan() {
+  const t = useCeviri();
   const router = useRouter();
   const { secim } = useLocalSearchParams<{ secim?: string }>();
   const sec = usePartiKuyruk((s) => s.sec);
@@ -50,7 +52,7 @@ export default function PartiDogrudan() {
           <Pressable onPress={() => router.back()} hitSlop={10} style={styles.geri}>
             <Icon name="back" size={22} color="#fff" />
           </Pressable>
-          <Txt weight="displayBold" size={17} color="#fff">Doğrudan bağlantı</Txt>
+          <Txt weight="displayBold" size={17} color="#fff">{t("dogrudan.baslik")}</Txt>
           <View style={{ width: 30 }} />
         </View>
 
@@ -84,7 +86,7 @@ export default function PartiDogrudan() {
             >
               {gecerli && <BaslatAmblemi />}
               <Txt weight="extrabold" size={14} color={gecerli ? C.bg : C.dim2}>
-                {secim ? "Bu bağlantıya geç" : "Partiyi başlat"}
+                {secim ? t("dogrudan.gec") : t("dogrudan.baslat")}
               </Txt>
             </Pressable>
           </View>
