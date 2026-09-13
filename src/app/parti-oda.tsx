@@ -1354,6 +1354,10 @@ export default function PartiOda() {
                 : undefined
             }
             tamEkran={kip === "gezinme" || buyuk}
+            onBoyut={boyutDegistir}
+            onSohbet={() => setYanSohbet((v) => !v)}
+            sohbetAcik={yanSohbet}
+            kontrolVar={kip === "oynatim"}
             kilitli={!kontrolBende}
             onOlay={olayGeldi}
           />
