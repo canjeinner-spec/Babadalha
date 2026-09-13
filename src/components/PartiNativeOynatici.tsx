@@ -52,7 +52,13 @@ export const PartiNativeOynatici = forwardRef<OynaticiKolu, Props>(function Part
 
   const varMi = nativeOynaticiVar();
 
-  const bildir = useCallback((o: OynaticiOlayi) => { onOlay?.(o); }, [onOlay]);
+  const olayRef = useRef(onOlay);
+  olayRef.current = onOlay;
+  const bildir = useCallback((o: OynaticiOlayi) => { olayRef.current?.(o); }, []);
+
+  const drmRef = useRef(drm);
+  drmRef.current = drm;
+  const drmAnahtari = drm ? JSON.stringify(drm) : "";
 
   useEffect(() => {
     if (!varMi) {
@@ -72,7 +78,8 @@ export const PartiNativeOynatici = forwardRef<OynaticiKolu, Props>(function Part
     setOynuyor(false);
     setVideoVar(false);
     const yapilandirma: Parameters<AronOynaticiKumanda["yukle"]>[0] = { manifestUrl: adres, otomatikBasla: true };
-    if (drm) yapilandirma.drm = drm;
+    const drmSuanki = drmRef.current;
+    if (drmSuanki) yapilandirma.drm = drmSuanki;
     kumanda.current
       ?.yukle(yapilandirma)
       .then(() => {
@@ -86,7 +93,7 @@ export const PartiNativeOynatici = forwardRef<OynaticiKolu, Props>(function Part
         bildir({ tur: "engel", sebep });
       });
     return () => { iptal = true; };
-  }, [adres, drm, yenileNo, varMi, bildir]);
+  }, [adres, drmAnahtari, yenileNo, varMi, bildir]);
 
   useImperativeHandle(ref, () => ({
     oynat: () => { kumanda.current?.oynat(); },
