@@ -31,6 +31,7 @@ class MslOturum {
   var anahtarIstegi: String = ""
   var netflixId: String = ""
   var netflixSecureId: String = ""
+  var sonBaslikTani: String = "-"
 
   fun baslat(esn: String, dilKodu: String) {
     kimlik = esn

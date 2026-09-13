@@ -26,6 +26,16 @@ class MslYanit(private val oturum: MslOturum) {
     throw IllegalStateException("Netflix MSL hatasi [$etiket]: errorcode=$kod internalcode=$ic msg=$mesaj")
   }
 
+  private fun anahtarAdlari(o: JSONObject): String {
+    val sb = StringBuilder()
+    val it = o.keys()
+    while (it.hasNext()) {
+      if (sb.isNotEmpty()) sb.append(",")
+      sb.append(it.next())
+    }
+    return sb.toString()
+  }
+
   fun aesCozJson(sifreli: JSONObject): JSONObject? {
     val iv = Base64.decode(sifreli.getString("iv"), Base64.DEFAULT)
     val sifrelenmis = Base64.decode(sifreli.getString("ciphertext"), Base64.DEFAULT)
@@ -85,7 +95,12 @@ class MslYanit(private val oturum: MslOturum) {
     val (baslikMetni, yukMetni) = baslikVeYukAyir(yanit)
     val baslikJson = JSONObject(baslikMetni)
     val baslikVeri = JSONObject(String(Base64.decode(baslikJson.getString("headerdata"), Base64.DEFAULT)))
-    val cozulmusBaslik = if (baslikVeri.has("ciphertext")) aesCozJson(baslikVeri) else baslikVeri
+    val sifreliMi = baslikVeri.has("ciphertext")
+    val cozulmusBaslik = if (sifreliMi) aesCozJson(baslikVeri) else baslikVeri
+    oturum.sonBaslikTani = "$etiket:sifreli=${if (sifreliMi) 1 else 0}" +
+      " coz=${if (cozulmusBaslik == null) "NULL" else "ok"}" +
+      " alanlar=[${anahtarAdlari(cozulmusBaslik ?: baslikVeri)}]"
+    Log.d(TAG, "yanit baslik tani -> ${oturum.sonBaslikTani}")
     if (cozulmusBaslik != null && cozulmusBaslik.has("useridtoken")) {
       oturum.kullaniciToken = JSONObject(cozulmusBaslik.getString("useridtoken"))
     }
@@ -141,10 +156,12 @@ class MslYanit(private val oturum: MslOturum) {
       val sonuc = cozulmus.getJSONObject("result")
       if (sonuc.has("links")) {
         val baglantilar = sonuc.getJSONObject("links")
+        oturum.sonBaslikTani += " links=[${anahtarAdlari(baglantilar)}]"
         if (baglantilar.has("license")) {
           oturum.lisansUrl = baglantilar.getJSONObject("license").getString("href")
         }
       }
+      oturum.sonBaslikTani += " kulToken=${if (oturum.kullaniciToken != null) "VAR" else "yok"}"
       return sonuc.toString()
     }
     Log.e(TAG, "manifest yanitinda 'result' yok, ham icerik: ${cozulmus.toString().take(400)}")

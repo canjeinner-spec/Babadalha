@@ -98,6 +98,7 @@ class NetflixMslYonetici(private val context: Context) {
       val sonuc = mslPost(NetflixDrmGeriCagri.MANIFEST_URL, yuk, "manifest")
       val manifestJson = yanit.manifestCoz(sonuc)
       Log.d(TAG, "manifest alindi (${manifestJson.length} bayt)")
+      prefs?.edit()?.putString(SON_BASARILI_ANAHTARI, oturum.sonBaslikTani)?.apply()
       kaydet()
       return manifestJson
     } catch (e: Throwable) {
@@ -109,15 +110,17 @@ class NetflixMslYonetici(private val context: Context) {
   }
 
   private fun tokenDurumOzeti(): String {
+    val ek = " || SON=${oturum.sonBaslikTani}" +
+      " || BASARILI=${prefs?.getString(SON_BASARILI_ANAHTARI, "-")}"
     return try {
       val simdi = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())
       val kullanici = if (oturum.kullaniciToken != null) "var" else "yok"
       val t = oturum.anaToken
-        ?: return "keYolu=$sonKeYolu esn=${oturum.kimlik} token=YOK kullaniciToken=$kullanici now=$simdi"
+        ?: return "keYolu=$sonKeYolu esn=${oturum.kimlik} token=YOK kullaniciToken=$kullanici now=$simdi$ek"
       val td = JSONObject(String(Base64.decode(t.getString("tokendata"), Base64.NO_WRAP)))
-      "keYolu=$sonKeYolu esn=${oturum.kimlik} seq=${oturum.siraNo} renewalwindow=${td.optLong("renewalwindow")} expiration=${td.optLong("expiration")} now=$simdi kullaniciToken=$kullanici"
+      "keYolu=$sonKeYolu esn=${oturum.kimlik} seq=${oturum.siraNo} renewalwindow=${td.optLong("renewalwindow")} expiration=${td.optLong("expiration")} now=$simdi kullaniciToken=$kullanici$ek"
     } catch (e: Throwable) {
-      "tani-uretilemedi: ${e.message}"
+      "tani-uretilemedi: ${e.message}$ek"
     }
   }
 
@@ -259,6 +262,7 @@ class NetflixMslYonetici(private val context: Context) {
     private const val TAG = "NetflixMsl"
     private const val MAKS_DENEME = 3
     private const val ESN_ANAHTARI = "netflix_esn"
+    private const val SON_BASARILI_ANAHTARI = "son_basarili_baslik"
     private const val KULLANICI_AJANI = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0"
   }
 }
