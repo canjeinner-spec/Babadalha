@@ -269,3 +269,98 @@ Uygulanabilir olanlar, öncelik sırasıyla:
 - Ping başarısızlık eşiği (atılma süresi) — decompile olmadı
 - protoo bildirim adları — `handleProtooNotification` decompile olmadı
 - `IdsRequest`'in üçüncü alanının anlamı — sınıf kaynağı bulunamadı
+
+---
+
+## 11. iOS tarafı — Rave 8.0 IPA (decrypted)
+
+Kaynak: `Rave - [v8.0].ipa`, bundle `sh.weme.wemesh`, sürüm 8.0 (2620),
+en düşük iOS 10.0. Ana ikili `cryptid=0`, yani jailbreak'li cihazdan
+alınmış şifresiz dump; kod ve kaynaklar tamamen okunabiliyor.
+
+Elimizdeki APK 9.0.28-2328 olduğu için **bu IPA daha eski** ve Android'de
+gördüğümüz mimarinin (DisconnectionReasons, PlayerSynchronizer) öncesi.
+Karşılaştırırken bu fark akılda tutulmalı.
+
+### 11.1 protoo bildirim adları
+
+Belgenin 1. bölümünde "ÇIKARILAMADI" diye işaretlenen protoo bildirim
+adları iOS ikilisinde düz metin olarak duruyor:
+
+`meshState`, `chatMessage`, `peerClosed`, `consumerClosed`,
+`newConsumer`, `fullyJoined`, `kicked`
+
+İstek tarafı: `getRouterRtpCapabilities`, `createWebRtcTransport`,
+`connectWebRtcTransport`, `produce`, `resume`.
+
+Yani durum anlık görüntüsü **`meshState`** bildirimiyle geliyor ve
+atılma ayrıca **`kicked`** bildirimiyle de duyuruluyor. Bunlar 8.0
+sürümünden; 9.0.28'de aynı kaldığı doğrulanmadı.
+
+### 11.2 Arka plan kipleri
+
+`Info.plist` → `UIBackgroundModes: ["audio", "voip"]`. Ses arka planda
+devam ediyor ve sesli sohbet için VoIP kipi açık.
+
+### 11.3 Enjekte edilen betikler
+
+Paket kökünde düz metin: `netflix.js`, `amazon.js`, `disney.js`,
+`max.js`, `hbomax.js`, `web.js`.
+
+Android'dekilerin aksine platform betikleri çoğunlukla **CSS ile arayüz
+temizliği** yapıyor, mantık içermiyor:
+
+| dosya | ne gizliyor |
+|---|---|
+| `netflix.js` | e-posta formu, reklamlı plan afişi, netflix.shop bağlantısı, giriş düğmesi; arama kutusunu görünür kılıyor; dizi sayfasında action-button'ı gizliyor |
+| `amazon.js` | kirala/satın al vitrini, satın alma formları, "diğer satın alma seçenekleri", hesap oluştur bağlantısı, kayıt akordeonu |
+| `disney.js` | kaydol bağlantıları; ayrıca 100 ms'de bir adres değişimini izleyip `DisneyJSInterface` ile native'e bildiriyor ve PIN alanlarındaki `readonly` kilidini kaldırıyor |
+| `max.js` | promosyon afişi, plan seçici |
+| `hbomax.js` | abonelik afişleri, paywall düğmesi |
+
+### 11.4 `web.js` — asıl iOS yolu
+
+İki parçadan oluşuyor:
+
+1. `iphone-inline-video` kütüphanesi — eski iOS'ta `<video>` etiketinin
+   tam ekrana kaçmasını engelleyip satır içi oynatmayı zorluyor.
+2. Rave'in kendi kancası. Davranış şu:
+
+- 1000 ms'de bir tüm `<video>` ve `<audio>` elemanları yeniden
+  kancalanıyor, iframe'lerin içindekiler dahil
+- Her elemana: `pause()`, `autoplay = false`, `muted = true`,
+  `playsinline`, ve tekrar kancalanmasın diye `raveHooked` niteliği
+- `click` ve `play` olayları yakalanıyor: `preventDefault()`,
+  `stopPropagation()`, eleman duraklatılıyor ve
+  `jsinterface://startVideo` ile native'e devrediliyor
+- Adres değişimi 100 ms'de bir yoklanıp
+  `jsinterface://pageChanged?<adres>` ile bildiriliyor
+
+Yani **iOS'ta sayfanın kendi videosu hiç oynamıyor.** Android'deki
+Amazon tıklama devralmasıyla aynı felsefe, ama bağlantı yerine doğrudan
+video elemanına uygulanmış ve tüm platformlarda geçerli.
+
+### 11.5 `user-agents.json`
+
+4.8 MB'lık gerçek tarayıcı parmak izi havuzu. Her kayıtta `userAgent`,
+`platform`, `vendor`, `appName`, `pluginsLength`, ekran ve görünüm
+alanı ölçüleri, `deviceCategory` ve bir `weight` (gerçek dünyadaki
+yaygınlık payı) var. Sabit bir user agent yerine ağırlıklı seçimle
+gerçekçi parmak izi üretmek için.
+
+### 11.6 `acorn.js`
+
+JavaScript ayrıştırıcısı. Android tarafında YouTube `player.js`
+içindeki imza çözme fonksiyonlarını ayrıştırmak için kullanılan
+yaklaşımın iOS karşılığı olması muhtemel.
+
+### Bizim iOS yolumuz için çıkarımlar
+
+1. **Video devralma.** Bizim köprümüz videoyu tespit edip kontrol
+   ediyor ama sayfanın kendi oynatmasını engellemiyor. Rave her `play`
+   olayını kesiyor. Prime'da yaşadığımız "sayfa kendi oynatıcısına
+   gidiyor" sorununun iOS'taki genel çözümü bu.
+2. **Arayüz temizliği.** Platform WebView'lerinde üyelik, ödeme ve
+   reklam bölümleri duruyor. Yukarıdaki CSS seçicileri doğrudan
+   kullanılabilir.
+3. **Arka plan kipleri.** `audio` ve `voip` bizde de gerekiyor.
