@@ -58,14 +58,14 @@ class NetflixMslYonetici(private val context: Context) {
           return true
         } catch (e: Throwable) {
           Log.w(TAG, "yenileme basarisiz, bayat kayit temizlenip taze anahtar degisimi: ${e.message}")
-          temizle()
+          temizle(false)
         }
       } else if (!durum.getBoolean("expired")) {
         Log.d(TAG, "kayitli ana token gecerli")
         sonKeYolu = "kayitli-gecerli"
         return true
       } else {
-        temizle()
+        temizle(false)
       }
     }
     Log.d(TAG, "yeni anahtar cifti uretiliyor")
@@ -103,8 +103,9 @@ class NetflixMslYonetici(private val context: Context) {
       return manifestJson
     } catch (e: Throwable) {
       val ozet = tokenDurumOzeti()
-      Log.e(TAG, "manifest basarisiz, msl_data temizleniyor | $ozet", e)
-      temizle()
+      val varlikReddi = e is MslHatasi && (e.kod == VARLIK_YENIDEN_KIMLIK || e.kod == VARLIK_VERISI_YENIDEN_KIMLIK)
+      Log.e(TAG, "manifest basarisiz, msl_data temizleniyor (esnYenile=$varlikReddi) | $ozet", e)
+      temizle(varlikReddi)
       throw IllegalStateException("${e.message} || TANI: $ozet", e)
     }
   }
@@ -201,7 +202,7 @@ class NetflixMslYonetici(private val context: Context) {
     Log.d(TAG, "cihaz kimligi yenilendi: $yeni")
   }
 
-  fun temizle() {
+  fun temizle(kimlikYenilensin: Boolean = true) {
     prefs?.edit()?.remove("msl_data")?.apply()
     oturum.sifrelemeAnahtari = null
     oturum.hmacAnahtari = null
@@ -209,7 +210,7 @@ class NetflixMslYonetici(private val context: Context) {
     oturum.kullaniciToken = null
     oturum.sahipToken = null
     clearKeyJwk = null
-    kimlikYenile()
+    if (kimlikYenilensin) kimlikYenile()
   }
 
   private fun mslPost(url: String, yuk: String, etiket: String = "msl"): String {
@@ -262,6 +263,8 @@ class NetflixMslYonetici(private val context: Context) {
     private const val TAG = "NetflixMsl"
     private const val MAKS_DENEME = 3
     private const val ESN_ANAHTARI = "netflix_esn"
+    private const val VARLIK_YENIDEN_KIMLIK = 3
+    private const val VARLIK_VERISI_YENIDEN_KIMLIK = 6
     private const val SON_BASARILI_ANAHTARI = "son_basarili_baslik"
     private const val KULLANICI_AJANI = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0"
   }

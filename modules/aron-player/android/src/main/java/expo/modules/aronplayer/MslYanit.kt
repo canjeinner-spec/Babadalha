@@ -7,6 +7,8 @@ import javax.crypto.Cipher
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 
+class MslHatasi(val kod: Int, val icKod: Int, mesaj: String) : IllegalStateException(mesaj)
+
 class MslYanit(private val oturum: MslOturum) {
 
   private fun netflixHatasiKontrol(yanit: String, etiket: String) {
@@ -23,7 +25,7 @@ class MslYanit(private val oturum: MslOturum) {
     val ic = hataVeri.optInt("internalcode", -1)
     val mesaj = hataVeri.optString("errormsg", hataVeri.optString("usermsg", ""))
     Log.e(TAG, "Netflix MSL hatasi [$etiket]: errorcode=$kod internalcode=$ic msg=$mesaj")
-    throw IllegalStateException("Netflix MSL hatasi [$etiket]: errorcode=$kod internalcode=$ic msg=$mesaj")
+    throw MslHatasi(kod, ic, "Netflix MSL hatasi [$etiket]: errorcode=$kod internalcode=$ic msg=$mesaj")
   }
 
   private fun anahtarAdlari(o: JSONObject): String {
