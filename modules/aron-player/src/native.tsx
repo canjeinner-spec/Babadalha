@@ -83,6 +83,15 @@ export type NativeOynaticiRef = {
     oynuyor: boolean;
     durum: string;
   }>;
+  izler(): Promise<{
+    ses: { kod: string; ad: string; secili: boolean }[];
+    altyazi: { kod: string; ad: string; secili: boolean }[];
+    kalite: { yukseklik: number; ad: string; secili: boolean }[];
+    altyaziAcik: boolean;
+  }>;
+  sesDiliSec(kod: string): Promise<void>;
+  altyaziSec(kod: string | null): Promise<void>;
+  kaliteSec(yukseklik: number): Promise<void>;
 };
 
 const modul = requireOptionalNativeModule<AronPlayerModulu>("AronPlayer");

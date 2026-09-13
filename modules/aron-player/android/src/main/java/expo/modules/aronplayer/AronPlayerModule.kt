@@ -146,6 +146,10 @@ class AronPlayerModule : Module() {
       AsyncFunction("sesSeviyesi") { view: AronPlayerView, deger: Double -> view.sesSeviyesi(deger.toFloat()) }
       AsyncFunction("hiz") { view: AronPlayerView, deger: Double -> view.hiz(deger.toFloat()) }
       AsyncFunction("konum") { view: AronPlayerView -> view.konumBilgisi() }
+      AsyncFunction("izler") { view: AronPlayerView -> view.izler() }
+      AsyncFunction("sesDiliSec") { view: AronPlayerView, kod: String -> view.sesDiliSec(kod) }
+      AsyncFunction("altyaziSec") { view: AronPlayerView, kod: String? -> view.altyaziSec(kod) }
+      AsyncFunction("kaliteSec") { view: AronPlayerView, yukseklik: Int -> view.kaliteSec(yukseklik) }
 
       OnViewDestroys { view: AronPlayerView -> view.yokEt() }
     }

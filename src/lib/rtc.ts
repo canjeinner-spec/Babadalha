@@ -18,6 +18,7 @@ export interface RtcMotoru {
   ayril(): Promise<void>;
   micAyarla(acik: boolean): Promise<void>;
   hoparlorAyarla(acik: boolean): Promise<void>;
+  uzakSesSeviyesi(deger: number): Promise<void>;
   rolAyarla(yayinci: boolean): Promise<void>;
   aktifKonusanlariDinle(dinleyici: KonusanDinleyici): () => void;
 }
@@ -47,6 +48,7 @@ export class BosRtcMotoru implements RtcMotoru {
 
   async micAyarla(acik: boolean) { this._mic = acik; }
   async hoparlorAyarla(acik: boolean) { this._hoparlor = acik; }
+  async uzakSesSeviyesi(_deger: number) {}
   async rolAyarla(yayinci: boolean) { this._yayinci = yayinci; }
 
   aktifKonusanlariDinle(_dinleyici: KonusanDinleyici) {

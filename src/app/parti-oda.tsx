@@ -1354,6 +1354,7 @@ export default function PartiOda() {
                 : undefined
             }
             baslik={simdiki}
+            altBaslik={platformBul(oynatilan.platform)?.ad ?? null}
             tamEkran={kip === "gezinme" || buyuk}
             onBoyut={boyutDegistir}
             onSohbet={() => setYanSohbet((v) => !v)}

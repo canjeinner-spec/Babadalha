@@ -86,6 +86,17 @@ export type DrmOlayi = { olay: string; mesaj: string };
 
 export type OranKipi = "sigdir" | "doldur" | "yakinlastir" | "genislik" | "yukseklik";
 
+export type IzSecenegi = { kod: string; ad: string; secili: boolean };
+export type KaliteSecenegi = { yukseklik: number; ad: string; secili: boolean };
+export type IzListesi = {
+  ses: IzSecenegi[];
+  altyazi: IzSecenegi[];
+  kalite: KaliteSecenegi[];
+  altyaziAcik: boolean;
+};
+
+const BOS_IZLER: IzListesi = { ses: [], altyazi: [], kalite: [], altyaziAcik: false };
+
 export type AronOynaticiKumanda = {
   yukle(config: PlaybackConfig): Promise<void>;
   oynat(): Promise<void>;
@@ -102,6 +113,10 @@ export type AronOynaticiKumanda = {
     oynuyor: boolean;
     durum: OynaticiDurum;
   }>;
+  izler(): Promise<IzListesi>;
+  sesDiliSec(kod: string): Promise<void>;
+  altyaziSec(kod: string | null): Promise<void>;
+  kaliteSec(yukseklik: number): Promise<void>;
 };
 
 export type AronOynaticiProps = ViewProps & {
@@ -213,6 +228,12 @@ function yokKumanda(onHata?: (olay: HataOlayi) => void): AronOynaticiKumanda {
     async konum() {
       return { konumMs: 0, sureMs: 0, tamponMs: 0, oynuyor: false, durum: "bos" as OynaticiDurum };
     },
+    async izler() {
+      return BOS_IZLER;
+    },
+    async sesDiliSec() {},
+    async altyaziSec() {},
+    async kaliteSec() {},
   };
 }
 
@@ -281,6 +302,18 @@ function AronOynaticiIc(props: AronOynaticiProps, disRef: Ref<AronOynaticiKumand
         const bilgi = await canli()?.konum();
         if (!bilgi) return { konumMs: 0, sureMs: 0, tamponMs: 0, oynuyor: false, durum: "bos" as OynaticiDurum };
         return { ...bilgi, durum: durumCevir(bilgi.durum) };
+      },
+      async izler() {
+        return (await canli()?.izler()) ?? BOS_IZLER;
+      },
+      async sesDiliSec(kod: string) {
+        await canli()?.sesDiliSec(kod);
+      },
+      async altyaziSec(kod: string | null) {
+        await canli()?.altyaziSec(kod);
+      },
+      async kaliteSec(yukseklik: number) {
+        await canli()?.kaliteSec(yukseklik);
       },
     };
   }, [onHata]);

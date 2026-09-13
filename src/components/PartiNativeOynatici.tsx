@@ -1,9 +1,11 @@
 import { forwardRef, type ReactNode, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 
+import { OynaticiAyarlar } from "@/components/OynaticiAyarlar";
 import { OynaticiKontrol } from "@/components/OynaticiKontrol";
 import { Txt } from "@/components/Txt";
 import { Icon } from "@/icons/Icon";
+import { rtcMotoruGetir } from "@/lib/rtc";
 import { type OynaticiOlayi } from "@/parti/kopru";
 import { C } from "@/theme/colors";
 
@@ -12,6 +14,7 @@ import {
   nativeOynaticiVar,
   type AronOynaticiKumanda,
   type DrmYapilandirma,
+  type IzListesi,
   type OynaticiDurum,
 } from "../../modules/aron-player";
 import { type OynaticiKolu } from "@/components/PartiOynatici";
@@ -24,6 +27,7 @@ type Props = {
   adres: string;
   drm?: DrmYapilandirma;
   baslik?: string | null;
+  altBaslik?: string | null;
   tamEkran?: boolean;
   onBoyut?: () => void;
   onSohbet?: () => void;
@@ -37,7 +41,7 @@ type Props = {
 const YOK_MESAJI = "Doğrudan bağlantı oynatıcısı yalnız Android geliştirme derlemesinde çalışıyor.";
 
 export const PartiNativeOynatici = forwardRef<OynaticiKolu, Props>(function PartiNativeOynatici(
-  { adres, drm, baslik, tamEkran, onBoyut, onSohbet, sohbetAcik, kontrolVar, kilitli, onOlay, ustKatman },
+  { adres, drm, baslik, altBaslik, tamEkran, onBoyut, onSohbet, sohbetAcik, kontrolVar, kilitli, onOlay, ustKatman },
   ref,
 ) {
   const kumanda = useRef<AronOynaticiKumanda>(null);
@@ -50,7 +54,10 @@ export const PartiNativeOynatici = forwardRef<OynaticiKolu, Props>(function Part
   const [sure, setSure] = useState(0);
   const [oynuyor, setOynuyor] = useState(false);
   const [videoVar, setVideoVar] = useState(false);
-  const [ses, setSes] = useState(1);
+  const [odak, setOdak] = useState(0.5);
+  const [hizi, setHizi] = useState(1);
+  const [ayarlarAcik, setAyarlarAcik] = useState(false);
+  const [izler, setIzler] = useState<IzListesi>({ ses: [], altyazi: [], kalite: [], altyaziAcik: false });
 
   const varMi = nativeOynaticiVar();
 
@@ -212,8 +219,21 @@ export const PartiNativeOynatici = forwardRef<OynaticiKolu, Props>(function Part
             setKonum(sn);
             kumanda.current?.ara(Math.max(0, sn) * 1000);
           }}
-          ses={ses}
-          onSes={(deger) => { setSes(deger); kumanda.current?.sesSeviyesi(deger); }}
+          odak={odak}
+          onOdak={(deger) => {
+            setOdak(deger);
+            const medya = deger < 0.5 ? 0.15 + (deger / 0.5) * 0.85 : 1;
+            const mikrofon = deger > 0.5 ? 1 - (deger - 0.5) / 0.5 : 1;
+            kumanda.current?.sesSeviyesi(medya);
+            rtcMotoruGetir().uzakSesSeviyesi(mikrofon).catch(() => {});
+          }}
+          baslik={baslik}
+          altBaslik={altBaslik}
+          hiz={hizi}
+          onAyarlar={() => {
+            kumanda.current?.izler().then(setIzler).catch(() => {});
+            setAyarlarAcik(true);
+          }}
           sagDugmeler={
             onBoyut ? (
               <View style={styles.kosuKutusu}>
@@ -231,6 +251,27 @@ export const PartiNativeOynatici = forwardRef<OynaticiKolu, Props>(function Part
         />
       )}
       {ustKatman}
+      <OynaticiAyarlar
+        acik={ayarlarAcik}
+        onKapat={() => setAyarlarAcik(false)}
+        izler={izler}
+        hiz={hizi}
+        baslik={baslik}
+        altBaslik={altBaslik}
+        onHiz={(deger) => { setHizi(deger); kumanda.current?.hiz(deger); }}
+        onSesDili={(kod) => {
+          kumanda.current?.sesDiliSec(kod);
+          kumanda.current?.izler().then(setIzler).catch(() => {});
+        }}
+        onAltyazi={(kod) => {
+          kumanda.current?.altyaziSec(kod);
+          kumanda.current?.izler().then(setIzler).catch(() => {});
+        }}
+        onKalite={(yukseklik) => {
+          kumanda.current?.kaliteSec(yukseklik);
+          kumanda.current?.izler().then(setIzler).catch(() => {});
+        }}
+      />
     </View>
   );
 });

@@ -15,6 +15,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import java.io.File
+import java.util.Locale
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
 import androidx.media3.datasource.DataSource
@@ -313,6 +314,80 @@ class AronPlayerView(context: Context, appContext: AppContext) : ExpoView(contex
 
   fun hiz(deger: Float) = anaIplikte {
     oynatici?.setPlaybackSpeed(deger.coerceIn(0.25f, 4f))
+  }
+
+  private fun dilAdi(kod: String): String {
+    if (kod.isBlank() || kod == "und") return "Bilinmiyor"
+    return try {
+      val ad = Locale.forLanguageTag(kod).getDisplayLanguage(Locale("tr"))
+      if (ad.isBlank() || ad == kod) kod else ad.replaceFirstChar { it.uppercase(Locale("tr")) }
+    } catch (e: Throwable) { kod }
+  }
+
+  fun izler(): Map<String, Any> {
+    val p = oynatici ?: return mapOf("ses" to emptyList<Any>(), "altyazi" to emptyList<Any>(), "kalite" to emptyList<Any>())
+    val ses = mutableListOf<Map<String, Any>>()
+    val altyazi = mutableListOf<Map<String, Any>>()
+    val kalite = mutableListOf<Map<String, Any>>()
+    val gorulenSes = mutableSetOf<String>()
+    val gorulenAlt = mutableSetOf<String>()
+    val gorulenYuk = mutableSetOf<Int>()
+    var altyaziAcik = false
+    for (grup in p.currentTracks.groups) {
+      for (i in 0 until grup.length) {
+        if (!grup.isTrackSupported(i)) continue
+        val bicim = grup.getTrackFormat(i)
+        val secili = grup.isTrackSelected(i)
+        when (grup.type) {
+          C.TRACK_TYPE_AUDIO -> {
+            val kod = bicim.language ?: "und"
+            if (gorulenSes.add(kod)) {
+              ses.add(mapOf("kod" to kod, "ad" to (bicim.label ?: dilAdi(kod)), "secili" to secili))
+            }
+          }
+          C.TRACK_TYPE_TEXT -> {
+            val kod = bicim.language ?: "und"
+            if (secili) altyaziAcik = true
+            if (gorulenAlt.add(kod)) {
+              altyazi.add(mapOf("kod" to kod, "ad" to (bicim.label ?: dilAdi(kod)), "secili" to secili))
+            }
+          }
+          C.TRACK_TYPE_VIDEO -> {
+            val y = bicim.height
+            if (y > 0 && gorulenYuk.add(y)) {
+              kalite.add(mapOf("yukseklik" to y, "ad" to "${y}p", "secili" to secili))
+            }
+          }
+        }
+      }
+    }
+    kalite.sortByDescending { it["yukseklik"] as Int }
+    return mapOf("ses" to ses, "altyazi" to altyazi, "kalite" to kalite, "altyaziAcik" to altyaziAcik)
+  }
+
+  fun sesDiliSec(kod: String) = anaIplikte {
+    val p = oynatici ?: return@anaIplikte
+    p.trackSelectionParameters = p.trackSelectionParameters.buildUpon()
+      .setPreferredAudioLanguage(kod)
+      .build()
+  }
+
+  fun altyaziSec(kod: String?) = anaIplikte {
+    val p = oynatici ?: return@anaIplikte
+    val kurucu = p.trackSelectionParameters.buildUpon()
+    if (kod.isNullOrBlank()) {
+      kurucu.setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
+    } else {
+      kurucu.setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false).setPreferredTextLanguage(kod)
+    }
+    p.trackSelectionParameters = kurucu.build()
+  }
+
+  fun kaliteSec(yukseklik: Int) = anaIplikte {
+    val p = oynatici ?: return@anaIplikte
+    val kurucu = p.trackSelectionParameters.buildUpon()
+    if (yukseklik <= 0) kurucu.clearVideoSizeConstraints() else kurucu.setMaxVideoSize(Int.MAX_VALUE, yukseklik)
+    p.trackSelectionParameters = kurucu.build()
   }
 
   fun oranKipi(kip: String?) = anaIplikte {

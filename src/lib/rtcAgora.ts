@@ -209,6 +209,12 @@ export class AgoraRtcMotoru implements RtcMotoru {
     if (this._bagli) this._motor.updateChannelMediaOptions({ autoSubscribeAudio: acik });
   }
 
+  async uzakSesSeviyesi(deger: number) {
+    if (!this._motor) return;
+    const yuzde = Math.round(Math.min(1, Math.max(0, deger)) * 100);
+    this._motor.adjustPlaybackSignalVolume(yuzde);
+  }
+
   async rolAyarla(yayinci: boolean) {
     if (this._yayinci === yayinci) return;
     this._yayinci = yayinci;
