@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { AltCubuk, CUBUK_YUKSEKLIGI } from "@/components/AltCubuk";
 import { CenterModal } from "@/components/CenterModal";
 import { DilSecici } from "@/components/DilSecici";
 import { OzelIdGosterim } from "@/components/OzelId";
@@ -84,7 +85,7 @@ export default function PartiProfil() {
           <View style={{ width: 30 }} />
         </View>
 
-        <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: CUBUK_YUKSEKLIGI + 20 }} showsVerticalScrollIndicator={false}>
           <View style={styles.kart}>
             <Portrait name={userName} size={72} photo={userPhoto ?? undefined} halkasiz />
 
@@ -184,6 +185,8 @@ export default function PartiProfil() {
           )}
         </ScrollView>
       </SafeAreaView>
+
+      <AltCubuk />
 
       <CenterModal visible={cikisOnayi} onClose={() => setCikisOnayi(false)}>
         <View style={styles.uyariKart}>

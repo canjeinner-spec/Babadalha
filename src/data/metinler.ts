@@ -8,9 +8,30 @@ export const METINLER = {
   "genel.yukleniyor": { tr: "Yükleniyor…", en: "Loading…" },
   "genel.hata": { tr: "Bir şeyler ters gitti", en: "Something went wrong" },
 
+  "cubuk.ev": { tr: "Ev", en: "Home" },
+  "cubuk.partiler": { tr: "Partiler", en: "Parties" },
+  "cubuk.kisi": { tr: "Profil", en: "Profile" },
+  "cubuk.baslat": { tr: "Başlat", en: "Start" },
+
+  "partiler.altBaslik": { tr: "Şu an açık olan odalar", en: "Rooms open right now" },
+
   "ana.baslik": { tr: "Parti", en: "Party" },
   "ana.altBaslik": { tr: "Birlikte izle, birlikte konuş", en: "Watch together, talk together" },
   "ana.canliPartiler": { tr: "Canlı partiler", en: "Live parties" },
+  "ana.selam": { tr: "Merhaba {0}", en: "Hello {0}" },
+  "ana.duyuruBaslik": { tr: "Aron'a hoş geldin", en: "Welcome to Aron" },
+  "ana.duyuruMetin": {
+    tr: "Netflix, Prime Video ve YouTube artık yerel oynatıcıda açılıyor. Odanı kur, bağlantını paylaş, film aynı saniyede başlasın.",
+    en: "Netflix, Prime Video and YouTube now open in the native player. Set up your room, share your link, and the film starts on the same second.",
+  },
+  "ana.kisayolBaslik": { tr: "Ne yapmak istersin?", en: "What would you like to do?" },
+  "ana.kisayolKur": { tr: "Parti kur", en: "Start a party" },
+  "ana.kisayolKurAlt": { tr: "Platformu seç, oda saniyesinde açılsın", en: "Pick a platform, your room opens in a second" },
+  "ana.kisayolKatil": { tr: "Açık partilere bak", en: "Browse open parties" },
+  "ana.kisayolKatilAlt": { tr: "Şu an izlenen odalara göz at", en: "See the rooms being watched now" },
+  "ana.kisayolDavet": { tr: "Arkadaşını çağır", en: "Invite a friend" },
+  "ana.kisayolDavetAlt": { tr: "Davet bağlantını paylaş", en: "Share your invite link" },
+  "ana.davetKopyalandi": { tr: "Davet bağlantısı kopyalandı", en: "Invite link copied" },
   "ana.partiYok": { tr: "Şu an açık parti yok", en: "No open parties right now" },
   "ana.partiBaslat": { tr: "Parti başlat", en: "Start a party" },
 

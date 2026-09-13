@@ -6,7 +6,7 @@ yükseltilmiş düğmenin içi (koyu).
 | dosya | sekme | dolgu |
 | --- | --- | --- |
 | `assets/amblem/ev.webp` | Ev | altın |
-| `assets/amblem/kure.webp` | Küre | altın |
+| `assets/amblem/kapi.webp` | Partiler | altın |
 | `assets/amblem/kisi.webp` | Kişi | altın |
 | `assets/amblem/oynat.webp` | ortadaki düğme | koyu |
 
@@ -49,9 +49,13 @@ no border, no card, no container, no gradient background.
 roof and a plain rectangular body with one rounded door opening in the
 middle. Symmetrical, no windows, no chimney.`
 
-**2. Küre** — ortak blok + `A globe: one perfect circle, one horizontal
-equator line across the middle, and two curved meridian arcs. Nothing
-else, no continents, no stand, no base.`
+**2. Partiler (kapı)** — ortak blok + `A single door seen straight on: a
+tall rounded-top rectangle with a thick frame, standing slightly open,
+with one small round door knob on the right side. No wall, no floor, no
+handle plate, no keyhole.`
+
+Küre yerine kapı seçildi: "oda" kelimesinin birebir karşılığı, 26 px'te
+okunuyor ve Rave ile Turtle'ın küresine benzemiyor.
 
 **3. Kişi** — ortak blok + `A single person symbol: one circle for the
 head above a rounded shoulders shape. Symmetrical, no facial features,
@@ -74,8 +78,8 @@ icons in a 2x2 grid, evenly spaced, each centred in its own quadrant and
 filling about 70% of that quadrant. Same drawing style, same stroke
 weight and same gold gradient for all four.
 Top-left: a simple house with a pitched roof and one door opening.
-Top-right: a globe made of one circle, one equator line and two meridian
-arcs. Bottom-left: a person symbol, circle head over rounded shoulders.
+Top-right: a single door, tall rounded-top rectangle with a thick frame,
+standing slightly open, one round knob. Bottom-left: a person symbol, circle head over rounded shoulders.
 Bottom-right: a play triangle with rounded corners pointing right.
 No text, no frame, no background.
 ```

@@ -14,7 +14,11 @@ export type AltinAmblemAdi =
   | "simsek"
   | "elmas"
   | "parti"
-  | "kisi-ekle";
+  | "kisi-ekle"
+  | "ev"
+  | "kapi"
+  | "kisi"
+  | "oynat";
 
 const GORSELLER: Record<AltinAmblemAdi, number> = {
   tac: require("@/assets/amblem/tac.webp"),
@@ -26,19 +30,26 @@ const GORSELLER: Record<AltinAmblemAdi, number> = {
   elmas: require("@/assets/amblem/elmas.webp"),
   parti: require("@/assets/amblem/parti.webp"),
   "kisi-ekle": require("@/assets/amblem/kisi-ekle.webp"),
+  ev: require("@/assets/amblem/ev.webp"),
+  kapi: require("@/assets/amblem/kapi.webp"),
+  kisi: require("@/assets/amblem/kisi.webp"),
+  oynat: require("@/assets/amblem/oynat.webp"),
 };
 
-export function AltinAmblem({ ad, yedek, boyut = 24 }: {
+export function AltinAmblem({ ad, yedek, boyut = 24, sonuk = false }: {
   ad: AltinAmblemAdi;
   yedek: IconName;
   boyut?: number;
+  sonuk?: boolean;
 }) {
   const [hata, setHata] = useState(false);
-  if (hata) return <Icon name={yedek} size={boyut * 0.82} sw={2} color={C.gold2} />;
+  if (hata) {
+    return <Icon name={yedek} size={boyut * 0.82} sw={2} color={sonuk ? C.dim2 : C.gold2} />;
+  }
   return (
     <Image
       source={GORSELLER[ad]}
-      style={{ width: boyut, height: boyut }}
+      style={{ width: boyut, height: boyut, opacity: sonuk ? 0.42 : 1 }}
       contentFit="contain"
       transition={120}
       onError={() => setHata(true)}
