@@ -15,7 +15,9 @@ data class YoutubeOynatimBilgisi(
   val baslik: String,
   val yazar: String,
   val sureMs: Long,
-  val streamingJson: String
+  val streamingJson: String,
+  val canli: Boolean = false,
+  val userAgent: String = ""
 )
 
 class YoutubeInnertubeIstemcisi(private val context: Context) {
@@ -89,6 +91,7 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
     val sira = listOf(Istemci.IOS, Istemci.ANDROID_VR, Istemci.ANDROID_TESTSUITE)
     val hatalar = mutableListOf<String>()
     var enSonJson: JSONObject? = null
+    var enSonIstemci: Istemci = Istemci.IOS
     for (istemci in sira) {
       try {
         val yanit = istemciDene(istemci, videoId, dil)
@@ -98,11 +101,12 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
         if (durum == "OK" || durum == "LIVE_STREAM_OFFLINE") {
           val streaming = json.optJSONObject("streamingData")
           if (streaming != null && (streaming.optJSONArray("adaptiveFormats")?.length() ?: 0) > 0) {
-            return bilgiOlustur(json, streaming, videoId)
+            return bilgiOlustur(json, streaming, videoId, istemci)
           }
         }
         hatalar.add("${istemci.ad}: $durum ${ps?.optString("reason", "") ?: ""}")
         enSonJson = json
+        enSonIstemci = istemci
       } catch (e: Throwable) {
         hatalar.add("${istemci.ad}: ${e.message}")
         Log.w(TAG, "istemci ${istemci.ad} basarisiz", e)
@@ -110,7 +114,7 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
     }
     if (enSonJson != null) {
       val streaming = enSonJson!!.optJSONObject("streamingData")
-      if (streaming != null) return bilgiOlustur(enSonJson!!, streaming, videoId)
+      if (streaming != null) return bilgiOlustur(enSonJson!!, streaming, videoId, enSonIstemci)
     }
     throw Exception("YouTube tum istemciler basarisiz: ${hatalar.joinToString("; ")}")
   }
@@ -123,7 +127,12 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
     json.remove("adBreakHeartbeatParams")
   }
 
-  private fun bilgiOlustur(json: JSONObject, streamingData: JSONObject, videoId: String): YoutubeOynatimBilgisi {
+  private fun bilgiOlustur(
+    json: JSONObject,
+    streamingData: JSONObject,
+    videoId: String,
+    istemci: Istemci
+  ): YoutubeOynatimBilgisi {
     reklamTemizle(json)
     val videoDetaylari = json.optJSONObject("videoDetails")
     val baslik = videoDetaylari?.optString("title", "") ?: ""
@@ -140,6 +149,22 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
 
     if (betik != null) urlleriTazele(streamingData, betik)
 
+    val hlsAdres = streamingData.optString("hlsManifestUrl", "")
+    val canliMi = videoDetaylari?.optBoolean("isLive", false) == true ||
+      json.optJSONObject("playabilityStatus")?.has("liveStreamability") == true
+    if (canliMi && hlsAdres.isNotEmpty()) {
+      Log.d(TAG, "canli yayin, HLS kullaniliyor")
+      return YoutubeOynatimBilgisi(
+        manifestUrl = hlsAdres,
+        baslik = baslik,
+        yazar = yazar,
+        sureMs = 0L,
+        streamingJson = streamingData.toString(),
+        canli = true,
+        userAgent = istemci.userAgent
+      )
+    }
+
     val mpdUri = manifestUretici.dashUret(streamingData, sureSaniye * 1000L, context)
 
     return YoutubeOynatimBilgisi(
@@ -147,7 +172,8 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
       baslik = baslik,
       yazar = yazar,
       sureMs = sureSaniye * 1000L,
-      streamingJson = streamingData.toString()
+      streamingJson = streamingData.toString(),
+      userAgent = istemci.userAgent
     )
   }
 

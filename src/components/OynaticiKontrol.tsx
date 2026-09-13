@@ -31,7 +31,7 @@ export function zamanYaz(sn: number): string {
 
 export const OynaticiKontrol = memo(function OynaticiKontrol({
   konum, sure, oynuyor, onOynat, onDuraklat, onAtla, sagDugmeler,
-  ses, onSes, odak, onOdak, baslik, altBaslik, hiz, onAyarlar,
+  ses, onSes, odak, onOdak, baslik, altBaslik, hiz, onAyarlar, canli,
 }: {
   konum: number; sure: number; oynuyor: boolean;
   onOynat: () => void; onDuraklat: () => void; onAtla: (saniye: number) => void;
@@ -40,6 +40,7 @@ export const OynaticiKontrol = memo(function OynaticiKontrol({
   odak?: number; onOdak?: (deger: number) => void;
   baslik?: string | null; altBaslik?: string | null;
   hiz?: number; onAyarlar?: () => void;
+  canli?: boolean;
 }) {
   const [acik, setAcik] = useState(true);
   const [genislik, setGenislik] = useState(0);
@@ -137,12 +138,14 @@ export const OynaticiKontrol = memo(function OynaticiKontrol({
       </View>
 
       <View style={styles.orta} pointerEvents="box-none">
-        <Pressable onPress={() => atla(-ATLAMA_SN)} hitSlop={10} style={styles.yanDugme}>
-          <Icon path={YOL_GERI} size={26} sw={2.1} color="#fff" />
-          <View style={styles.yanYaziKutu} pointerEvents="none">
-            <Txt weight="extrabold" size={8} color="#fff">{ATLAMA_SN}</Txt>
-          </View>
-        </Pressable>
+        {!canli && (
+          <Pressable onPress={() => atla(-ATLAMA_SN)} hitSlop={10} style={styles.yanDugme}>
+            <Icon path={YOL_GERI} size={26} sw={2.1} color="#fff" />
+            <View style={styles.yanYaziKutu} pointerEvents="none">
+              <Txt weight="extrabold" size={8} color="#fff">{ATLAMA_SN}</Txt>
+            </View>
+          </Pressable>
+        )}
         <Pressable
           onPress={() => { haptic.select(); (oynuyor ? onDuraklat : onOynat)(); setAcik(true); }}
           hitSlop={10}
@@ -150,12 +153,14 @@ export const OynaticiKontrol = memo(function OynaticiKontrol({
         >
           <Icon path={oynuyor ? YOL_DURAKLAT : YOL_OYNAT} size={30} sw={2.6} color="#fff" fill={oynuyor ? "none" : "#fff"} />
         </Pressable>
-        <Pressable onPress={() => atla(ATLAMA_SN)} hitSlop={10} style={styles.yanDugme}>
-          <Icon path={YOL_ILERI} size={26} sw={2.1} color="#fff" />
-          <View style={styles.yanYaziKutu} pointerEvents="none">
-            <Txt weight="extrabold" size={8} color="#fff">{ATLAMA_SN}</Txt>
-          </View>
-        </Pressable>
+        {!canli && (
+          <Pressable onPress={() => atla(ATLAMA_SN)} hitSlop={10} style={styles.yanDugme}>
+            <Icon path={YOL_ILERI} size={26} sw={2.1} color="#fff" />
+            <View style={styles.yanYaziKutu} pointerEvents="none">
+              <Txt weight="extrabold" size={8} color="#fff">{ATLAMA_SN}</Txt>
+            </View>
+          </Pressable>
+        )}
       </View>
 
       {kaydiriciVar && sesAcik && (
@@ -193,21 +198,33 @@ export const OynaticiKontrol = memo(function OynaticiKontrol({
           </View>
         )}
         <View style={styles.ilerlemeSatiri} pointerEvents="box-none">
-          <Txt weight="extrabold" size={11} color="#fff" style={styles.zaman}>{zamanYaz(gosterilen)}</Txt>
-          <View
-            style={styles.rayYuva}
-            onLayout={(e: LayoutChangeEvent) => setGenislik(e.nativeEvent.layout.width)}
-            {...sur.panHandlers}
-          >
-            <View style={styles.ray} pointerEvents="none">
-              <View style={[styles.dolu, { width: `${oran * 100}%` }]} />
-            </View>
-            <View
-              pointerEvents="none"
-              style={[styles.tutamac, { left: Math.max(0, oran * genislik - 6) }, surukleme != null && styles.tutamacBuyuk]}
-            />
-          </View>
-          <Txt weight="extrabold" size={11} color="rgba(255,255,255,.62)" style={styles.zaman}>{zamanYaz(sure)}</Txt>
+          {canli ? (
+            <>
+              <View style={styles.canliRozet} pointerEvents="none">
+                <View style={styles.canliNokta} />
+                <Txt weight="extrabold" size={10} color="#fff">CANLI</Txt>
+              </View>
+              <View style={styles.esnek} pointerEvents="none" />
+            </>
+          ) : (
+            <>
+              <Txt weight="extrabold" size={11} color="#fff" style={styles.zaman}>{zamanYaz(gosterilen)}</Txt>
+              <View
+                style={styles.rayYuva}
+                onLayout={(e: LayoutChangeEvent) => setGenislik(e.nativeEvent.layout.width)}
+                {...sur.panHandlers}
+              >
+                <View style={styles.ray} pointerEvents="none">
+                  <View style={[styles.dolu, { width: `${oran * 100}%` }]} />
+                </View>
+                <View
+                  pointerEvents="none"
+                  style={[styles.tutamac, { left: Math.max(0, oran * genislik - 6) }, surukleme != null && styles.tutamacBuyuk]}
+                />
+              </View>
+              <Txt weight="extrabold" size={11} color="rgba(255,255,255,.62)" style={styles.zaman}>{zamanYaz(sure)}</Txt>
+            </>
+          )}
           {kaydiriciVar && (
             <Pressable
               onPress={() => { haptic.select(); setSesAcik((v) => !v); setAcik(true); }}
@@ -264,6 +281,11 @@ const styles = StyleSheet.create({
     borderRadius: 16, paddingHorizontal: 10, backgroundColor: "rgba(0,0,0,.46)",
   },
   zaman: { minWidth: 34, textAlign: "center" },
+  canliRozet: {
+    flexDirection: "row", alignItems: "center", gap: 5,
+    paddingHorizontal: 8, height: 22, borderRadius: 11, backgroundColor: "rgba(255,255,255,.14)",
+  },
+  canliNokta: { width: 6, height: 6, borderRadius: 3, backgroundColor: C.red },
   yuzde: { minWidth: 26, textAlign: "center" },
   rayYuva: { flex: 1, height: 26, justifyContent: "center" },
   sesRayYuva: { flex: 1, height: 30, justifyContent: "center" },

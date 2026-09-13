@@ -2495,6 +2495,10 @@ const YOUTUBE_ANDROID_EK = `
       if (m2) return m2[1];
       var m3 = location.pathname.match(/^\\/embed\\/([\\w-]{11})/);
       if (m3) return m3[1];
+      var m4 = location.pathname.match(/^\\/live\\/([\\w-]{11})/);
+      if (m4) return m4[1];
+      var m5 = location.pathname.match(/^\\/v\\/([\\w-]{11})/);
+      if (m5) return m5[1];
     } catch (e) {}
     return '';
   }

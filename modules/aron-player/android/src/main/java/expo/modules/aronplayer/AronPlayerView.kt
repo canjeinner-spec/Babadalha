@@ -21,6 +21,7 @@ import androidx.media3.common.VideoSize
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.datasource.ResolvingDataSource
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.analytics.AnalyticsListener
@@ -522,9 +523,12 @@ class AronPlayerView(context: Context, appContext: AppContext) : ExpoView(contex
   }
 
   private fun kaynakUret(y: OynatimYapilandirma): MediaSource {
+    val ajan = y.basliklar.entries.firstOrNull { it.key.equals("User-Agent", true) }?.value
+      ?: OYNATICI_AJANI
     val http = DefaultHttpDataSource.Factory()
-      .setUserAgent(OYNATICI_AJANI)
+      .setUserAgent(ajan)
       .setAllowCrossProtocolRedirects(true)
+      .setKeepPostFor302Redirects(true)
       .setConnectTimeoutMs(15_000)
       .setReadTimeoutMs(15_000)
     if (y.basliklar.isNotEmpty()) http.setDefaultRequestProperties(y.basliklar)
@@ -532,7 +536,12 @@ class AronPlayerView(context: Context, appContext: AppContext) : ExpoView(contex
     val manifestUri = y.manifestUrl
     val drmAyari = y.drm
 
-    val veri: DataSource.Factory = DefaultDataSource.Factory(context, http)
+    val temelVeri: DataSource.Factory = DefaultDataSource.Factory(context, http)
+    val veri: DataSource.Factory = if (YoutubeVeriCozucu.youtubeMu(manifestUri)) {
+      ResolvingDataSource.Factory(temelVeri, YoutubeVeriCozucu())
+    } else {
+      temelVeri
+    }
     val parca = MediaItem.Builder().setUri(manifestUri)
     y.mimeTuru?.let { parca.setMimeType(it) }
     val disAltyazilar = drmAyari?.altyazilar.orEmpty()

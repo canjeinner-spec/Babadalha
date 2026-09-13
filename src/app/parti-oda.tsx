@@ -403,6 +403,7 @@ export default function PartiOda() {
   const [maxLisansUrl, setMaxLisansUrl] = useState<string | null>(null);
   const maxYerelYukleniyor = useRef(false);
   const [ytYerelAdres, setYtYerelAdres] = useState<string | null>(null);
+  const [ytBasliklar, setYtBasliklar] = useState<Record<string, string> | null>(null);
   const ytYerelYukleniyor = useRef(false);
   const [primeYerelAdres, setPrimeYerelAdres] = useState<string | null>(null);
   const [primeDrm, setPrimeDrm] = useState<{ lisansUrl: string; videoId: string; cerezler: string; marketplaceId: string; altyazilar?: { kod: string; ad: string; url: string }[] } | null>(null);
@@ -973,8 +974,11 @@ export default function PartiOda() {
       (async () => {
         try {
           const sonuc = await youtubeManifestAl(o.videoId, "tr");
+          setYtBasliklar(sonuc.userAgent ? { "User-Agent": sonuc.userAgent } : null);
           setYtYerelAdres(sonuc.manifestUrl);
+          if (sonuc.baslik) setSimdiki(sonuc.baslik);
         } catch {
+          setYtBasliklar(null);
           setYtYerelAdres(null);
         } finally {
           ytYerelYukleniyor.current = false;
@@ -1374,6 +1378,7 @@ export default function PartiOda() {
                 ? { scheme: "widevine" as const, licenseUrl: primeDrm.lisansUrl, primeAmazon: true, primeVideoId: primeDrm.videoId, primeCerezler: primeDrm.cerezler, primeMarketplaceId: primeDrm.marketplaceId, altyazilar: primeDrm.altyazilar }
                 : undefined
             }
+            basliklar={ytYerelAdres && oynatilan.platform === "youtube" ? ytBasliklar : null}
             baslik={simdiki}
             altBaslik={platformBul(oynatilan.platform)?.ad ?? null}
             tamEkran={kip === "gezinme" || buyuk}

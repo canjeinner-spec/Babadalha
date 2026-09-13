@@ -26,6 +26,7 @@ const YOL_PANEL = "M4 5h16a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V6a1 1 0 01
 type Props = {
   adres: string;
   drm?: DrmYapilandirma;
+  basliklar?: Record<string, string> | null;
   baslik?: string | null;
   altBaslik?: string | null;
   tamEkran?: boolean;
@@ -40,8 +41,15 @@ type Props = {
 
 const YOK_MESAJI = "Doğrudan bağlantı oynatıcısı yalnız Android geliştirme derlemesinde çalışıyor.";
 
+function mimTuruBul(adres: string): string | null {
+  const yol = adres.split("?")[0].toLowerCase();
+  if (yol.endsWith(".m3u8")) return "application/x-mpegURL";
+  if (yol.endsWith(".mpd") || yol.endsWith(".xml")) return "application/dash+xml";
+  return null;
+}
+
 export const PartiNativeOynatici = forwardRef<OynaticiKolu, Props>(function PartiNativeOynatici(
-  { adres, drm, baslik, altBaslik, tamEkran, onBoyut, onSohbet, sohbetAcik, kontrolVar, kilitli, onOlay, ustKatman },
+  { adres, drm, basliklar, baslik, altBaslik, tamEkran, onBoyut, onSohbet, sohbetAcik, kontrolVar, kilitli, onOlay, ustKatman },
   ref,
 ) {
   const kumanda = useRef<AronOynaticiKumanda>(null);
@@ -54,6 +62,7 @@ export const PartiNativeOynatici = forwardRef<OynaticiKolu, Props>(function Part
   const [sure, setSure] = useState(0);
   const [oynuyor, setOynuyor] = useState(false);
   const [videoVar, setVideoVar] = useState(false);
+  const [canli, setCanli] = useState(false);
   const [odak, setOdak] = useState(0.5);
   const [hizi, setHizi] = useState(1);
   const [ayarlarAcik, setAyarlarAcik] = useState(false);
@@ -67,9 +76,12 @@ export const PartiNativeOynatici = forwardRef<OynaticiKolu, Props>(function Part
 
   const drmRef = useRef(drm);
   drmRef.current = drm;
+  const basliklarRef = useRef(basliklar);
+  basliklarRef.current = basliklar;
   const baslikRef = useRef(baslik);
   baslikRef.current = baslik;
   const drmAnahtari = drm ? JSON.stringify(drm) : "";
+  const basliklarAnahtari = basliklar ? JSON.stringify(basliklar) : "";
 
   useEffect(() => {
     if (!varMi) {
@@ -88,7 +100,12 @@ export const PartiNativeOynatici = forwardRef<OynaticiKolu, Props>(function Part
     setSure(0);
     setOynuyor(false);
     setVideoVar(false);
+    setCanli(false);
     const yapilandirma: Parameters<AronOynaticiKumanda["yukle"]>[0] = { manifestUrl: adres, otomatikBasla: true, arkaPlandaDevam: true };
+    const mim = mimTuruBul(adres);
+    if (mim) yapilandirma.mimeType = mim;
+    const basliklarSuanki = basliklarRef.current;
+    if (basliklarSuanki && Object.keys(basliklarSuanki).length > 0) yapilandirma.headers = basliklarSuanki;
     const drmSuanki = drmRef.current;
     if (drmSuanki) yapilandirma.drm = drmSuanki;
     kumanda.current
@@ -104,7 +121,7 @@ export const PartiNativeOynatici = forwardRef<OynaticiKolu, Props>(function Part
         bildir({ tur: "engel", sebep });
       });
     return () => { iptal = true; };
-  }, [adres, drmAnahtari, yenileNo, varMi, bildir]);
+  }, [adres, drmAnahtari, basliklarAnahtari, yenileNo, varMi, bildir]);
 
   useImperativeHandle(ref, () => ({
     oynat: () => { kumanda.current?.oynat(); },
@@ -119,7 +136,8 @@ export const PartiNativeOynatici = forwardRef<OynaticiKolu, Props>(function Part
   }));
 
   const durumGeldi = useCallback(
-    (o: { durum: OynaticiDurum; konumMs: number; sureMs: number }) => {
+    (o: { durum: OynaticiDurum; konumMs: number; sureMs: number; canliYayin: boolean }) => {
+      setCanli(o.canliYayin);
       const yeniKonum = o.konumMs / 1000;
       const yeniSure = o.sureMs / 1000;
       if (o.konumMs > 0) { konumRef.current = yeniKonum; setKonum(yeniKonum); }
@@ -230,6 +248,7 @@ export const PartiNativeOynatici = forwardRef<OynaticiKolu, Props>(function Part
           baslik={baslik}
           altBaslik={altBaslik}
           hiz={hizi}
+          canli={canli}
           onAyarlar={() => {
             kumanda.current?.izler().then(setIzler).catch(() => {});
             setAyarlarAcik(true);
