@@ -36,9 +36,9 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
   ) {
     IOS(
       ad = "IOS",
-      surum = "19.29.1",
+      surum = "21.26.4",
       kimlik = "5",
-      userAgent = "com.google.ios.youtube/19.29.1 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)",
+      userAgent = "com.google.ios.youtube/21.26.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)",
       cihazMake = "Apple",
       cihazModel = "iPhone16,2",
       osName = "iPhone",
@@ -46,36 +46,35 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
     ),
     ANDROID_VR(
       ad = "ANDROID_VR",
-      surum = "1.62.27",
+      surum = "1.65.10",
       kimlik = "28",
-      userAgent = "com.google.android.apps.youtube.vr.oculus/1.62.27 (Linux; U; Android 12L; en_US; Oculus Quest 3 Build/SQ3A.220605.009.A1)",
-      cihazMake = "Meta",
-      cihazModel = "Quest 3",
-      osName = "Android",
-      osVersion = "12",
-      sdk = 32
-    ),
-    ANDROID_VR_ESKI(
-      ad = "ANDROID_VR",
-      surum = "1.43.32",
-      kimlik = "28",
-      userAgent = "com.google.android.apps.youtube.vr.oculus/1.43.32 (Linux; U; Android 12L; en_US; Oculus Quest 3 Build/SQ3A.220605.009.A1)",
+      userAgent = "com.google.android.apps.youtube.vr.oculus/1.65.10 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip",
       cihazMake = "Oculus",
       cihazModel = "Quest 3",
       osName = "Android",
       osVersion = "12L",
       sdk = 32
     ),
-    ANDROID_TESTSUITE(
-      ad = "ANDROID_TESTSUITE",
-      surum = "1.9",
-      kimlik = "30",
-      userAgent = "com.google.android.youtube/1.9 (Linux; U; Android 14; en_US) gzip",
-      cihazMake = "Google",
-      cihazModel = "Pixel 8",
+    VISIONOS(
+      ad = "VISIONOS",
+      surum = "1.02",
+      kimlik = "101",
+      userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 15_7_3) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Safari/605.1.15",
+      cihazMake = "Apple",
+      cihazModel = "RealityDevice17,1",
+      osName = "visionOS",
+      osVersion = "26.5.23O471"
+    ),
+    ANDROID(
+      ad = "ANDROID",
+      surum = "21.26.364",
+      kimlik = "3",
+      userAgent = "com.google.android.youtube/21.26.364 (Linux; U; Android 11) gzip",
+      cihazMake = "",
+      cihazModel = "",
       osName = "Android",
-      osVersion = "14",
-      sdk = 34
+      osVersion = "11",
+      sdk = 30
     ),
     MWEB(
       ad = "MWEB",
@@ -105,8 +104,8 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
 
   fun oynatimBilgisiAl(videoId: String, dil: String = "en"): YoutubeOynatimBilgisi {
     val sira = listOf(
-      Istemci.ANDROID_VR, Istemci.ANDROID_VR_ESKI, Istemci.ANDROID_TESTSUITE,
-      Istemci.MWEB, Istemci.WEB, Istemci.IOS
+      Istemci.ANDROID_VR, Istemci.VISIONOS, Istemci.ANDROID,
+      Istemci.IOS, Istemci.MWEB, Istemci.WEB
     )
     val hatalar = mutableListOf<String>()
     val oynaticiBilgisi = try {
