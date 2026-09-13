@@ -189,9 +189,13 @@ class NetflixMslYonetici(private val context: Context) {
     return yeni
   }
 
-  fun cihazKimligiSifirla() {
-    prefs?.edit()?.remove(ESN_ANAHTARI)?.apply()
-    temizle()
+  private fun kimlikYenile() {
+    val yeni = oturum.esnUret()
+    prefs?.edit()?.putString(ESN_ANAHTARI, yeni)?.apply()
+    oturum.kimlik = yeni
+    oturum.anahtarKimligi = ""
+    oturum.siraNo = 0
+    Log.d(TAG, "cihaz kimligi yenilendi: $yeni")
   }
 
   fun temizle() {
@@ -202,6 +206,7 @@ class NetflixMslYonetici(private val context: Context) {
     oturum.kullaniciToken = null
     oturum.sahipToken = null
     clearKeyJwk = null
+    kimlikYenile()
   }
 
   private fun mslPost(url: String, yuk: String, etiket: String = "msl"): String {

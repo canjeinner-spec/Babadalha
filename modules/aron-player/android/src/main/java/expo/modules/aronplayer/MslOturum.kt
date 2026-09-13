@@ -133,9 +133,7 @@ class MslOturum {
       val anahtarlar = kok.getJSONObject("sessionKeys")
       val cift = kok.getJSONObject("keypair")
       val kaydedilenKimlik = kok.getString("identity")
-      val esnOneki = kaydedilenKimlik.split("-").dropLast(1).joinToString("-")
-      val mevcutOneki = kimlik.split("-").dropLast(1).joinToString("-")
-      if (esnOneki != mevcutOneki) return false
+      if (kaydedilenKimlik != kimlik) return false
       sifrelemeAnahtari = Base64.decode(anahtarlar.getString("encryptionKey"), Base64.DEFAULT)
       hmacAnahtari = Base64.decode(anahtarlar.getString("hmacKey"), Base64.DEFAULT)
       siraNo = anahtarlar.getInt("sequenceNumber")
