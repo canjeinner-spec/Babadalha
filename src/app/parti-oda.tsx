@@ -979,7 +979,7 @@ export default function PartiOda() {
           if (sonuc.baslik) setSimdiki(sonuc.baslik);
           ayiklamaYaz(`yt yerel: ${sonuc.istemci} canli=${sonuc.canli ? 1 : 0} sure=${Math.round(sonuc.sureMs / 1000)}s`);
         } catch (e) {
-          ayiklamaYaz(`yt yerel HATA: ${String((e as Error)?.message ?? e).slice(0, 220)}`);
+          ayiklamaYaz(`yt yerel HATA: ${String((e as Error)?.message ?? e).replace(/^.*?java\.lang\.Exception: /s, "").slice(0, 400)}`);
           setYtBasliklar(null);
           setYtYerelAdres(null);
         } finally {

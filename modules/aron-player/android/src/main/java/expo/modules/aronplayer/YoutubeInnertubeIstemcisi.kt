@@ -31,7 +31,8 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
     val cihazMake: String,
     val cihazModel: String,
     val osName: String,
-    val osVersion: String
+    val osVersion: String,
+    val sdk: Int = 0
   ) {
     IOS(
       ad = "IOS",
@@ -51,7 +52,19 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
       cihazMake = "Meta",
       cihazModel = "Quest 3",
       osName = "Android",
-      osVersion = "12"
+      osVersion = "12",
+      sdk = 32
+    ),
+    ANDROID_VR_ESKI(
+      ad = "ANDROID_VR",
+      surum = "1.43.32",
+      kimlik = "28",
+      userAgent = "com.google.android.apps.youtube.vr.oculus/1.43.32 (Linux; U; Android 12L; en_US; Oculus Quest 3 Build/SQ3A.220605.009.A1)",
+      cihazMake = "Oculus",
+      cihazModel = "Quest 3",
+      osName = "Android",
+      osVersion = "12L",
+      sdk = 32
     ),
     ANDROID_TESTSUITE(
       ad = "ANDROID_TESTSUITE",
@@ -61,7 +74,8 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
       cihazMake = "Google",
       cihazModel = "Pixel 8",
       osName = "Android",
-      osVersion = "14"
+      osVersion = "14",
+      sdk = 34
     ),
     MWEB(
       ad = "MWEB",
@@ -90,7 +104,10 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
   private val poUretici = YoutubePoTokenUretici(context)
 
   fun oynatimBilgisiAl(videoId: String, dil: String = "en"): YoutubeOynatimBilgisi {
-    val sira = listOf(Istemci.ANDROID_VR, Istemci.ANDROID_TESTSUITE, Istemci.MWEB, Istemci.WEB, Istemci.IOS)
+    val sira = listOf(
+      Istemci.ANDROID_VR, Istemci.ANDROID_VR_ESKI, Istemci.ANDROID_TESTSUITE,
+      Istemci.MWEB, Istemci.WEB, Istemci.IOS
+    )
     val hatalar = mutableListOf<String>()
     val oynaticiBilgisi = try {
       oynaticiBilgisiAl(videoId)
@@ -154,7 +171,10 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
         Log.w(TAG, "istemci ${istemci.ad} basarisiz", e)
       }
     }
-    throw Exception("YouTube tum istemciler basarisiz: ${hatalar.joinToString("; ")}")
+    val potDurum = "pot[oturum=${if (poToken?.oturumToken?.isNotEmpty() == true) "var" else "yok"}" +
+      " icerik=${if (poToken?.icerikToken?.isNotEmpty() == true) "var" else "yok"}" +
+      " visitor=${if (oynaticiBilgisi?.visitorData?.isNotEmpty() == true) "var" else "yok"}]"
+    throw Exception("$potDurum ${hatalar.joinToString("; ")}")
   }
 
   private fun reklamTemizle(json: JSONObject) {
@@ -558,6 +578,7 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
     istemciJson.put("userAgent", istemci.userAgent)
     istemciJson.put("osName", istemci.osName)
     istemciJson.put("osVersion", istemci.osVersion)
+    if (istemci.sdk > 0) istemciJson.put("androidSdkVersion", istemci.sdk)
     istemciJson.put("hl", dil)
     istemciJson.put("timeZone", "UTC")
     oynaticiBilgisi?.visitorData?.takeIf { it.isNotEmpty() }?.let {
