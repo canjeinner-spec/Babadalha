@@ -21,7 +21,8 @@ class YoutubeVeriCozucu : ResolvingDataSource.Resolver {
     basliklar["Sec-Fetch-Mode"] = "cors"
     basliklar["Sec-Fetch-Site"] = "cross-site"
 
-    if (dataSpec.uri.path?.startsWith("/videoplayback") != true) {
+    val sorgu = dataSpec.uri.query
+    if (dataSpec.uri.path != "/videoplayback" || sorgu.isNullOrEmpty()) {
       return dataSpec.buildUpon().setHttpRequestHeaders(basliklar).build()
     }
 
