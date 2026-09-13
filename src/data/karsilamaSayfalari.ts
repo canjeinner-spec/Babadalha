@@ -1,8 +1,12 @@
 import { type ImageSourcePropType } from "react-native";
 
+import { type IconName } from "@/icons/paths";
+
 export type KarsilamaYazisi = { tr: string; en: string };
 
 export type KarsilamaParagrafi = { metin: string; vurgu?: boolean; selam?: boolean };
+
+export type KarsilamaAdimi = { simge: IconName; baslik: string; metin: string };
 
 export type KarsilamaSayfasi = {
   anahtar: string;
@@ -12,9 +16,12 @@ export type KarsilamaSayfasi = {
   atlanamaz?: boolean;
   yazarak?: boolean;
   paragraflar: KarsilamaParagrafi[];
+  adimlar: KarsilamaAdimi[];
 };
 
 type HamParagraf = { metin: KarsilamaYazisi; vurgu?: boolean; selam?: boolean };
+
+type HamAdim = { simge: IconName; baslik: KarsilamaYazisi; metin: KarsilamaYazisi };
 
 type HamSayfa = {
   anahtar: string;
@@ -23,7 +30,8 @@ type HamSayfa = {
   gorsel?: ImageSourcePropType;
   atlanamaz?: boolean;
   yazarak?: boolean;
-  paragraflar: HamParagraf[];
+  paragraflar?: HamParagraf[];
+  adimlar?: HamAdim[];
 };
 
 const HAM_SAYFALAR: HamSayfa[] = [
@@ -80,78 +88,41 @@ const HAM_SAYFALAR: HamSayfa[] = [
     ],
   },
   {
-    anahtar: "aron-nedir",
-    baslik: { tr: "ARON NEDİR?", en: "WHAT IS ARON?" },
-    altYazi: { tr: "Film bahane.", en: "The film is just an excuse." },
-    paragraflar: [
+    anahtar: "adimlar",
+    baslik: { tr: "NASIL ÇALIŞIYOR?", en: "HOW IT WORKS" },
+    altYazi: { tr: "Dört adım, tek oda.", en: "Four steps, one room." },
+    adimlar: [
       {
+        simge: "evParty",
+        baslik: { tr: "Odanı aç", en: "Open your room" },
         metin: {
-          tr: "Aron’u bir film uygulaması sanıp açanlar oluyor. Yarısı doğru.",
-          en: "Some people open Aron thinking it is a film app. Half of that is true.",
+          tr: "Netflix, Prime, YouTube… Hangisinde izleyeceksen seç, oda saniyesinde kurulsun.",
+          en: "Netflix, Prime, YouTube… pick where you'll watch and your room is up in a second.",
         },
       },
       {
+        simge: "userAdd",
+        baslik: { tr: "Sevdiklerini çağır", en: "Invite the people you love" },
         metin: {
-          tr: "Aron bir oda. İçeri girersin, bir şey açarsın ve odadaki herkes aynı sahneyi aynı saniyede görür. Kimse “sen neredesin”, “ben ileri sardım” demez.",
-          en: "Aron is a room. You step in, you put something on, and everyone in the room sees the same scene on the same second. Nobody asks “where are you”, “I skipped ahead”.",
+          tr: "Davet bağlantını gönder. Tek dokunuşla içeri girerler, hesap kurmakla uğraşmazlar.",
+          en: "Send your invite link. They walk in with one tap, no account setup to wrestle with.",
         },
       },
       {
+        simge: "bolt",
+        baslik: { tr: "Aynı saniyede izleyin", en: "Watch on the same second" },
         metin: {
-          tr: "Ama iş orada bitmiyor. Mikrofonu açıp konuşursun, sohbete yazarsın, aynı yerde birlikte gülersin. Film biter, muhabbet devam eder.",
-          en: "But it doesn't end there. You turn on the mic and talk, you type in the chat, you laugh together in the same place. The film ends, the conversation carries on.",
+          tr: "Kim durdurursa herkeste durur, kim sararsa herkeste sarar. “Üç deyince başlıyoruz” bitti.",
+          en: "Whoever pauses, pauses it for everyone; whoever seeks, seeks for everyone. No more “we start on three”.",
         },
       },
       {
+        simge: "mic",
+        baslik: { tr: "Sesini aç", en: "Turn your voice on" },
         metin: {
-          tr: "Kendi odanı açıp sevdiklerini çağırabilirsin. Ya da açık odalara göz atıp hiç tanımadığın birinin odasına girebilirsin. Zaten çoğu arkadaşlık da öyle başlıyor: aynı şeyi seven iki kişi.",
-          en: "You can open your own room and invite the people you love. Or you can browse the open rooms and walk into a stranger's room. Most friendships start that way anyway: two people who love the same thing.",
+          tr: "Mikrofonu aç, sohbete yaz, birlikte gül. Film biter, muhabbet devam eder.",
+          en: "Turn on the mic, type in the chat, laugh together. The film ends, the conversation carries on.",
         },
-      },
-      {
-        metin: {
-          tr: "Aron hem birlikte izlemek hem de tanışmak için var. Asıl olan aynı odada olmak.",
-          en: "Aron is there both for watching together and for meeting people. What matters is being in the same room.",
-        },
-        vurgu: true,
-      },
-    ],
-  },
-  {
-    anahtar: "premium",
-    baslik: { tr: "ARON PREMIUM", en: "ARON PREMIUM" },
-    altYazi: { tr: "İsteğe bağlı. Gerçekten.", en: "Optional. Really." },
-    paragraflar: [
-      {
-        metin: {
-          tr: "Önce şunu söyleyeyim: Aron’un tamamı ücretsiz. Oda açmak, odaya katılmak, birlikte izlemek, mikrofon, sohbet… Hiçbiri paranın arkasında değil ve olmayacak.",
-          en: "First things first: all of Aron is free. Opening a room, joining a room, watching together, the mic, the chat… none of it is behind a paywall, and none of it will be.",
-        },
-      },
-      {
-        metin: {
-          tr: "Ama Aron kendi kendine ayakta durmuyor. Sunucular var, ses altyapısı var, her ay ödenen faturalar var. Şu an bunları ben karşılıyorum.",
-          en: "But Aron doesn't keep itself standing. There are servers, there is voice infrastructure, there are bills paid every month. Right now I cover them myself.",
-        },
-      },
-      {
-        metin: {
-          tr: "Premium tam olarak bunun için. Karşılığında reklamlar kalkar, adın kendi seçtiğin renkte görünür, mikrofonu sınırsız kullanırsın.",
-          en: "Premium exists exactly for that. In return the ads go away, your name shows in a colour you pick, and you use the mic without limits.",
-        },
-      },
-      {
-        metin: {
-          tr: "Ama asıl aldığın şey bunlar değil. Asıl aldığın şey, Aron’un yarın da açık olması.",
-          en: "But those are not what you are really buying. What you are really buying is Aron still being here tomorrow.",
-        },
-      },
-      {
-        metin: {
-          tr: "Abone olmak zorunda değilsin. Olmazsan da hiçbir şey değişmez; kapı herkese aynı şekilde açık.",
-          en: "You don't have to subscribe. Nothing changes if you don't; the door is open to everyone the same way.",
-        },
-        vurgu: true,
       },
     ],
   },
@@ -169,10 +140,15 @@ export function karsilamaSayfalari(dilKodu: string): KarsilamaSayfasi[] {
     gorsel: s.gorsel,
     atlanamaz: s.atlanamaz,
     yazarak: s.yazarak,
-    paragraflar: s.paragraflar.map((p) => ({
+    paragraflar: (s.paragraflar ?? []).map((p) => ({
       metin: yaziSec(p.metin, dilKodu),
       vurgu: p.vurgu,
       selam: p.selam,
+    })),
+    adimlar: (s.adimlar ?? []).map((a) => ({
+      simge: a.simge,
+      baslik: yaziSec(a.baslik, dilKodu),
+      metin: yaziSec(a.metin, dilKodu),
     })),
   }));
 }

@@ -6,7 +6,7 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 
 import { Anim } from "@/components/Anim";
 import { useCeviri } from "@/lib/ceviri";
-import { girisEkraniGecildi, karsilamaGoruldu } from "@/lib/ilkAcilis";
+import { girisEkraniGecildi, karsilamaGoruldu, premiumGoruldu } from "@/lib/ilkAcilis";
 import { BaslatAmblemi } from "@/components/BaslatAmblemi";
 import { Portrait } from "@/components/Portrait";
 import { TanitimBanner } from "@/components/TanitimBanner";
@@ -141,18 +141,19 @@ export default function PartiAnaEkran() {
 
   useEffect(() => {
     let acik = true;
-    karsilamaGoruldu()
-      .then(async (gorulmus) => {
-        if (!acik) return;
-        if (!gorulmus) {
-          router.replace("/karsilama");
-          return;
-        }
-        if (useApp.getState().girisYapildi) return;
-        if (await girisEkraniGecildi()) return;
+    (async () => {
+      if (!useApp.getState().girisYapildi && !(await girisEkraniGecildi())) {
         if (acik) router.replace("/giris");
-      })
-      .catch(() => {});
+        return;
+      }
+      if (!(await karsilamaGoruldu())) {
+        if (acik) router.replace("/karsilama");
+        return;
+      }
+      if (!(await premiumGoruldu())) {
+        if (acik) router.replace("/premium");
+      }
+    })().catch(() => {});
     return () => { acik = false; };
   }, [router]);
 

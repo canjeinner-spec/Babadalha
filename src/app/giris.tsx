@@ -13,7 +13,7 @@ import { useCeviri } from "@/lib/ceviri";
 import { signInWithApple, signInWithGoogle } from "@/data/remote/authRepo";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { haptic } from "@/lib/haptics";
-import { girisEkraniniGec } from "@/lib/ilkAcilis";
+import { girisEkraniniGec, karsilamaGoruldu, premiumGoruldu } from "@/lib/ilkAcilis";
 import { C } from "@/theme/colors";
 
 export default function Giris() {
@@ -25,6 +25,14 @@ export default function Giris() {
 
   const iceGir = useCallback(async () => {
     await girisEkraniniGec();
+    if (!(await karsilamaGoruldu())) {
+      router.replace("/karsilama");
+      return;
+    }
+    if (!(await premiumGoruldu())) {
+      router.replace("/premium");
+      return;
+    }
     router.replace("/");
   }, [router]);
 

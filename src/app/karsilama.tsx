@@ -2,20 +2,45 @@ import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Animated, { FadeIn } from "react-native-reanimated";
+import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import { Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Txt } from "@/components/Txt";
 import { YazilanMetin, type YazilanBlok } from "@/components/YazilanMetin";
-import { karsilamaSayfalari, type KarsilamaSayfasi } from "@/data/karsilamaSayfalari";
+import { karsilamaSayfalari, type KarsilamaAdimi, type KarsilamaSayfasi } from "@/data/karsilamaSayfalari";
 import { Icon } from "@/icons/Icon";
 import { useCeviri } from "@/lib/ceviri";
 import { useDil } from "@/lib/dil";
 import { haptic } from "@/lib/haptics";
-import { karsilamayiIsaretle } from "@/lib/ilkAcilis";
-import { useApp } from "@/store/appStore";
+import { karsilamayiIsaretle, premiumGoruldu } from "@/lib/ilkAcilis";
 import { C } from "@/theme/colors";
+
+const ADIM_GECIKME = 420;
+const ADIM_ARA = 260;
+const ADIM_SURE = 520;
+
+function AdimSatiri({ adim, sira }: { adim: KarsilamaAdimi; sira: number }) {
+  return (
+    <Animated.View
+      entering={FadeInDown.duration(ADIM_SURE).delay(ADIM_GECIKME + sira * ADIM_ARA)}
+      style={styles.adimSatiri}
+    >
+      <View style={styles.adimSimge}>
+        <Icon name={adim.simge} size={20} sw={2} color={C.gold2} />
+      </View>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Txt weight="extrabold" size={15} color="#fff">{adim.baslik}</Txt>
+        <Txt size={13} color="rgba(255,255,255,.7)" lh={1.5} style={{ marginTop: 4 }}>
+          {adim.metin}
+        </Txt>
+      </View>
+      <View style={styles.adimNo}>
+        <Txt weight="extrabold" size={11} color={C.gold2}>{sira + 1}</Txt>
+      </View>
+    </Animated.View>
+  );
+}
 
 function Sayfa({
   sayfa,
@@ -31,10 +56,20 @@ function Sayfa({
   const akis = useRef<ScrollView>(null);
   const [atla, setAtla] = useState(false);
   const yazarak = !!sayfa.yazarak;
+  const adimli = sayfa.adimlar.length > 0;
+  const [basladi, setBasladi] = useState(etkin);
+  if (etkin && !basladi) setBasladi(true);
 
   useEffect(() => {
-    if (!yazarak && etkin) onBitti(sayfa.anahtar);
-  }, [yazarak, etkin, onBitti, sayfa.anahtar]);
+    if (yazarak || !etkin) return;
+    if (!adimli) {
+      onBitti(sayfa.anahtar);
+      return;
+    }
+    const bekleme = ADIM_GECIKME + (sayfa.adimlar.length - 1) * ADIM_ARA + ADIM_SURE;
+    const zamanlayici = setTimeout(() => onBitti(sayfa.anahtar), bekleme);
+    return () => clearTimeout(zamanlayici);
+  }, [yazarak, adimli, etkin, onBitti, sayfa.anahtar, sayfa.adimlar.length]);
 
   const bloklar: YazilanBlok[] = [
     { anahtar: "baslik", metin: sayfa.baslik },
@@ -99,12 +134,28 @@ function Sayfa({
         ) : (
           <View style={styles.gorselsizPay} />
         )}
-        {!!sayfa.altYazi && (
-          <Txt weight="bold" size={12.5} color={C.dim} align="center" style={styles.fotoAlti}>
-            {sayfa.altYazi}
-          </Txt>
+        {adimli && basladi && (
+          <Animated.View entering={FadeInDown.duration(ADIM_SURE)}>
+            <Txt weight="displayBold" size={22} color="#fff" align="center" style={styles.adimBaslik}>
+              {sayfa.baslik}
+            </Txt>
+          </Animated.View>
+        )}
+        {!!sayfa.altYazi && (!adimli || basladi) && (
+          <Animated.View entering={FadeIn.duration(ADIM_SURE).delay(adimli ? 160 : 0)}>
+            <Txt weight="bold" size={12.5} color={C.dim} align="center" style={styles.fotoAlti}>
+              {sayfa.altYazi}
+            </Txt>
+          </Animated.View>
         )}
 
+        {adimli ? (
+          <View style={styles.adimListesi}>
+            {basladi && sayfa.adimlar.map((a, i) => (
+              <AdimSatiri key={a.simge} adim={a} sira={i} />
+            ))}
+          </View>
+        ) : (
         <View style={styles.kart}>
           {yazarak ? (
             <YazilanMetin
@@ -121,6 +172,7 @@ function Sayfa({
             <View>{bloklar.map((b, i) => ciz(b, b.metin, i))}</View>
           )}
         </View>
+        )}
       </ScrollView>
     </Pressable>
   );
@@ -152,7 +204,7 @@ export default function Karsilama() {
       return;
     }
     await karsilamayiIsaretle();
-    router.replace(useApp.getState().girisYapildi ? "/" : "/giris");
+    router.replace((await premiumGoruldu()) ? "/" : "/premium");
   }, [son, sayfa, width, router]);
 
   return (
@@ -240,6 +292,23 @@ const styles = StyleSheet.create({
     borderTopWidth: 1, borderTopColor: "rgba(232,179,65,.22)",
   },
   selam: { marginTop: 22 },
+  adimBaslik: { letterSpacing: 1.4 },
+  adimListesi: { marginTop: 26, width: "100%", gap: 14 },
+  adimSatiri: {
+    flexDirection: "row", alignItems: "flex-start", gap: 14,
+    borderRadius: 18, paddingVertical: 16, paddingHorizontal: 16,
+    backgroundColor: "rgba(255,255,255,.05)",
+    borderWidth: 1, borderColor: "rgba(255,255,255,.08)",
+  },
+  adimSimge: {
+    width: 42, height: 42, borderRadius: 14, alignItems: "center", justifyContent: "center",
+    backgroundColor: "rgba(232,179,65,.14)",
+    borderWidth: 1, borderColor: "rgba(232,179,65,.28)",
+  },
+  adimNo: {
+    width: 22, height: 22, borderRadius: 11, alignItems: "center", justifyContent: "center",
+    backgroundColor: "rgba(232,179,65,.12)",
+  },
   dip: { paddingHorizontal: 20, paddingBottom: 12, gap: 16 },
   dugme: {
     flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,

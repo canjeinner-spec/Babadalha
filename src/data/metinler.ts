@@ -167,6 +167,51 @@ export const METINLER = {
   "karsilama.ileri": { tr: "İleri", en: "Next" },
   "karsilama.dokunarakGec": { tr: "dokunarak geç", en: "tap to skip" },
 
+  "premium.baslik": { tr: "ARON PREMIUM", en: "ARON PREMIUM" },
+  "premium.altYazi": { tr: "İsteğe bağlı. Gerçekten.", en: "Optional. Really." },
+  "premium.giris": {
+    tr: "Aron'un tamamı ücretsiz. Oda açmak, katılmak, birlikte izlemek, mikrofon, sohbet… Hiçbiri paranın arkasında değil.",
+    en: "All of Aron is free. Opening a room, joining, watching together, the mic, the chat… none of it is behind a paywall.",
+  },
+  "premium.gerekce": {
+    tr: "Premium'la aldığın asıl şey, Aron'un yarın da açık olması.",
+    en: "What Premium really buys you is Aron still being here tomorrow.",
+  },
+  "premium.reklamsizBaslik": { tr: "Reklamsız", en: "No ads" },
+  "premium.reklamsizMetin": {
+    tr: "Oda listesinde ve izlerken reklam görmezsin.",
+    en: "No ads in the room list or while you watch.",
+  },
+  "premium.renkliAdBaslik": { tr: "Renkli ad", en: "Coloured name" },
+  "premium.renkliAdMetin": {
+    tr: "Adın sohbette ve odada kendi seçtiğin renkte görünür.",
+    en: "Your name shows in a colour you pick, in chat and in the room.",
+  },
+  "premium.mikrofonBaslik": { tr: "Sınırsız mikrofon", en: "Unlimited mic" },
+  "premium.mikrofonMetin": {
+    tr: "Sesli sohbette süre sınırı olmadan konuşursun.",
+    en: "Talk in voice chat with no time limit.",
+  },
+  "premium.erkenBaslik": { tr: "Önce sen denersin", en: "You try it first" },
+  "premium.erkenMetin": {
+    tr: "Yeni platformlar ve özellikler önce Premium'da açılır.",
+    en: "New platforms and features open on Premium first.",
+  },
+  "premium.aylik": { tr: "Aylık", en: "Monthly" },
+  "premium.yillik": { tr: "Yıllık", en: "Yearly" },
+  "premium.ayBasi": { tr: "ayda {0}", en: "{0} per month" },
+  "premium.rozet": { tr: "2 AY BEDAVA", en: "2 MONTHS FREE" },
+  "premium.basla": { tr: "Premium'u başlat", en: "Start Premium" },
+  "premium.simdiDegil": { tr: "Şimdi değil", en: "Not now" },
+  "premium.iptalNotu": {
+    tr: "İstediğin an iptal edebilirsin. İptal edersen Aron aynı şekilde açık kalır.",
+    en: "Cancel any time. If you cancel, Aron stays open to you just the same.",
+  },
+  "premium.yakinda": {
+    tr: "Satın alma mağaza bağlantısı açıldığında etkinleşecek.",
+    en: "Purchases will be enabled once the store connection is live.",
+  },
+
   "oynatici.ayarlar": { tr: "Ayarlar", en: "Settings" },
   "oynatici.hiz": { tr: "Oynatma hızı", en: "Playback speed" },
   "oynatici.kalite": { tr: "Video kalitesi", en: "Video quality" },

@@ -3,10 +3,11 @@ import * as Guvenli from "expo-secure-store";
 
 const KARSILAMA = "aron.karsilama.goruldu";
 const GIRIS = "aron.giris.atlandi";
+const PREMIUM = "aron.premium.goruldu";
 
 export const OTURUMLUK = __DEV__;
 
-const oturum = { karsilama: false, giris: false };
+const oturum = { karsilama: false, giris: false, premium: false };
 
 async function oku(anahtar: string): Promise<boolean> {
   try {
@@ -45,4 +46,14 @@ export async function girisEkraniGecildi(): Promise<boolean> {
 export async function girisEkraniniGec(): Promise<void> {
   oturum.giris = true;
   if (!OTURUMLUK) await yaz(GIRIS);
+}
+
+export async function premiumGoruldu(): Promise<boolean> {
+  if (OTURUMLUK) return oturum.premium;
+  return oku(PREMIUM);
+}
+
+export async function premiumuIsaretle(): Promise<void> {
+  oturum.premium = true;
+  if (!OTURUMLUK) await yaz(PREMIUM);
 }
