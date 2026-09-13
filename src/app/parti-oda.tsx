@@ -405,7 +405,7 @@ export default function PartiOda() {
   const [ytYerelAdres, setYtYerelAdres] = useState<string | null>(null);
   const ytYerelYukleniyor = useRef(false);
   const [primeYerelAdres, setPrimeYerelAdres] = useState<string | null>(null);
-  const [primeDrm, setPrimeDrm] = useState<{ lisansUrl: string; videoId: string; cerezler: string; marketplaceId: string } | null>(null);
+  const [primeDrm, setPrimeDrm] = useState<{ lisansUrl: string; videoId: string; cerezler: string; marketplaceId: string; altyazilar?: { kod: string; ad: string; url: string }[] } | null>(null);
   const primeYerelYukleniyor = useRef(false);
   const [ek, setEk] = useState<PartiSohbetOgesi[]>([]);
   const [bildirim, setBildirim] = useState("");
@@ -990,7 +990,8 @@ export default function PartiOda() {
             ?? "";
           const sonuc = await primeManifestAl(o.videoId, cerezler, "");
           setPrimeYerelAdres(sonuc.manifestUrl);
-          setPrimeDrm({ lisansUrl: sonuc.lisansUrl, videoId: sonuc.videoId, cerezler, marketplaceId: sonuc.marketplaceId || marketplaceId });
+          setPrimeDrm({ lisansUrl: sonuc.lisansUrl, videoId: sonuc.videoId, cerezler, marketplaceId: sonuc.marketplaceId || marketplaceId, altyazilar: sonuc.altyazilar });
+          ayiklamaYaz(`prime: altyazi izi=${sonuc.altyazilar?.length ?? 0}`);
         } catch {
           setPrimeYerelAdres(null);
           setPrimeDrm(null);
@@ -1350,7 +1351,7 @@ export default function PartiOda() {
                 : maxYerelAdres && oynatilan.platform === "hbo_max" && maxLisansUrl
                 ? { scheme: "widevine" as const, licenseUrl: maxLisansUrl }
                 : primeYerelAdres && oynatilan.platform === "prime_video" && primeDrm
-                ? { scheme: "widevine" as const, licenseUrl: primeDrm.lisansUrl, primeAmazon: true, primeVideoId: primeDrm.videoId, primeCerezler: primeDrm.cerezler, primeMarketplaceId: primeDrm.marketplaceId }
+                ? { scheme: "widevine" as const, licenseUrl: primeDrm.lisansUrl, primeAmazon: true, primeVideoId: primeDrm.videoId, primeCerezler: primeDrm.cerezler, primeMarketplaceId: primeDrm.marketplaceId, altyazilar: primeDrm.altyazilar }
                 : undefined
             }
             baslik={simdiki}

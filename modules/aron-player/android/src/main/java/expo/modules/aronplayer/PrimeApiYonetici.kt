@@ -11,13 +11,20 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
 
+data class PrimeAltyazi(
+  val kod: String,
+  val ad: String,
+  val url: String
+)
+
 data class PrimeOynatimBilgisi(
   val manifestUrl: String,
   val lisansUrl: String,
   val atvUrl: String,
   val cerezler: String,
   val videoId: String,
-  val marketplaceId: String
+  val marketplaceId: String,
+  val altyazilar: List<PrimeAltyazi> = emptyList()
 )
 
 @UnstableApi
@@ -70,8 +77,27 @@ class PrimeApiYonetici(private val context: Context) {
       atvUrl = atvUrl,
       cerezler = cerezler,
       videoId = videoId,
-      marketplaceId = marketplaceId
+      marketplaceId = marketplaceId,
+      altyazilar = altyazilariCoz(json)
     )
+  }
+
+  private fun altyazilariCoz(json: JSONObject): List<PrimeAltyazi> {
+    val sonuc = mutableListOf<PrimeAltyazi>()
+    val gorulen = mutableSetOf<String>()
+    for (alan in listOf("subtitleUrls", "forcedNarratives")) {
+      val dizi = json.optJSONArray(alan) ?: continue
+      for (i in 0 until dizi.length()) {
+        val o = dizi.optJSONObject(i) ?: continue
+        val url = o.optString("url", "")
+        if (url.isEmpty()) continue
+        val kod = o.optString("languageCode", o.optString("language", "und"))
+        if (!gorulen.add("$kod|$url")) continue
+        val ad = o.optString("displayName", "").ifEmpty { kod }
+        sonuc.add(PrimeAltyazi(kod, if (alan == "forcedNarratives") "$ad (zorunlu)" else ad, url))
+      }
+    }
+    return sonuc
   }
 
   fun widevineLisansAl(bilgi: PrimeOynatimBilgisi, challenge: ByteArray): ByteArray {

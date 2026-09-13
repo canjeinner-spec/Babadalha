@@ -535,6 +535,19 @@ class AronPlayerView(context: Context, appContext: AppContext) : ExpoView(contex
     val veri: DataSource.Factory = DefaultDataSource.Factory(context, http)
     val parca = MediaItem.Builder().setUri(manifestUri)
     y.mimeTuru?.let { parca.setMimeType(it) }
+    val disAltyazilar = drmAyari?.altyazilar.orEmpty()
+    if (disAltyazilar.isNotEmpty()) {
+      parca.setSubtitleConfigurations(
+        disAltyazilar.map { (kod, ad, url) ->
+          MediaItem.SubtitleConfiguration.Builder(android.net.Uri.parse(url))
+            .setMimeType(MimeTypes.APPLICATION_TTML)
+            .setLanguage(kod)
+            .setLabel(ad.ifEmpty { kod })
+            .setSelectionFlags(0)
+            .build()
+        }
+      )
+    }
 
     val uretici = DefaultMediaSourceFactory(veri)
     val d = drmAyari

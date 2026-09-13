@@ -20,6 +20,7 @@ class NetflixMslYonetici(private val context: Context) {
   val yanit = MslYanit(oturum)
   val manifestUretici = NetflixManifestUretici()
   var sonKeYolu = "?"
+  var zincirDurum = "-"
   var drmGeriCagri: NetflixDrmGeriCagri? = null
     private set
   var clearKeyJwk: ByteArray? = null
@@ -80,14 +81,19 @@ class NetflixMslYonetici(private val context: Context) {
 
   fun sahipTokenAl() {
     val mevcut = oturum.sahipToken
-    if (mevcut != null && !oturum.tokenGecerliMi(mevcut).getBoolean("expired")) return
+    if (mevcut != null && !oturum.tokenGecerliMi(mevcut).getBoolean("expired")) {
+      zincirDurum = "sahip:kayitli"
+      return
+    }
     oturum.sahipToken = null
     try {
       val yuk = istek.sahipTokenYuku()
       val sonuc = mslPost(NetflixDrmGeriCagri.ROUTER_URL, yuk, "sahip-token")
       yanit.sahipTokenCoz(sonuc)
+      zincirDurum = if (oturum.sahipToken != null) "sahip:ok" else "sahip:bos"
       Log.d(TAG, "sahip tokeni alindi")
     } catch (e: Throwable) {
+      zincirDurum = "sahip:HATA(${e.message?.take(60)})"
       Log.w(TAG, "sahip tokeni alinamadi, devam ediliyor: ${e.message}")
     }
   }
@@ -101,15 +107,22 @@ class NetflixMslYonetici(private val context: Context) {
     }
     sahipTokenAl()
     if (oturum.sahipToken == null) return
-    val guid = profilGuidAl() ?: return
+    kaydet()
+    val guid = profilGuidAl()
+    if (guid == null) {
+      zincirDurum += " guid:YOK"
+      return
+    }
     try {
       val yuk = istek.profilDegistirYuku(guid)
       val sonuc = mslPost(NetflixDrmGeriCagri.ROUTER_URL, yuk, "profil-degistir")
       yanit.profilDegistirCoz(sonuc)
       kaydet()
+      zincirDurum += if (oturum.kullaniciToken != null) " profil:ok" else " profil:bos"
       Log.d(TAG, "kullanici tokeni alindi, manifest artik useridtoken ile gidecek")
     } catch (e: Throwable) {
-      Log.w(TAG, "profil degistirme basarisiz, cerezle devam: ${e.message}")
+      zincirDurum += " profil:HATA(${e.message?.take(60)})"
+      Log.w(TAG, "profil degistirme basarisiz, sahip tokeniyle devam: ${e.message}")
     }
   }
 
@@ -171,10 +184,11 @@ class NetflixMslYonetici(private val context: Context) {
     return try {
       val simdi = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())
       val kullanici = if (oturum.kullaniciToken != null) "var" else "yok"
+      val sahip = if (oturum.sahipToken != null) "var" else "yok"
       val t = oturum.anaToken
         ?: return "keYolu=$sonKeYolu esn=${oturum.kimlik} token=YOK kullaniciToken=$kullanici now=$simdi$ek"
       val td = JSONObject(String(Base64.decode(t.getString("tokendata"), Base64.NO_WRAP)))
-      "keYolu=$sonKeYolu esn=${oturum.kimlik} seq=${oturum.siraNo} renewalwindow=${td.optLong("renewalwindow")} expiration=${td.optLong("expiration")} now=$simdi kullaniciToken=$kullanici$ek"
+      "keYolu=$sonKeYolu esn=${oturum.kimlik} seq=${oturum.siraNo} renewalwindow=${td.optLong("renewalwindow")} expiration=${td.optLong("expiration")} now=$simdi kullaniciToken=$kullanici sahipToken=$sahip zincir=[$zincirDurum]$ek"
     } catch (e: Throwable) {
       "tani-uretilemedi: ${e.message}$ek"
     }

@@ -13,6 +13,7 @@ data class DrmAyari(
   val netflixId: String = "",
   val netflixSecureId: String = "",
   val netflixVideoId: String = "",
+  val altyazilar: List<Triple<String, String, String>> = emptyList(),
   val primeAmazon: Boolean = false,
   val primeVideoId: String = "",
   val primeCerezler: String = "",
@@ -77,6 +78,20 @@ data class OynatimYapilandirma(
         netflixId = o.optString("netflixId", ""),
         netflixSecureId = o.optString("netflixSecureId", ""),
         netflixVideoId = o.optString("netflixVideoId", ""),
+        altyazilar = run {
+          val dizi = o.optJSONArray("altyazilar")
+          val liste = mutableListOf<Triple<String, String, String>>()
+          if (dizi != null) {
+            for (i in 0 until dizi.length()) {
+              val a = dizi.optJSONObject(i) ?: continue
+              val url = a.optString("url", "")
+              if (url.isNotEmpty()) {
+                liste.add(Triple(a.optString("kod", "und"), a.optString("ad", ""), url))
+              }
+            }
+          }
+          liste
+        },
         primeAmazon = o.optBoolean("primeAmazon", false),
         primeVideoId = o.optString("primeVideoId", ""),
         primeCerezler = o.optString("primeCerezler", ""),

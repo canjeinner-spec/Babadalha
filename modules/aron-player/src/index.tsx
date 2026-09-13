@@ -45,6 +45,7 @@ export type DrmYapilandirma = {
   primeVideoId?: string;
   primeCerezler?: string;
   primeMarketplaceId?: string;
+  altyazilar?: { kod: string; ad: string; url: string }[];
 };
 
 export type PlaybackConfig = {
@@ -172,6 +173,7 @@ export function yapilandirmayaJson(config: PlaybackConfig): string {
     if (config.drm.primeVideoId) drm.primeVideoId = config.drm.primeVideoId;
     if (config.drm.primeCerezler) drm.primeCerezler = config.drm.primeCerezler;
     if (config.drm.primeMarketplaceId) drm.primeMarketplaceId = config.drm.primeMarketplaceId;
+    if (config.drm.altyazilar?.length) drm.altyazilar = config.drm.altyazilar;
     govde.drm = drm;
   }
   return JSON.stringify(govde);

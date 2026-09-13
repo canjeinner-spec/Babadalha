@@ -113,7 +113,10 @@ class AronPlayerModule : Module() {
         "lisansUrl" to bilgi.lisansUrl,
         "atvUrl" to bilgi.atvUrl,
         "videoId" to bilgi.videoId,
-        "marketplaceId" to bilgi.marketplaceId
+        "marketplaceId" to bilgi.marketplaceId,
+        "altyazilar" to bilgi.altyazilar.map {
+          mapOf("kod" to it.kod, "ad" to it.ad, "url" to it.url)
+        }
       )
     }
 

@@ -136,7 +136,8 @@ class MslIstek(private val oturum: MslOturum) {
     ust.put("timestamp", System.currentTimeMillis())
     ust.put("encoderformats", JSONArray())
     ust.put("messageid", mesajId)
-    if (oturum.kullaniciToken == null) {
+    val kimlikTokeni = oturum.kullaniciToken ?: oturum.sahipToken
+    if (kimlikTokeni == null) {
       val kv = JSONObject()
       kv.put("netflixid", oturum.netflixId)
       kv.put("securenetflixid", oturum.netflixSecureId)
@@ -145,7 +146,7 @@ class MslIstek(private val oturum: MslOturum) {
       ky.put("scheme", "NETFLIXID")
       ust.put("userauthdata", ky)
     } else {
-      ust.put("useridtoken", oturum.kullaniciToken)
+      ust.put("useridtoken", kimlikTokeni)
     }
     return sifreliBaslik(ust.toString())
   }
