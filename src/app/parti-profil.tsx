@@ -26,6 +26,15 @@ function tarihYaz(ham: string | null | undefined, dilKodu: string): string {
   return zaman.toLocaleDateString(dilKodu, { day: "numeric", month: "long", year: "numeric" });
 }
 
+function BelgeSatiri({ etiket, onPress }: { etiket: string; onPress: () => void }) {
+  return (
+    <Pressable style={styles.satir} onPress={onPress}>
+      <Txt size={12.5} color={C.dim} style={{ flex: 1 }}>{etiket}</Txt>
+      <Icon name="chev" size={16} sw={2.2} color={C.dim2} />
+    </Pressable>
+  );
+}
+
 function Satir({ etiket, deger }: { etiket: string; deger: string }) {
   return (
     <View style={styles.satir}>
@@ -106,6 +115,22 @@ export default function PartiProfil() {
             <Satir etiket={t("profil.hesap")} deger={session ? t("profil.dogrulanmis") : t("profil.misafir")} />
             <View style={styles.ayirac} />
             <DilSecici bicim="satir" />
+          </View>
+
+          <Txt weight="extrabold" size={12} color={C.dim2} style={styles.bolumBaslik}>
+            {t("profil.belgeler")}
+          </Txt>
+
+          <View style={styles.kutu}>
+            <BelgeSatiri
+              etiket={t("kurallar.kosullar")}
+              onPress={() => { haptic.select(); router.push({ pathname: "/belge", params: { tur: "kosullar" } }); }}
+            />
+            <View style={styles.ayirac} />
+            <BelgeSatiri
+              etiket={t("kurallar.gizlilik")}
+              onPress={() => { haptic.select(); router.push({ pathname: "/belge", params: { tur: "gizlilik" } }); }}
+            />
           </View>
 
           <Txt weight="extrabold" size={12} color={C.dim2} style={styles.bolumBaslik}>

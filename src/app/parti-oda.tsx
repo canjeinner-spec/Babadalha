@@ -1449,6 +1449,26 @@ export default function PartiOda() {
               <Txt size={13.5} color="rgba(255,255,255,.72)" align="center" lh={1.55} style={styles.kurallarMetin}>
                 {t("kurallar.metin")}
               </Txt>
+              <Txt size={12.5} color="rgba(255,255,255,.56)" align="center" lh={1.55} style={styles.kurallarBelgeler}>
+                {t("kurallar.belgeler")}{" "}
+                <Txt
+                  size={12.5}
+                  color={C.gold2}
+                  style={styles.altCizgi}
+                  onPress={() => router.push({ pathname: "/belge", params: { tur: "kosullar" } })}
+                >
+                  {t("kurallar.kosullar")}
+                </Txt>
+                {t("kurallar.ve")}
+                <Txt
+                  size={12.5}
+                  color={C.gold2}
+                  style={styles.altCizgi}
+                  onPress={() => router.push({ pathname: "/belge", params: { tur: "gizlilik" } })}
+                >
+                  {t("kurallar.gizlilik")}
+                </Txt>
+              </Txt>
               <Pressable style={styles.kurallarDugme} onPress={kurallariOnayla}>
                 <Txt weight="extrabold" size={14.5} color="#241A05">{t("kurallar.onay")}</Txt>
               </Pressable>
@@ -1592,6 +1612,7 @@ const styles = StyleSheet.create({
     flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 26,
   },
   kurallarMetin: { marginTop: 12, paddingHorizontal: 4 },
+  kurallarBelgeler: { marginTop: 14, paddingHorizontal: 4 },
   kurallarDugme: {
     marginTop: 24, alignSelf: "stretch", alignItems: "center", justifyContent: "center",
     paddingVertical: 15, borderRadius: 16, backgroundColor: C.gold2,

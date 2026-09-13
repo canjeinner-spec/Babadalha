@@ -93,6 +93,7 @@ export const METINLER = {
   "odaEkran.rolHatasi": { tr: "Rol kaydedilemedi", en: "Could not save the role" },
   "odaEkran.yasakHatasi": { tr: "Yasaklama kaydedilemedi", en: "Could not save the ban" },
 
+  "profil.belgeler": { tr: "YASAL", en: "LEGAL" },
   "profil.partiModu": { tr: "PARTİ MODU", en: "PARTY MODE" },
   "profil.misafirNotu": {
     tr: "Misafir olarak geziyorsun. Giriş yaparsan partilerin, arkadaşların ve istatistiklerin cihaz değiştirsen de seninle kalır.",
@@ -111,7 +112,6 @@ export const METINLER = {
 
   "sistem.katildinBen": { tr: "Partiye katıldın.", en: "You joined the party." },
   "sistem.katildi": { tr: "{0} partiye katıldı.", en: "{0} joined the party." },
-  "sistem.ayrildinBen": { tr: "Partiden ayrıldın.", en: "You left the party." },
   "sistem.ayrildi": { tr: "{0} partiden ayrıldı.", en: "{0} left the party." },
   "sistem.yardimciAlindiBen": {
     tr: "{0} tarafından Parti Yardımcılığından alındın.",
@@ -240,6 +240,17 @@ export const METINLER = {
     en: "Rooms can be open to everyone. Swearing, insults, harassment and content unsuitable for under-18s are not allowed. You can remove someone who bothers you from the room, and report them.",
   },
   "kurallar.onay": { tr: "Anladım", en: "Got it" },
+  "kurallar.belgeler": { tr: "Sohbet şu belgelere tabidir:", en: "Chat is subject to these documents:" },
+  "kurallar.kosullar": { tr: "Kullanım Koşulları", en: "Terms of Use" },
+  "kurallar.gizlilik": { tr: "Gizlilik Politikası", en: "Privacy Policy" },
+  "kurallar.ve": { tr: " ve ", en: " and " },
+
+  "belge.guncelleme": { tr: "Son güncelleme: {0}", en: "Last updated: {0}" },
+  "belge.iletisim": { tr: "İletişim", en: "Contact" },
+  "belge.iletisimEksik": {
+    tr: "İletişim adresi henüz eklenmedi.",
+    en: "The contact address has not been added yet.",
+  },
 
   "premium.yakinda": {
     tr: "Satın alma mağaza bağlantısı açıldığında etkinleşecek.",

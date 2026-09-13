@@ -51,7 +51,7 @@ export function sistemParcalari(
   }
 
   if (olay.cesit === "ayrildi") {
-    return benim ? kur("sistem.ayrildinBen", []) : kur("sistem.ayrildi", [kisi]);
+    return kur("sistem.ayrildi", [kisi]);
   }
 
   if (olay.cesit === "rol") {
