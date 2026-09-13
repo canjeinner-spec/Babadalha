@@ -6,6 +6,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AltCubuk, CUBUK_YUKSEKLIGI } from "@/components/AltCubuk";
 import { AltinAmblem, type AltinAmblemAdi } from "@/components/AltinAmblem";
+import { TanitimBanner } from "@/components/TanitimBanner";
+import { Image } from "expo-image";
 import { Portrait } from "@/components/Portrait";
 import { Txt } from "@/components/Txt";
 import { UstKaplama } from "@/components/UstKaplama";
@@ -14,9 +16,10 @@ import { type IconName } from "@/icons/paths";
 import { useCeviri } from "@/lib/ceviri";
 import { haptic } from "@/lib/haptics";
 import { girisEkraniGecildi, karsilamaGoruldu, premiumGoruldu } from "@/lib/ilkAcilis";
+import { PLATFORMLAR, platformKilitNotu } from "@/oda/platform";
 import { useApp } from "@/store/appStore";
 import { C } from "@/theme/colors";
-import { Gradient } from "@/theme/Gradient";
+import { saydam } from "@/theme/renk";
 import { TEMA_YAZI_GOLGESI, useTema } from "@/theme/tema";
 import { Zemin } from "@/theme/Zemin";
 
@@ -40,6 +43,8 @@ function Kisayol({ amblem, yedek, baslik, altYazi, onBas }: {
     </Pressable>
   );
 }
+
+const YOL_LINK = "M10 13a5 5 0 007.07 0l3-3a5 5 0 00-7.07-7.07l-1.72 1.71M14 11a5 5 0 00-7.07 0l-3 3a5 5 0 007.07 7.07l1.71-1.71";
 
 export default function AnaSayfa() {
   const t = useCeviri();
@@ -115,22 +120,56 @@ export default function AnaSayfa() {
           contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: CUBUK_YUKSEKLIGI + 20 }}
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.duyuru}>
-            <Gradient
-              colors={["rgba(232,179,65,.16)", "rgba(232,179,65,.03)"]}
-              deg={135}
-              style={StyleSheet.absoluteFill}
-              pointerEvents="none"
-            />
-            <View style={styles.duyuruAmblem}>
-              <AltinAmblem ad="parti" yedek="evParty" boyut={26} />
+          <TanitimBanner />
+
+          <Txt weight="extrabold" size={12} color={C.dim2} style={styles.bolumBaslik}>
+            {t("ana.katilBaslik")}
+          </Txt>
+
+          <Pressable
+            style={styles.katil}
+            onPress={() => { haptic.select(); router.push("/parti-dogrudan"); }}
+          >
+            <Icon path={YOL_LINK} size={19} sw={2} color={C.gold2} />
+            <Txt size={13.5} color="rgba(255,255,255,.6)" style={{ flex: 1 }} numberOfLines={1}>
+              {t("ana.katilIpucu")}
+            </Txt>
+            <View style={styles.katilOk}>
+              <Icon name="chev" size={17} sw={2.4} color="#241A05" />
             </View>
-            <Txt weight="displayBold" size={16.5} color="#fff" style={{ marginTop: 14 }}>
-              {t("ana.duyuruBaslik")}
-            </Txt>
-            <Txt size={13} color="rgba(255,255,255,.72)" lh={1.55} style={{ marginTop: 7 }}>
-              {t("ana.duyuruMetin")}
-            </Txt>
+          </Pressable>
+
+          <Txt weight="extrabold" size={12} color={C.dim2} style={styles.bolumBaslik}>
+            {t("ana.platformBaslik")}
+          </Txt>
+          <Txt size={12} color="rgba(255,255,255,.5)" style={styles.bolumAlt}>
+            {t("ana.platformAlt")}
+          </Txt>
+
+          <View style={styles.izgara}>
+            {PLATFORMLAR.map((p) => {
+              const kilit = platformKilitNotu(p.kod);
+              return (
+                <Pressable
+                  key={p.kod}
+                  disabled={!!kilit}
+                  style={[
+                    styles.hucre,
+                    { backgroundColor: saydam(p.vurgu, 0.14), borderColor: saydam(p.vurgu, 0.3) },
+                    !!kilit && styles.hucreKilitli,
+                  ]}
+                  onPress={() => {
+                    haptic.select();
+                    router.push({ pathname: "/parti-oda", params: { platform: p.kod } });
+                  }}
+                >
+                  <Image source={p.logo} style={styles.hucreLogo} contentFit="contain" transition={0} />
+                  {!!kilit && (
+                    <Txt size={9.5} color={C.dim} align="center" style={styles.kilitNotu}>{kilit}</Txt>
+                  )}
+                </Pressable>
+              );
+            })}
           </View>
 
           <Txt weight="extrabold" size={12} color={C.dim2} style={styles.bolumBaslik}>
@@ -138,13 +177,6 @@ export default function AnaSayfa() {
           </Txt>
 
           <View style={{ gap: 10 }}>
-            <Kisayol
-              amblem="oynat"
-              yedek="evParty"
-              baslik={t("ana.kisayolKur")}
-              altYazi={t("ana.kisayolKurAlt")}
-              onBas={() => { haptic.select(); router.push("/parti-platform"); }}
-            />
             <Kisayol
               amblem="kapi"
               yedek="users"
@@ -180,17 +212,25 @@ const styles = StyleSheet.create({
     flexDirection: "row", alignItems: "center", gap: 12,
     paddingHorizontal: 16, paddingTop: 8, paddingBottom: 14,
   },
-  duyuru: {
-    borderRadius: 20, overflow: "hidden", padding: 18,
-    borderWidth: 1, borderColor: "rgba(232,179,65,.2)",
+  katil: {
+    flexDirection: "row", alignItems: "center", gap: 11,
+    borderRadius: 16, paddingVertical: 12, paddingLeft: 15, paddingRight: 10,
+    backgroundColor: C.kart, borderWidth: 1, borderColor: C.line,
   },
-  duyuruAmblem: {
-    width: 46, height: 46, borderRadius: 15,
-    alignItems: "center", justifyContent: "center",
-    backgroundColor: "rgba(232,179,65,.1)",
-    borderWidth: 1, borderColor: "rgba(232,179,65,.22)",
+  katilOk: {
+    width: 34, height: 34, borderRadius: 12,
+    alignItems: "center", justifyContent: "center", backgroundColor: C.gold2,
   },
+  izgara: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  hucre: {
+    width: "48.2%", aspectRatio: 1.9, borderRadius: 16, borderWidth: 1,
+    alignItems: "center", justifyContent: "center", paddingHorizontal: 12,
+  },
+  hucreKilitli: { opacity: 0.42 },
+  hucreLogo: { width: "78%", height: "52%" },
+  kilitNotu: { marginTop: 5 },
   bolumBaslik: { marginTop: 24, marginBottom: 10, marginLeft: 4, letterSpacing: 1.1 },
+  bolumAlt: { marginTop: -4, marginBottom: 12, marginLeft: 4 },
   kisayol: {
     flexDirection: "row", alignItems: "center", gap: 13,
     borderRadius: 18, paddingVertical: 14, paddingHorizontal: 15,

@@ -5,6 +5,7 @@ import { FlatList, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AltCubuk, CUBUK_YUKSEKLIGI } from "@/components/AltCubuk";
+import { TanitimBanner } from "@/components/TanitimBanner";
 import { Anim } from "@/components/Anim";
 import { useCeviri } from "@/lib/ceviri";
 import { Portrait } from "@/components/Portrait";
@@ -174,16 +175,21 @@ export default function Partiler() {
           </Pressable>
         </View>
 
-        <View style={styles.listeBasligi}>
-          <Txt weight="extrabold" size={12.5} color={C.text}>{t("ana.canliPartiler")}</Txt>
-          <View style={{ flex: 1 }} />
-        </View>
-
         <FlatList
           data={gosterilecek}
           keyExtractor={(o) => o.odaId}
           contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: CUBUK_YUKSEKLIGI + 20 }}
           showsVerticalScrollIndicator={false}
+          ListHeaderComponent={
+            <>
+              <View style={styles.bannerYuva}>
+                <TanitimBanner />
+              </View>
+              <View style={styles.listeBasligi}>
+                <Txt weight="extrabold" size={12.5} color={C.text}>{t("ana.canliPartiler")}</Txt>
+              </View>
+            </>
+          }
           renderItem={({ item }) => (
             <OdaKarti
               oda={item}
@@ -210,14 +216,14 @@ export default function Partiler() {
 const styles = StyleSheet.create({
   kok: { flex: 1, backgroundColor: C.bg },
   baslik: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 14 },
-  bannerYuva: { paddingHorizontal: 16, marginTop: 2 },
+  bannerYuva: { marginTop: 2 },
   baslatSar: {
     position: "absolute", left: 16, right: 16,
     borderRadius: 16, overflow: "hidden",
     shadowColor: "#000", shadowOpacity: 0.45, shadowRadius: 14, shadowOffset: { width: 0, height: 5 }, elevation: 8,
   },
   baslat: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 14 },
-  listeBasligi: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingTop: 22, paddingBottom: 10 },
+  listeBasligi: { paddingTop: 4, paddingBottom: 12 },
   kart: {
     flexDirection: "row", gap: 11, padding: 10, borderRadius: 16, marginBottom: 10,
     backgroundColor: C.kart, borderWidth: 1, borderColor: C.line,

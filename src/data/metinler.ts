@@ -24,6 +24,14 @@ export const METINLER = {
     tr: "Netflix, Prime Video ve YouTube artık yerel oynatıcıda açılıyor. Odanı kur, bağlantını paylaş, film aynı saniyede başlasın.",
     en: "Netflix, Prime Video and YouTube now open in the native player. Set up your room, share your link, and the film starts on the same second.",
   },
+  "ana.katilBaslik": { tr: "Partiye katıl", en: "Join a party" },
+  "ana.katilIpucu": { tr: "Davet bağlantısını yapıştır", en: "Paste an invite link" },
+  "ana.platformBaslik": { tr: "Desteklenen platformlar", en: "Supported platforms" },
+  "ana.platformAlt": {
+    tr: "Birini seç, odan saniyesinde kurulsun.",
+    en: "Pick one and your room is set up in a second.",
+  },
+
   "ana.kisayolBaslik": { tr: "Ne yapmak istersin?", en: "What would you like to do?" },
   "ana.kisayolKur": { tr: "Parti kur", en: "Start a party" },
   "ana.kisayolKurAlt": { tr: "Platformu seç, oda saniyesinde açılsın", en: "Pick a platform, your room opens in a second" },
