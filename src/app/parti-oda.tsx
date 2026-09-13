@@ -7,7 +7,6 @@ import { AppState, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleS
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CenterModal } from "@/components/CenterModal";
-import { PlatformSimge } from "@/components/PlatformSimge";
 import { GirisGerekli } from "@/components/GirisGerekli";
 import { AyiklamaKatmani } from "@/components/AyiklamaKatmani";
 import { ayiklamaYaz } from "@/lib/ayiklamaGunluk";
@@ -219,11 +218,12 @@ function SohbetOgesi({ oge, benimFoto, oynuyor, onOynatDurdur, onDavet }: {
   if (oge.tur === "simdi") {
     return (
       <View style={styles.simdiSatir}>
-        {!!oge.platform && !!platformBul(oge.platform) && (
-          <PlatformSimge
-            platform={platformBul(oge.platform)!}
-            boyut={20}
+        {oge.platform && platformBul(oge.platform)?.logo && (
+          <Image
+            source={platformBul(oge.platform)!.logo}
             style={styles.simdiLogo}
+            contentFit="contain"
+            transition={0}
           />
         )}
         <View style={{ flex: 1, minWidth: 0 }}>

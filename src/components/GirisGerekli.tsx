@@ -1,7 +1,7 @@
+import { Image } from "expo-image";
 import { Pressable, StyleSheet, View } from "react-native";
 
 import { Txt } from "@/components/Txt";
-import { PlatformSimge } from "@/components/PlatformSimge";
 import { Icon } from "@/icons/Icon";
 import { type Platform } from "@/oda/platform";
 
@@ -21,7 +21,7 @@ export function GirisGerekli({ platform, onGiris }: {
   const yazi = acikRenkMi(platform.vurgu) ? "#0A0910" : "#fff";
   return (
     <View style={styles.kok} pointerEvents="auto">
-      <PlatformSimge platform={platform} boyut={44} style={styles.logo} />
+      <Image source={platform.logo} style={styles.logo} contentFit="contain" transition={0} />
       <Txt weight="displayBold" size={18} color="#fff" style={{ marginTop: 10 }}>Giriş gerekli</Txt>
       <Txt size={13} color="rgba(255,255,255,.72)" align="center" style={{ marginTop: 4, paddingHorizontal: 24 }}>
         Bu videoyu izlemek için {platform.ad} hesabında oturum aç

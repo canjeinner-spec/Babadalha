@@ -7,7 +7,6 @@ export type NativeWebYapilandirma = {
   izinler: WebIzni[];
   engelDesenleri: string[];
   agDesenleri: string[];
-  kesif: boolean;
   basliklar: Record<string, string>;
 };
 
@@ -79,20 +78,6 @@ const ORTAK_ENGEL = [
   "adservice\\.google",
 ];
 
-const KESIF_DESENLERI = [
-  "\\.mpd",
-  "\\.m3u8",
-  "license",
-  "widevine",
-  "playready",
-  "fairplay",
-  "/drm",
-  "playback",
-  "manifest",
-  "/token",
-  "/entitlement",
-];
-
 const PLATFORM_YAPI: Partial<Record<PlatformKodu, Partial<NativeWebYapilandirma>>> = {
   netflix: {
     ayarlar: { istekBasligiGizle: false },
@@ -161,8 +146,7 @@ export function nativeWebYapilandirma(platform: PlatformKodu): NativeWebYapiland
     ayarlar: { ...temel, ...(ozel.ayarlar ?? {}) },
     izinler: ozel.izinler ?? ["drm", "ses"],
     engelDesenleri: [...ORTAK_ENGEL, ...(ozel.engelDesenleri ?? [])],
-    agDesenleri: ozel.agDesenleri ?? KESIF_DESENLERI,
+    agDesenleri: ozel.agDesenleri ?? [],
     basliklar: ozel.basliklar ?? {},
-    kesif: !PLATFORM_YAPI[platform],
   };
 }
