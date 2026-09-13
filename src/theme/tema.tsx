@@ -2,11 +2,12 @@ import { Image } from "expo-image";
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { aktifTema, type Tema, type TemaIcerik } from "@/data/remote/temaRepo";
-import { useCachedResource } from "@/lib/cache";
+import { getCached, setCached, useCachedResource } from "@/lib/cache";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { C } from "./colors";
 
 export const TEMA_ANAHTARI = "tema:aktif";
+export const TEMA_HAZIR_ANAHTARI = "tema:hazir";
 
 type TemaRenk = { ana: string; solgun: string; vurgu: string };
 
@@ -50,8 +51,14 @@ export function TemaSaglayici({ children }: { children: ReactNode }) {
   });
 
   const aday = data && !suresiDoldu(data) ? data : null;
-  const [hazirKod, setHazirKod] = useState<string | null>(null);
+  const [hazirKod, setHazirKod] = useState<string | null>(() => getCached<string>(TEMA_HAZIR_ANAHTARI) ?? null);
   const kritik = useMemo(() => (aday ? kritikGorseller(aday) : []), [aday]);
+
+  const { data: kayitliHazir } = useCachedResource<string | null>(
+    TEMA_HAZIR_ANAHTARI,
+    async () => getCached<string>(TEMA_HAZIR_ANAHTARI) ?? null,
+    { persist: true },
+  );
 
   useEffect(() => {
     if (!aday) return;
@@ -60,13 +67,23 @@ export function TemaSaglayici({ children }: { children: ReactNode }) {
     if (ikincil.length > 0) void Image.prefetch(ikincil, { cachePolicy: "disk" }).catch(() => {});
     if (kritik.length > 0) {
       Image.prefetch(kritik, { cachePolicy: "disk" })
-        .then((tamam) => { if (canli && tamam) setHazirKod(aday.kod); })
+        .then((tamam) => {
+          if (!canli) return;
+          if (tamam) {
+            setHazirKod(aday.kod);
+            setCached(TEMA_HAZIR_ANAHTARI, aday.kod, true);
+          } else if (getCached<string>(TEMA_HAZIR_ANAHTARI) === aday.kod) {
+            setHazirKod(null);
+            setCached<string | null>(TEMA_HAZIR_ANAHTARI, null, true);
+          }
+        })
         .catch(() => {});
     }
     return () => { canli = false; };
   }, [aday, kritik]);
 
-  const hazir = !!aday && (kritik.length === 0 || hazirKod === aday.kod);
+  const etkinHazirKod = hazirKod ?? kayitliHazir ?? null;
+  const hazir = !!aday && (kritik.length === 0 || etkinHazirKod === aday.kod);
 
   useEffect(() => {
     if (!aday?.bitis) return;
