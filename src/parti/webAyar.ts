@@ -130,11 +130,20 @@ const PLATFORM_YAPI: Partial<Record<PlatformKodu, Partial<NativeWebYapilandirma>
   },
 };
 
+PLATFORM_YAPI.youtube_live = PLATFORM_YAPI.youtube;
+
+function ipucuGonderilir(ua: string): boolean {
+  return !/iPhone|iPad|iPod/i.test(ua);
+}
+
 export function nativeWebYapilandirma(platform: PlatformKodu): NativeWebYapilandirma {
   const ozel = PLATFORM_YAPI[platform] ?? {};
   const ua = kullaniciAjani(platform);
+  const temel: WebAyarlari = ipucuGonderilir(ua)
+    ? { ...ORTAK_AYAR, agIpuclari: ipuclari(ua) }
+    : { ...ORTAK_AYAR };
   return {
-    ayarlar: { ...ORTAK_AYAR, agIpuclari: ipuclari(ua), ...(ozel.ayarlar ?? {}) },
+    ayarlar: { ...temel, ...(ozel.ayarlar ?? {}) },
     izinler: ozel.izinler ?? ["drm", "ses"],
     engelDesenleri: [...ORTAK_ENGEL, ...(ozel.engelDesenleri ?? [])],
     agDesenleri: ozel.agDesenleri ?? [],

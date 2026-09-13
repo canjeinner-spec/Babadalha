@@ -139,13 +139,15 @@ class AronPlayerView(context: Context, appContext: AppContext) : ExpoView(contex
       val drmHatasi = kod in PlaybackException.ERROR_CODE_DRM_UNSPECIFIED..PlaybackException.ERROR_CODE_DRM_LICENSE_EXPIRED
       durumYayinla("hata")
       ilerlemeDurdur()
+      val sebepZinciri = generateSequence(hata.cause) { it.cause }
+        .joinToString(" <- ") { "${it.javaClass.simpleName}:${it.message}" }.take(400)
       val ekTani = if (netflixYonetici != null) {
-        val sebepZinciri = generateSequence(hata.cause) { it.cause }
-          .joinToString(" <- ") { "${it.javaClass.simpleName}:${it.message}" }.take(400)
         val mpd = try {
           File(context.cacheDir, "netflix_dash_manifest.xml").readText().take(600)
         } catch (e: Throwable) { "MPD?:${e.message}" }
         " || cause=$sebepZinciri || MPD: $mpd"
+      } else if (sebepZinciri.isNotEmpty()) {
+        " || cause=$sebepZinciri"
       } else ""
       onHata(
         mapOf(

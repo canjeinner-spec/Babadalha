@@ -6,6 +6,7 @@ import { OynaticiAyarlar } from "@/components/OynaticiAyarlar";
 import { OynaticiKontrol } from "@/components/OynaticiKontrol";
 import { Txt } from "@/components/Txt";
 import { Icon } from "@/icons/Icon";
+import { ayiklamaYaz } from "@/lib/ayiklamaGunluk";
 import { type PlatformKodu } from "@/oda/platform";
 import { rtcMotoruGetir } from "@/lib/rtc";
 import { KOMUT, kopruBetigi, kullaniciAjani, masaustuIcerikMi, olayCoz, type OynaticiOlayi } from "@/parti/kopru";
@@ -44,6 +45,7 @@ export const PartiOynatici = forwardRef<OynaticiKolu, {
   useEffect(() => { console.warn(`[parti-oynatici] ${Platform.OS} yeni oynatici ${platform} ${adres.slice(0, 70)}`); }, [platform, adres]);
   const web = useRef<KopruWebKolu>(null);
   const dogum = useRef(Date.now());
+  const ilkYukleme = useRef(true);
   const [yukleniyor, setYukleniyor] = useState(true);
   const [hata, setHata] = useState<string | null>(null);
   const [konum, setKonum] = useState(0);
@@ -106,10 +108,22 @@ export const PartiOynatici = forwardRef<OynaticiKolu, {
         masaustu={masaustu}
         platform={platform}
         onMesaj={mesaj}
-        onYukleBasla={(url) => { console.warn(`[parti-oynatici] yukleme-basladi ${Date.now() - dogum.current}ms ${url}`); setYukleniyor(true); }}
-        onYukleBit={(url) => { console.warn(`[parti-oynatici] yukleme-bitti ${Date.now() - dogum.current}ms ${url}`); setYukleniyor(false); }}
+        onYukleBasla={(url) => {
+          console.warn(`[parti-oynatici] yukleme-basladi ${Date.now() - dogum.current}ms ${url}`);
+          if (ilkYukleme.current) ayiklamaYaz(`web basla ${platform} ${url.slice(0, 60)}`);
+          setYukleniyor(true);
+        }}
+        onYukleBit={(url) => {
+          console.warn(`[parti-oynatici] yukleme-bitti ${Date.now() - dogum.current}ms ${url}`);
+          if (ilkYukleme.current) {
+            ilkYukleme.current = false;
+            ayiklamaYaz(`web bitti ${Date.now() - dogum.current}ms ${url.slice(0, 60)}`);
+          }
+          setYukleniyor(false);
+        }}
         onHata={(aciklama, url) => {
           console.warn(`[parti-oynatici] ${Platform.OS} hata:`, aciklama, url);
+          ayiklamaYaz(`web HATA ${platform}: ${aciklama.slice(0, 90)} ${url.slice(0, 50)}`);
           setHata(aciklama);
           setYukleniyor(false);
         }}

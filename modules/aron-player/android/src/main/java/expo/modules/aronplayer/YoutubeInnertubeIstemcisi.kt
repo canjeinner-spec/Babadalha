@@ -123,7 +123,7 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
           continue
         }
         if (betik != null) urlleriTazele(streaming, betik)
-        val eksik = akisEksigi(json, streaming)
+        val eksik = akisEksigi(json, streaming, istemci)
         if (eksik != null) {
           hatalar.add("${istemci.ad}: $eksik")
           Log.w(TAG, "istemci ${istemci.ad} atlandi: $eksik")
@@ -214,33 +214,89 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
       json.optJSONObject("playabilityStatus")?.has("liveStreamability") == true
   }
 
-  private fun akisEksigi(json: JSONObject, streamingData: JSONObject): String? {
+  private fun akisEksigi(json: JSONObject, streamingData: JSONObject, istemci: Istemci): String? {
     if (canliMi(json) && streamingData.optString("hlsManifestUrl", "").isNotEmpty()) return null
 
     var video = 0
     var ses = 0
+    var videoAdres = ""
+    var sesAdres = ""
     val adaptive = streamingData.optJSONArray("adaptiveFormats") ?: JSONArray()
     for (i in 0 until adaptive.length()) {
       val f = adaptive.optJSONObject(i) ?: continue
-      if (f.optString("url", "").isEmpty()) continue
+      val url = f.optString("url", "")
+      if (url.isEmpty()) continue
       val mime = f.optString("mimeType", "")
       when {
-        mime.startsWith("video/") -> video++
-        mime.startsWith("audio/") -> ses++
+        mime.startsWith("video/") -> {
+          video++
+          if (videoAdres.isEmpty()) videoAdres = url
+        }
+        mime.startsWith("audio/") -> {
+          ses++
+          if (sesAdres.isEmpty()) sesAdres = url
+        }
       }
     }
-    if (video > 0 && ses > 0) return null
 
     var birlesik = 0
+    var birlesikAdres = ""
     val progressive = streamingData.optJSONArray("formats") ?: JSONArray()
     for (i in 0 until progressive.length()) {
       val f = progressive.optJSONObject(i) ?: continue
-      if (f.optString("url", "").isEmpty()) continue
-      if (f.optString("mimeType", "").startsWith("video/")) birlesik++
+      val url = f.optString("url", "")
+      if (url.isEmpty()) continue
+      if (!f.optString("mimeType", "").startsWith("video/")) continue
+      birlesik++
+      if (birlesikAdres.isEmpty()) birlesikAdres = url
     }
-    if (birlesik > 0) return null
 
-    return "adreslenebilir akis yok (video=$video ses=$ses birlesik=$birlesik ham=${adaptive.length()})"
+    val sinanacak = when {
+      videoAdres.isNotEmpty() && sesAdres.isNotEmpty() ->
+        listOf("video" to videoAdres, "ses" to sesAdres)
+      birlesikAdres.isNotEmpty() -> listOf("birlesik" to birlesikAdres)
+      else -> return "adreslenebilir akis yok (video=$video ses=$ses birlesik=$birlesik ham=${adaptive.length()})"
+    }
+
+    for ((ad, adres) in sinanacak) {
+      val kod = try {
+        akisSinamasi(adres, istemci.userAgent)
+      } catch (e: Throwable) {
+        return "$ad akisi sinanamadi: ${e.message}"
+      }
+      if (kod !in 200..299) return "$ad akisi HTTP $kod"
+    }
+    return null
+  }
+
+  private fun akisSinamasi(url: String, userAgent: String): Int {
+    val ayrac = if (url.contains("?")) "&" else "?"
+    val adres = url + ayrac + "range=0-1&rn=" + (1..100000).random()
+    val baglanti = URL(adres).openConnection() as HttpURLConnection
+    try {
+      baglanti.requestMethod = "POST"
+      baglanti.setRequestProperty("User-Agent", userAgent)
+      baglanti.setRequestProperty("Origin", "https://www.youtube.com")
+      baglanti.setRequestProperty("Referer", "https://www.youtube.com/")
+      baglanti.setRequestProperty("Sec-Fetch-Dest", "empty")
+      baglanti.setRequestProperty("Sec-Fetch-Mode", "cors")
+      baglanti.setRequestProperty("Sec-Fetch-Site", "cross-site")
+      baglanti.doOutput = true
+      baglanti.connectTimeout = 8_000
+      baglanti.readTimeout = 8_000
+      val os = baglanti.outputStream
+      os.write(byteArrayOf(0x78, 0x00))
+      os.flush()
+      os.close()
+      val kod = baglanti.responseCode
+      try {
+        (if (kod in 200..299) baglanti.inputStream else baglanti.errorStream)?.close()
+      } catch (e: Throwable) {
+      }
+      return kod
+    } finally {
+      baglanti.disconnect()
+    }
   }
 
   private fun akisAdresleriniCoz(vid: String): Map<String, String> {
