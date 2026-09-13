@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import { CenterModal } from "@/components/CenterModal";
 import { Txt } from "@/components/Txt";
-import { DILLER } from "@/data/diller";
+import { HAZIR_DILLER } from "@/data/diller";
 import { Icon } from "@/icons/Icon";
 import { haptic } from "@/lib/haptics";
 import { useDil } from "@/lib/dil";
@@ -43,7 +43,7 @@ export function DilSecici({ bicim = "kapsul" }: { bicim?: Bicim }) {
         <View style={styles.kart}>
           <Txt weight="displayBold" size={16} color="#fff" align="center">Dil</Txt>
           <ScrollView style={styles.liste} showsVerticalScrollIndicator={false}>
-            {DILLER.map((d) => {
+            {HAZIR_DILLER.map((d) => {
               const secili = d.kod === dil.kod;
               return (
                 <Pressable

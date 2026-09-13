@@ -5,7 +5,6 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AkanDuvar } from "@/components/AkanDuvar";
-import { DilSecici } from "@/components/DilSecici";
 import { ElmaIsareti, GoogleIsareti } from "@/components/MarkaIkonlari";
 import { TitrekYazi } from "@/components/TitrekYazi";
 import { Txt } from "@/components/Txt";
@@ -76,7 +75,6 @@ export default function Giris() {
               onError={() => setMarkaHatasi(true)}
             />
           )}
-          <DilSecici />
         </View>
 
         <View style={{ flex: 0.85 }} />
