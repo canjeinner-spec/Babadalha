@@ -166,6 +166,14 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
     if (betik != null) urlleriTazele(streamingData, betik)
     poToken?.oturumToken?.takeIf { it.isNotEmpty() }?.let { potEkle(streamingData, it) }
 
+    YoutubeYenileyici.kaydet(
+      videoId = videoId,
+      visitorData = oynaticiBilgisi?.visitorData.orEmpty(),
+      oturumToken = poToken?.oturumToken.orEmpty(),
+      uretici = poUretici,
+      akisCozucu = { vid -> akisAdresleriniCoz(vid) }
+    )
+
     val hlsAdres = streamingData.optString("hlsManifestUrl", "")
     val canliMi = videoDetaylari?.optBoolean("isLive", false) == true ||
       json.optJSONObject("playabilityStatus")?.has("liveStreamability") == true
@@ -192,6 +200,22 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
       streamingJson = streamingData.toString(),
       userAgent = istemci.userAgent
     )
+  }
+
+  private fun akisAdresleriniCoz(vid: String): Map<String, String> {
+    val bilgi = oynatimBilgisiAl(vid)
+    val sd = JSONObject(bilgi.streamingJson)
+    val harita = LinkedHashMap<String, String>()
+    for (ad in listOf("adaptiveFormats", "formats")) {
+      val dizi = sd.optJSONArray(ad) ?: continue
+      for (i in 0 until dizi.length()) {
+        val fmt = dizi.optJSONObject(i) ?: continue
+        val itag = fmt.opt("itag")?.toString() ?: continue
+        val url = fmt.optString("url", "")
+        if (url.isNotEmpty()) harita[itag] = url
+      }
+    }
+    return harita
   }
 
   private fun potEkle(streamingData: JSONObject, pot: String) {

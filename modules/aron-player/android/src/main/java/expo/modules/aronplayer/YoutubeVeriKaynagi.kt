@@ -27,6 +27,25 @@ class YoutubeVeriCozucu : ResolvingDataSource.Resolver {
     }
 
     var adres = dataSpec.uri.toString()
+
+    if (YoutubeYenileyici.suresiDoldu(adres)) {
+      YoutubeYenileyici.adresTazele(adres)?.let { yeni ->
+        if (yeni.isNotEmpty()) adres = yeni
+      }
+    }
+
+    val guncelPot = YoutubeYenileyici.guncelPot()
+    if (guncelPot.isNotEmpty()) {
+      val mevcut = POT_KALIBI.matcher(adres)
+      if (mevcut.find()) {
+        if (mevcut.group(1) != guncelPot) {
+          adres = mevcut.replaceFirst("pot=" + guncelPot)
+        }
+      } else {
+        adres = adres + (if (adres.contains("?")) "&" else "?") + "pot=" + guncelPot
+      }
+    }
+
     if (!adres.contains(RN_PARAMETRESI)) {
       adres = adres + RN_PARAMETRESI + istekNo.getAndIncrement()
     }
@@ -58,6 +77,8 @@ class YoutubeVeriCozucu : ResolvingDataSource.Resolver {
     private const val RN_PARAMETRESI = "&rn="
     private const val ARALIK_PARAMETRESI = "&range="
     private val GOVDE = byteArrayOf(0x78, 0x00)
+    private val POT_KALIBI: java.util.regex.Pattern =
+      java.util.regex.Pattern.compile("pot=([^&]*)")
 
     fun youtubeMu(adres: String): Boolean {
       val kucuk = adres.lowercase()
