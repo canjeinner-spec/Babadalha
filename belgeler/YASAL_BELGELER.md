@@ -23,6 +23,23 @@ yazıldı:
 
 Bu listelerden biri değişirse politika da değişmeli.
 
+## Turtle'ın metinleri neden alınmadı
+
+13 Eylül'de Turtle'ın Kullanım Koşulları ve Gizlilik Politikası örnek
+olarak getirildi. Koşulların yapısı alındı: uygulamada değişiklik hakkı,
+cihaz güvenliği ve jailbreak/root uyarısı, internet ve veri kullanımı,
+güncelleme ile erişimin sona ermesi, yürürlük tarihi. Gizlilik tarafında
+güvenlik önlemleri, onay ve bağlanırken görülen teknik veriler eklendi.
+
+Turtle'ın gizlilik metni olduğu gibi alınamaz, çünkü bizi anlatmıyor.
+O metin "hesap ya da giriş gerekmez", "ad, e-posta, telefon, parola
+toplanmaz", "kimlikler geçici ve gerçek kimliğe bağlı değil" diyor.
+Aron'da Apple ve Google girişi var, `profiller` tablosunda e-posta,
+kullanıcı adı, doğum tarihi duruyor ve `oda_mesajlari`'nda sohbet
+saklanıyor. O metni koyarsak gizlilik politikamız yanlış beyan olur;
+App Store gizlilik etiketiyle de çelişir, KVKK ve GDPR tarafında da
+sorun çıkarır. Ayrıca metin Turtle'ın kendi belgesi.
+
 ## Kapanmamış işler
 
 1. **İletişim adresi.** `ARON_ILETISIM` boş. Boşken ekran o satıra kırmızı

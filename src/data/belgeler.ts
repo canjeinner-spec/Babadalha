@@ -123,11 +123,50 @@ const KOSULLAR: Belge = {
       ],
     },
     {
-      baslik: { tr: "8. Fikri mülkiyet", en: "8. Intellectual property" },
+      baslik: { tr: "8. Uygulamada değişiklikler", en: "8. Changes to the app" },
       maddeler: [
         {
-          tr: "Aron adı, logosu, arayüzü ve kodu bize aittir. Uygulamayı kopyalayamaz, tersine mühendislik yapamaz, üzerinden türev ürün satamazsın.",
-          en: "The Aron name, logo, interface and code belong to us. You may not copy the app, reverse engineer it, or sell derivative products based on it.",
+          tr: "Aron'u daha iyi çalıştırmak için özellik ekleyebilir, değiştirebilir ya da kaldırabiliriz. Bir platform kendi tarafında yolu kapatırsa o platform listeden çıkabilir.",
+          en: "To make Aron work better we may add, change or remove features. If a platform closes the path on its own side, that platform may leave the list.",
+        },
+        {
+          tr: "İleride ücretli bir özellik gelirse, ücret uygulanmadan önce sana açıkça bildirilir. Bugün ücretsiz olan bir şeyi habersiz paralıya çevirmeyiz.",
+          en: "If a paid feature arrives in future, you will be told clearly before any charge applies. We will not turn something that is free today into something paid without notice.",
+        },
+      ],
+    },
+    {
+      baslik: { tr: "9. Cihazının güvenliği", en: "9. The security of your device" },
+      maddeler: [
+        {
+          tr: "Cihazının ve Aron'a erişimin güvenliğinden sen sorumlusun.",
+          en: "You are responsible for the security of your device and of access to Aron.",
+        },
+        {
+          tr: "Cihazına jailbreak ya da root uygulamanı önermiyoruz. Bu işlemler cihazının güvenlik korumalarını kaldırır, zararlı yazılımlara açık hâle getirir ve içerik koruması gerektiren platformların Aron'da açılmamasına yol açar. Değiştirilmiş cihazlarda çıkan sorunlardan sorumlu değiliz.",
+          en: "We do not recommend jailbreaking or rooting your device. Doing so removes your device's security protections, exposes it to malicious software, and causes platforms that require content protection to stop opening in Aron. We are not responsible for problems on modified devices.",
+        },
+      ],
+    },
+    {
+      baslik: { tr: "10. İnternet ve veri kullanımı", en: "10. Internet and data usage" },
+      maddeler: [
+        {
+          tr: "Aron'un neredeyse tamamı etkin bir internet bağlantısı ister. Bağlantı yoksa, koptuğunda ya da kotan bittiğinde uygulamanın tam çalışmamasından sorumlu değiliz.",
+          en: "Almost all of Aron requires an active internet connection. We are not responsible if the app does not work fully when there is no connection, when it drops, or when your data allowance runs out.",
+        },
+        {
+          tr: "Birlikte video izlemek yüksek veri tüketir. Mobil ağdan kullanırsan operatörün veri ücreti, yurt dışındaysan dolaşım ücreti yansıtabilir; bu ücretler sana aittir. Cihazın faturasını sen ödemiyorsan, ödeyen kişinin iznini almış sayılırsın.",
+          en: "Watching video together uses a lot of data. If you use a mobile network your operator may charge for data, and roaming charges abroad; those charges are yours. If you are not the bill payer for the device, you are assumed to have the bill payer's permission.",
+        },
+      ],
+    },
+    {
+      baslik: { tr: "11. Fikri mülkiyet", en: "11. Intellectual property" },
+      maddeler: [
+        {
+          tr: "Aron adı, logosu, arayüzü ve kodu bize aittir. Uygulamayı ya da bir parçasını izinsiz kopyalayamaz, değiştiremez, dağıtamaz, kaynak koduna ulaşmaya çalışamaz, başka dile çeviremez ve üzerinden türev ürün üretemezsin.",
+          en: "The Aron name, logo, interface and code belong to us. You may not copy, modify or distribute the app or any part of it without permission, attempt to reach its source code, translate it into another language, or produce derivative works from it.",
         },
         {
           tr: "Sohbette ve odanda paylaştığın içerik senindir. Bu içeriği uygulamanın çalışması için gereken ölçüde göstermemize izin vermiş olursun.",
@@ -136,7 +175,7 @@ const KOSULLAR: Belge = {
       ],
     },
     {
-      baslik: { tr: "9. Garanti ve sorumluluk", en: "9. Warranty and liability" },
+      baslik: { tr: "12. Garanti ve sorumluluk", en: "12. Warranty and liability" },
       maddeler: [
         {
           tr: "Aron olduğu gibi sunulur. Kesintisiz çalışacağını, her platformun her zaman açılacağını ya da eşzamanlamanın her ağda kusursuz olacağını garanti etmiyoruz.",
@@ -149,20 +188,24 @@ const KOSULLAR: Belge = {
       ],
     },
     {
-      baslik: { tr: "10. Fesih", en: "10. Termination" },
+      baslik: { tr: "13. Güncellemeler ve erişimin sona ermesi", en: "13. Updates and ending access" },
       maddeler: [
         {
-          tr: "Hesabını istediğin an kapatabilirsin. Bu koşulları çiğnersen hesabını askıya alabilir ya da kapatabiliriz.",
-          en: "You can close your account at any time. If you break these terms we may suspend or close your account.",
+          tr: "Aron zaman zaman güncellenir. Kullanmaya devam edebilmen için güncellemeyi kurman gerekebilir. Uygulamanın her zaman açık kalacağını, her cihazla uyumlu olacağını ya da süresiz sürdürüleceğini taahhüt etmiyoruz.",
+          en: "Aron is updated from time to time. You may need to install an update to keep using it. We do not undertake that the app will always stay available, be compatible with every device, or be maintained indefinitely.",
+        },
+        {
+          tr: "Hesabını istediğin an kapatabilirsin. Bu koşulları çiğnersen hesabını askıya alabilir ya da kapatabiliriz. Erişimin sona erdiğinde bu koşullardan doğan hakların da sona erer ve uygulamayı kullanmayı bırakman gerekir.",
+          en: "You can close your account at any time. If you break these terms we may suspend or close your account. When your access ends, your rights under these terms end too and you must stop using the app.",
         },
       ],
     },
     {
-      baslik: { tr: "11. Değişiklikler ve iletişim", en: "11. Changes and contact" },
+      baslik: { tr: "14. Değişiklikler ve iletişim", en: "14. Changes and contact" },
       maddeler: [
         {
-          tr: "Koşullar değiştiğinde uygulamada duyururuz. Soruların ve bildirimlerin için aşağıdaki adresten bize ulaşabilirsin.",
-          en: "When these terms change we announce it in the app. For questions and reports you can reach us at the address below.",
+          tr: "Koşullar değiştiğinde uygulamada duyururuz ve bu sayfadaki tarihi güncelleriz. Değişiklikten sonra Aron'u kullanmaya devam etmen yeni koşulları kabul ettiğin anlamına gelir. Soruların ve bildirimlerin için aşağıdaki adresten bize ulaşabilirsin.",
+          en: "When these terms change we announce it in the app and update the date on this page. Continuing to use Aron after a change means you accept the new terms. For questions and reports you can reach us at the address below.",
         },
       ],
     },
@@ -199,7 +242,24 @@ const GIZLILIK: Belge = {
       ],
     },
     {
-      baslik: { tr: "2. Toplamadığımız veriler", en: "2. Data we do not collect" },
+      baslik: { tr: "2. Bağlanırken görülen teknik veriler", en: "2. Technical data seen when you connect" },
+      maddeler: [
+        {
+          tr: "Her internet bağlantısında olduğu gibi, sunucularımıza bağlandığında IP adresin altyapı tarafından görülür. Bunu bağlantıyı kurmak, kötüye kullanımı engellemek ve arıza çözmek için kullanırız.",
+          en: "As with any internet connection, your IP address is seen by the infrastructure when you connect to our servers. We use it to establish the connection, to prevent abuse and to fix faults.",
+        },
+        {
+          tr: "Konumunu toplamıyoruz. GPS ya da benzeri bir konum verisi istemiyoruz; uygulamada konum izni yok. IP adresinden ülke düzeyinde bir tahmin çıkabilir, bunu reklam ya da profilleme için kullanmıyoruz.",
+          en: "We do not collect your location. We do not ask for GPS or similar location data; the app has no location permission. A country-level estimate can follow from an IP address; we do not use it for advertising or profiling.",
+        },
+        {
+          tr: "Uygulamada çökme raporlama ya da kullanım ölçümü yazılımı kurulu değil. Çökme kayıtların ve kullanım verin bize gelmiyor.",
+          en: "No crash reporting or usage measurement software is installed in the app. Your crash logs and usage data do not reach us.",
+        },
+      ],
+    },
+    {
+      baslik: { tr: "3. Toplamadığımız veriler", en: "3. Data we do not collect" },
       maddeler: [
         {
           tr: "Sesini kaydetmiyoruz. Sesli sohbet canlı akar, partidekilere iletilir ve biter; sunucuda bir kaydı kalmaz.",
@@ -220,7 +280,7 @@ const GIZLILIK: Belge = {
       ],
     },
     {
-      baslik: { tr: "3. Neden tutuyoruz", en: "3. Why we keep it" },
+      baslik: { tr: "4. Neden tutuyoruz", en: "4. Why we keep it" },
       maddeler: [
         {
           tr: "Hesabını tanımak, odaları kurup birleştirmek, eşzamanlı oynatmayı sürdürmek, istatistiklerini göstermek, kuralları uygulamak ve bildirilen içeriği incelemek için.",
@@ -229,7 +289,7 @@ const GIZLILIK: Belge = {
       ],
     },
     {
-      baslik: { tr: "4. Kimlerle paylaşılıyor", en: "4. Who it is shared with" },
+      baslik: { tr: "5. Kimlerle paylaşılıyor", en: "5. Who it is shared with" },
       maddeler: [
         {
           tr: "Supabase: hesabın, odaların ve mesajların bu altyapıda saklanır.",
@@ -254,7 +314,7 @@ const GIZLILIK: Belge = {
       ],
     },
     {
-      baslik: { tr: "5. Ne kadar saklıyoruz", en: "5. How long we keep it" },
+      baslik: { tr: "6. Ne kadar saklıyoruz", en: "6. How long we keep it" },
       maddeler: [
         {
           tr: "Hesap verilerini hesabın açık olduğu sürece tutarız. Hesabını kapattığında profilin ve istatistiklerin silinir.",
@@ -267,7 +327,20 @@ const GIZLILIK: Belge = {
       ],
     },
     {
-      baslik: { tr: "6. Hakların", en: "6. Your rights" },
+      baslik: { tr: "7. Güvenlik", en: "7. Security" },
+      maddeler: [
+        {
+          tr: "Verilerini yetkisiz erişime, ifşaya ve kötüye kullanıma karşı korumak için makul idari ve teknik önlemler alıyoruz: bağlantılar şifreli taşınıyor, veritabanında her satıra kimin erişebileceği kural olarak tanımlı ve giriş doğrulaması Apple ile Google tarafında yapılıyor; şifreni biz tutmuyoruz.",
+          en: "We take reasonable administrative and technical measures to protect your data against unauthorised access, disclosure and misuse: connections are carried encrypted, access to each row in the database is defined by rule, and sign-in is verified on Apple's and Google's side; we do not hold your password.",
+        },
+        {
+          tr: "Hiçbir önlem mutlak güvenlik sağlamaz. Verini etkileyen bir ihlal olursa sana ve yetkili makamlara bildiririz.",
+          en: "No measure provides absolute security. If a breach affecting your data occurs, we will notify you and the competent authorities.",
+        },
+      ],
+    },
+    {
+      baslik: { tr: "8. Hakların", en: "8. Your rights" },
       maddeler: [
         {
           tr: "Verilerine erişmeyi, düzeltilmesini, silinmesini ya da bir kopyasının verilmesini isteyebilirsin. Hesabını uygulamadan kapatabilirsin.",
@@ -280,7 +353,7 @@ const GIZLILIK: Belge = {
       ],
     },
     {
-      baslik: { tr: "7. Çocuklar", en: "7. Children" },
+      baslik: { tr: "9. Çocuklar", en: "9. Children" },
       maddeler: [
         {
           tr: "Aron 13 yaşından küçüklere yönelik değildir ve bilerek onlardan veri toplamayız. Böyle bir hesap fark edersek kapatır, verisini sileriz.",
@@ -289,11 +362,20 @@ const GIZLILIK: Belge = {
       ],
     },
     {
-      baslik: { tr: "8. Değişiklikler ve iletişim", en: "8. Changes and contact" },
+      baslik: { tr: "10. Onayın", en: "10. Your consent" },
       maddeler: [
         {
-          tr: "Bu politika değiştiğinde uygulamada duyururuz. Sorularını aşağıdaki adrese yazabilirsin.",
-          en: "When this policy changes we announce it in the app. You can send your questions to the address below.",
+          tr: "Aron'u kullanarak verinin burada anlatıldığı biçimde toplanmasını ve kullanılmasını kabul etmiş olursun.",
+          en: "By using Aron you consent to your data being collected and used as described here.",
+        },
+      ],
+    },
+    {
+      baslik: { tr: "11. Değişiklikler ve iletişim", en: "11. Changes and contact" },
+      maddeler: [
+        {
+          tr: "Bu politika değiştiğinde uygulamada duyururuz ve bu sayfadaki tarihi güncelleriz. Değişiklikten sonra Aron'u kullanmaya devam etmen yeni politikayı kabul ettiğin anlamına gelir. Sorularını aşağıdaki adrese yazabilirsin.",
+          en: "When this policy changes we announce it in the app and update the date on this page. Continuing to use Aron after a change means you accept the new policy. You can send your questions to the address below.",
         },
       ],
     },
