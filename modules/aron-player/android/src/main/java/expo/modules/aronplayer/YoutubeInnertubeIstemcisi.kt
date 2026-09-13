@@ -92,16 +92,22 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
     val hatalar = mutableListOf<String>()
     var enSonJson: JSONObject? = null
     var enSonIstemci: Istemci = Istemci.IOS
+    val oynaticiBilgisi = try {
+      oynaticiBilgisiAl(videoId)
+    } catch (e: Throwable) {
+      Log.w(TAG, "oynatici bilgisi alinamadi: ${e.message}")
+      null
+    }
     for (istemci in sira) {
       try {
-        val yanit = istemciDene(istemci, videoId, dil)
+        val yanit = istemciDene(istemci, videoId, dil, oynaticiBilgisi)
         val json = JSONObject(yanit)
         val ps = json.optJSONObject("playabilityStatus")
         val durum = ps?.optString("status", "") ?: ""
         if (durum == "OK" || durum == "LIVE_STREAM_OFFLINE") {
           val streaming = json.optJSONObject("streamingData")
           if (streaming != null && (streaming.optJSONArray("adaptiveFormats")?.length() ?: 0) > 0) {
-            return bilgiOlustur(json, streaming, videoId, istemci)
+            return bilgiOlustur(json, streaming, videoId, istemci, oynaticiBilgisi)
           }
         }
         hatalar.add("${istemci.ad}: $durum ${ps?.optString("reason", "") ?: ""}")
@@ -114,7 +120,7 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
     }
     if (enSonJson != null) {
       val streaming = enSonJson!!.optJSONObject("streamingData")
-      if (streaming != null) return bilgiOlustur(enSonJson!!, streaming, videoId, enSonIstemci)
+      if (streaming != null) return bilgiOlustur(enSonJson!!, streaming, videoId, enSonIstemci, oynaticiBilgisi)
     }
     throw Exception("YouTube tum istemciler basarisiz: ${hatalar.joinToString("; ")}")
   }
@@ -131,7 +137,8 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
     json: JSONObject,
     streamingData: JSONObject,
     videoId: String,
-    istemci: Istemci
+    istemci: Istemci,
+    oynaticiBilgisi: OynaticiBilgisi?
   ): YoutubeOynatimBilgisi {
     reklamTemizle(json)
     val videoDetaylari = json.optJSONObject("videoDetails")
@@ -140,7 +147,7 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
     val sureSaniye = videoDetaylari?.optString("lengthSeconds", "0")?.toLongOrNull() ?: 0L
 
     val betik = try {
-      val playerUrl = playerUrluBul(videoId)
+      val playerUrl = oynaticiBilgisi?.playerUrl ?: throw Exception("player.js adresi yok")
       sigCozucu.betigiHazirla(playerUrl)
     } catch (e: Throwable) {
       Log.w(TAG, "player.js hazirlanamadi, cipher/n cozulmeden devam: ${e.message}")
@@ -206,16 +213,89 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
     }
   }
 
-  private fun playerUrluBul(videoId: String): String {
-    val yerlesikUrl = "https://www.youtube.com/embed/$videoId"
-    val html = yerlesikSayfayiIndir(yerlesikUrl)
-    val kalip = Pattern.compile("""["\'](\/s\/player\/[^"']+\/player_ias\.vflset\/[a-zA-Z-]+\/base\.js)["\']""")
+  data class OynaticiBilgisi(
+    val playerUrl: String,
+    val sts: String,
+    val visitorData: String,
+    val apiKey: String
+  )
+
+  private fun ytcfgCoz(html: String): JSONObject? {
+    val kalip = Pattern.compile("""ytcfg\.set\s*\(\s*(\{.+?\})\s*\)\s*;""", Pattern.DOTALL)
     val m = kalip.matcher(html)
-    if (m.find()) return "https://www.youtube.com" + m.group(1)
-    val kalip2 = Pattern.compile("""["\'](\/s\/player\/[^"']+\.js)["\']""")
-    val m2 = kalip2.matcher(html)
-    if (m2.find()) return "https://www.youtube.com" + m2.group(1)
-    throw Exception("player.js URL'si bulunamadi")
+    var enIyi: JSONObject? = null
+    while (m.find()) {
+      val ham = m.group(1) ?: continue
+      val o = try { JSONObject(ham) } catch (e: Throwable) { continue }
+      if (o.has("INNERTUBE_CONTEXT") || o.has("PLAYER_JS_URL")) {
+        enIyi = if (enIyi == null) o else birlestir(enIyi, o)
+      }
+    }
+    return enIyi
+  }
+
+  private fun birlestir(a: JSONObject, b: JSONObject): JSONObject {
+    val anahtarlar = b.keys()
+    while (anahtarlar.hasNext()) {
+      val k = anahtarlar.next()
+      if (!a.has(k)) a.put(k, b.get(k))
+    }
+    return a
+  }
+
+  private fun oynaticiBilgisiAl(videoId: String): OynaticiBilgisi {
+    val adaylar = listOf(
+      "https://www.youtube.com/watch?v=$videoId&bpctr=9999999999&has_verified=1",
+      "https://www.youtube.com/embed/$videoId"
+    )
+    var html = ""
+    var cfg: JSONObject? = null
+    for (adres in adaylar) {
+      html = try {
+        yerlesikSayfayiIndir(adres)
+      } catch (e: Throwable) {
+        Log.w(TAG, "sayfa alinamadi ($adres): ${e.message}")
+        continue
+      }
+      cfg = ytcfgCoz(html)
+      val vd = cfg?.optJSONObject("INNERTUBE_CONTEXT")?.optJSONObject("client")
+        ?.optString("visitorData", "").orEmpty()
+      if (vd.isNotEmpty() || html.contains("/s/player/")) break
+    }
+    if (html.isEmpty()) throw Exception("watch ve embed sayfalarinin ikisi de alinamadi")
+
+    var playerUrl = cfg?.optString("PLAYER_JS_URL", "").orEmpty()
+    if (playerUrl.isEmpty()) {
+      val kalip = Pattern.compile("""["'](\/s\/player\/[^"']+\/player_ias\.vflset\/[a-zA-Z-]+\/base\.js)["']""")
+      val m = kalip.matcher(html)
+      if (m.find()) playerUrl = m.group(1).orEmpty()
+    }
+    if (playerUrl.isEmpty()) {
+      val kalip2 = Pattern.compile("""["'](\/s\/player\/[^"']+\.js)["']""")
+      val m2 = kalip2.matcher(html)
+      if (m2.find()) playerUrl = m2.group(1).orEmpty()
+    }
+    if (playerUrl.isEmpty()) throw Exception("player.js URL'si bulunamadi")
+    if (playerUrl.startsWith("/")) playerUrl = "https://www.youtube.com$playerUrl"
+
+    val visitorData = cfg?.optJSONObject("INNERTUBE_CONTEXT")
+      ?.optJSONObject("client")?.optString("visitorData", "").orEmpty()
+    val apiKey = cfg?.optString("INNERTUBE_API_KEY", "").orEmpty()
+
+    val sts = stsCikar(playerUrl)
+    Log.d(TAG, "oynatici bilgisi: sts=$sts visitor=${if (visitorData.isEmpty()) "yok" else "var"} player=${playerUrl.takeLast(40)}")
+    return OynaticiBilgisi(playerUrl, sts, visitorData, apiKey)
+  }
+
+  private fun stsCikar(playerUrl: String): String {
+    return try {
+      val js = yerlesikSayfayiIndir(playerUrl)
+      val m = Pattern.compile("""signatureTimestamp[=:](\d+)""").matcher(js)
+      if (m.find()) m.group(1).orEmpty() else ""
+    } catch (e: Throwable) {
+      Log.w(TAG, "sts cikarilamadi: ${e.message}")
+      ""
+    }
   }
 
   private fun yerlesikSayfayiIndir(url: String): String {
@@ -232,14 +312,22 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
     return String(veri)
   }
 
-  private fun istemciDene(istemci: Istemci, videoId: String, dil: String): String {
-    val govde = istemciGovdesi(istemci, videoId, dil)
+  private fun istemciDene(
+    istemci: Istemci,
+    videoId: String,
+    dil: String,
+    oynaticiBilgisi: OynaticiBilgisi?
+  ): String {
+    val govde = istemciGovdesi(istemci, videoId, dil, oynaticiBilgisi)
     val baglanti = URL(PLAYER_URL).openConnection() as HttpURLConnection
     baglanti.requestMethod = "POST"
     baglanti.setRequestProperty("User-Agent", istemci.userAgent)
     baglanti.setRequestProperty("X-YouTube-Client-Name", istemci.kimlik)
     baglanti.setRequestProperty("X-YouTube-Client-Version", istemci.surum)
     baglanti.setRequestProperty("Origin", "https://www.youtube.com")
+    baglanti.setRequestProperty("Referer", "https://www.youtube.com/")
+    val visitor = oynaticiBilgisi?.visitorData.orEmpty()
+    if (visitor.isNotEmpty()) baglanti.setRequestProperty("X-Goog-Visitor-Id", visitor)
     baglanti.setRequestProperty("Content-Type", "application/json")
     baglanti.setRequestProperty("Accept", "application/json")
     baglanti.doOutput = true
@@ -263,7 +351,12 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
     return yanit
   }
 
-  private fun istemciGovdesi(istemci: Istemci, videoId: String, dil: String): String {
+  private fun istemciGovdesi(
+    istemci: Istemci,
+    videoId: String,
+    dil: String,
+    oynaticiBilgisi: OynaticiBilgisi?
+  ): String {
     val govde = JSONObject()
     val istek = JSONObject()
     istek.put("internalExperimentFlags", JSONArray())
@@ -280,6 +373,9 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
     istemciJson.put("osVersion", istemci.osVersion)
     istemciJson.put("hl", dil)
     istemciJson.put("timeZone", "UTC")
+    oynaticiBilgisi?.visitorData?.takeIf { it.isNotEmpty() }?.let {
+      istemciJson.put("visitorData", it)
+    }
     istemciJson.put("utcOffsetMinutes", 0)
     if (istemci == Istemci.WEB || istemci == Istemci.MWEB) {
       istemciJson.put("platform", if (istemci == Istemci.MWEB) "MOBILE" else "DESKTOP")
@@ -299,6 +395,10 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
     val playbackContext = JSONObject()
     val contentPlayback = JSONObject()
     contentPlayback.put("html5Preference", "HTML5_PREF_WANTS")
+    val sts = oynaticiBilgisi?.sts.orEmpty()
+    if (sts.isNotEmpty()) {
+      contentPlayback.put("signatureTimestamp", sts.toIntOrNull() ?: 0)
+    }
     playbackContext.put("contentPlaybackContext", contentPlayback)
     govde.put("playbackContext", playbackContext)
 
