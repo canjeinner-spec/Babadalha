@@ -135,11 +135,6 @@ export const METINLER = {
     en: "{0} was removed from the party by the {1}",
   },
 
-  "odaEkran.karsilamaSahipsiz": { tr: "Oda sahibi", en: "the room host" },
-  "odaEkran.karsilama": {
-    tr: "{0} izleme partisine hoş geldin! Film ve dizi izlerken herkesin keyfi yerinde olsun diye küfür, argo ve hakaretten uzak duralım. Sohbet et, eğlen, iyi seyirler!",
-    en: "Welcome to {0} watch party! Let's keep the swearing, slang and insults out so everyone enjoys the film. Chat, have fun, enjoy the show!",
-  },
   "odaEkran.davetLinki": { tr: "Davet linki: ", en: "Invite link: " },
   "odaEkran.simdiOynatiliyor": { tr: " oynatılıyor", en: " is playing" },
   "odaEkran.baglaniyor": { tr: "Partiye bağlanılıyor…", en: "Connecting to the party…" },

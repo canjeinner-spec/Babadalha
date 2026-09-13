@@ -24,7 +24,7 @@ import { PEOPLE } from "@/data/people";
 import { amIBannedFromRoom, banRoomUser, getRoomMembers, listRooms, odaKatilimcilariGetir, odaKatilimcilariniDinle, odaSahibi, removeRoomMember, setRoomMemberRole, type OdaKatilimcisi, type OdaSahibi } from "@/data/remote/roomsRepo";
 import { type Room } from "@/data/seed";
 import { useCachedResource } from "@/lib/cache";
-import { cevir, turkceMi, useCeviri } from "@/lib/ceviri";
+import { cevir, useCeviri } from "@/lib/ceviri";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { kurallarGoruldu, kurallariIsaretle } from "@/lib/ilkAcilis";
 import { rtcKanalAdi, rtcMotoruGetir } from "@/lib/rtc";
@@ -82,26 +82,6 @@ import { karart, saydam } from "@/theme/renk";
 
 const AVATAR = 40;
 
-
-function iyelikEki(ad: string): string {
-  const temiz = ad.trim();
-  if (!temiz) return "ın";
-  const son = temiz[temiz.length - 1].toLocaleLowerCase("tr");
-  const sesliler = "aeıioöuü";
-  let sonSesli = "a";
-  for (let i = temiz.length - 1; i >= 0; i--) {
-    const h = temiz[i].toLocaleLowerCase("tr");
-    if (sesliler.includes(h)) { sonSesli = h; break; }
-  }
-  const ek = "aı".includes(sonSesli) ? "ın" : "ei".includes(sonSesli) ? "in" : "ou".includes(sonSesli) ? "un" : "ün";
-  return sesliler.includes(son) ? "n" + ek : ek;
-}
-
-function karsilamaMetni(sahip: string): string {
-  const ad = sahip.trim() || cevir("odaEkran.karsilamaSahipsiz");
-  const iyelik = turkceMi() ? `${ad}'${iyelikEki(ad)}` : `${ad}'s`;
-  return cevir("odaEkran.karsilama", iyelik);
-}
 
 const YOL_OYNAT = "M7 4l12 8-12 8V4z";
 const YOL_DURAKLAT = "M9 5v14M15 5v14";
@@ -192,20 +172,6 @@ function SohbetOgesi({ oge, benimFoto, oynuyor, onOynatDurdur, onDavet }: {
       <View style={[styles.sistemSatir, oge.benim && styles.sistemSatirSag]}>
         {oge.benim ? govde : yuz}
         {oge.benim ? yuz : govde}
-      </View>
-    );
-  }
-
-  if (oge.tur === "karsilama") {
-    return (
-      <View style={styles.karsilamaKapsul}>
-        <View style={{ paddingTop: 2 }}>
-          <Icon name="bell" size={13} color={C.gold2} />
-        </View>
-        <Txt size={12.5} color="rgba(255,255,255,.8)" lh={1.5} style={{ flexShrink: 1 }}>
-          <Txt weight="extrabold" size={12.5} color={C.gold2}>Aron: </Txt>
-          {karsilamaMetni(oge.sahip)}
-        </Txt>
       </View>
     );
   }
@@ -1126,6 +1092,12 @@ export default function PartiOda() {
 
   const davetAdresi = `aron.watch/${oda.id.replace(/[^a-z0-9]/gi, "").slice(-6) || "parti"}`;
 
+  const kurallariOnayla = useCallback(() => {
+    haptic.select();
+    setKurallar(false);
+    kurallariIsaretle().catch(() => {});
+  }, []);
+
   const davetKopyala = useCallback(() => {
     haptic.select();
     Clipboard.setStringAsync(`https://${davetAdresi}`).catch(() => {});
@@ -1155,15 +1127,11 @@ export default function PartiOda() {
   }, [bildirim]);
 
   const ogeler = useMemo(() => {
-    const temel: PartiSohbetOgesi[] = [
-      { tur: "karsilama", anahtar: "karsilama", sahip: benSahip ? userName : oda.host },
-    ];
-    const canli = ek.map((o) => {
+    return ek.map((o) => {
       if (o.tur === "simdi" && simdiSecim && o.anahtar === "s" + simdiSecim.anahtar && simdiki) return { ...o, baslik: simdiki };
       return o;
     });
-    return [...temel, ...canli];
-  }, [ek, simdiSecim, simdiki, benSahip, userName, oda.host]);
+  }, [ek, simdiSecim, simdiki]);
 
   const [katilimcilar, setKatilimcilar] = useState<OdaKatilimcisi[]>([]);
   const [sahip, setSahip] = useState<OdaSahibi | null>(null);
@@ -1450,6 +1418,23 @@ export default function PartiOda() {
               : { flex: 1 }
           }
         >
+          {kurallar ? (
+            <View style={[styles.kurallarPanel, { paddingBottom: insets.bottom + 22 }]}>
+              <View style={styles.kurallarSimge}>
+                <Icon name="shield" size={28} sw={2.1} color={C.gold2} />
+              </View>
+              <Txt weight="displayBold" size={17} color="#fff" align="center" style={{ marginTop: 16 }}>
+                {t("kurallar.baslik")}
+              </Txt>
+              <Txt size={13.5} color="rgba(255,255,255,.72)" align="center" lh={1.55} style={styles.kurallarMetin}>
+                {t("kurallar.metin")}
+              </Txt>
+              <Pressable style={styles.kurallarDugme} onPress={kurallariOnayla}>
+                <Txt weight="extrabold" size={14.5} color="#241A05">{t("kurallar.onay")}</Txt>
+              </Pressable>
+            </View>
+          ) : (
+            <>
           <ScrollView
             ref={akis}
             style={{ flex: 1 }}
@@ -1484,6 +1469,8 @@ export default function PartiOda() {
                 : undefined
             }
           />
+            </>
+          )}
         </View>
         )}
         </View>
@@ -1519,28 +1506,6 @@ export default function PartiOda() {
             : undefined,
         }}
       />
-
-      <CenterModal visible={kurallar} onClose={() => { setKurallar(false); kurallariIsaretle().catch(() => {}); }}>
-        <View style={styles.uyariKart}>
-          <View style={styles.kurallarSimge}>
-            <Icon name="shield" size={26} sw={2.1} color={C.gold2} />
-          </View>
-          <Txt weight="displayBold" size={16} color="#fff" align="center" style={{ marginTop: 14 }}>
-            {t("kurallar.baslik")}
-          </Txt>
-          <Txt size={13} color={C.dim} align="center" lh={1.5} style={{ marginTop: 10 }}>
-            {t("kurallar.metin")}
-          </Txt>
-          <View style={styles.uyariDugmeler}>
-            <Pressable
-              style={[styles.uyariBirincil, { flex: 1 }]}
-              onPress={() => { haptic.select(); setKurallar(false); kurallariIsaretle().catch(() => {}); }}
-            >
-              <Txt weight="extrabold" size={13} color="#241A05">{t("kurallar.onay")}</Txt>
-            </Pressable>
-          </View>
-        </View>
-      </CenterModal>
 
       <CenterModal visible={cikisOnayi} onClose={() => setCikisOnayi(false)}>
         <View style={styles.uyariKart}>
@@ -1602,8 +1567,16 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: C.line,
   },
   uyariDugmeler: { flexDirection: "row", gap: 10, marginTop: 18 },
+  kurallarPanel: {
+    flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 26,
+  },
+  kurallarMetin: { marginTop: 12, paddingHorizontal: 4 },
+  kurallarDugme: {
+    marginTop: 24, alignSelf: "stretch", alignItems: "center", justifyContent: "center",
+    paddingVertical: 15, borderRadius: 16, backgroundColor: C.gold2,
+  },
   kurallarSimge: {
-    width: 54, height: 54, borderRadius: 18, alignSelf: "center",
+    width: 60, height: 60, borderRadius: 20, alignSelf: "center",
     alignItems: "center", justifyContent: "center",
     backgroundColor: "rgba(232,179,65,.12)",
     borderWidth: 1, borderColor: "rgba(232,179,65,.26)",
