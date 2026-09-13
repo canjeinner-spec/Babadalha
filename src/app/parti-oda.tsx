@@ -132,39 +132,47 @@ function UstBar({ kisi, onKapat, onGezin, onKisiler }: { kisi: number; onKapat: 
   );
 }
 
-function SohbetOgesi({ oge, benimFoto, oynuyor, onOynatDurdur, onDavet }: {
+function Etiket({ kisi }: { kisi: SistemKisi }) {
+  return (
+    <RenkliAd
+      ad={etiketAdi(kisi)}
+      tip={kisi.ozelIdTip}
+      tema={kisi.ozelIdTema}
+      size={14.5}
+      weight="extrabold"
+      renk="#fff"
+    />
+  );
+}
+
+function SohbetOgesi({ oge, benimFoto, oynuyor, onOynatDurdur, onDavet, kisiCoz }: {
   oge: PartiSohbetOgesi;
   benimFoto?: string;
   oynuyor?: boolean;
   onOynatDurdur?: () => void;
   onDavet?: () => void;
+  kisiCoz?: (anahtar: string) => SistemKisi | undefined;
 }) {
   if (oge.tur === "sistem") {
     const parcalar = sistemParcalari(oge.kisi, oge.olay, !!oge.benim);
+    const guncel = (k: SistemKisi): SistemKisi => kisiCoz?.(k.anahtar) ?? k;
     const govde = (
       <View style={[styles.sistemMetin, oge.benim && styles.sistemMetinSag]}>
         {parcalar.map((p, i) =>
           p.tur === "etiket" ? (
-            <RenkliAd
-              key={i}
-              ad={etiketAdi(p.kisi)}
-              tip={p.kisi.ozelIdTip}
-              tema={p.kisi.ozelIdTema}
-              size={14.5}
-              weight="extrabold"
-              renk="#fff"
-            />
+            <Etiket key={i} kisi={guncel(p.kisi)} />
           ) : (
             <Txt key={i} size={14.5} color="rgba(255,255,255,.72)">{p.metin}</Txt>
           ),
         )}
       </View>
     );
+    const sahibi = guncel(oge.kisi);
     const yuz = (
       <Portrait
-        name={oge.kisi.ad}
+        name={sahibi.ad}
         size={AVATAR}
-        photo={oge.kisi.foto ?? (oge.benim ? benimFoto : undefined) ?? PEOPLE[oge.kisi.ad]?.photo}
+        photo={sahibi.foto ?? (oge.benim ? benimFoto : undefined) ?? PEOPLE[sahibi.ad]?.photo}
         halkasiz
       />
     );
@@ -1133,6 +1141,11 @@ export default function PartiOda() {
     return () => clearTimeout(zamanlayici);
   }, [bildirim]);
 
+  const kisiCoz = useCallback((anahtar: string): SistemKisi | undefined => {
+    const k = agKisileri.find((x) => x.anahtar === anahtar);
+    return k ? sistemKisi(k) : undefined;
+  }, [agKisileri, sistemKisi]);
+
   const ogeler = useMemo(() => {
     return ek.map((o) => {
       if (o.tur === "simdi" && simdiSecim && o.anahtar === "s" + simdiSecim.anahtar && simdiki) return { ...o, baslik: simdiki };
@@ -1457,6 +1470,7 @@ export default function PartiOda() {
                 oynuyor={oynuyor}
                 onOynatDurdur={() => (oynuyor ? oynatici.current?.duraklat() : oynatici.current?.oynat())}
                 onDavet={davetKopyala}
+                kisiCoz={kisiCoz}
               />
             ))}
           </ScrollView>
