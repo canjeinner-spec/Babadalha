@@ -58,6 +58,7 @@ class AronPlayerView(context: Context, appContext: AppContext) : ExpoView(contex
   private var sonKimlik: String? = null
   private var sonDurum: String = "bos"
   private var netflixYonetici: NetflixMslYonetici? = null
+  private var netflixHazirlikKimligi: String? = null
   private var yokEdildi = false
   private var arkaPlandaydi = false
   private var arkaPlanOncesiOynuyordu = false
@@ -194,9 +195,12 @@ class AronPlayerView(context: Context, appContext: AppContext) : ExpoView(contex
 
     val netflixAkisi = yeni.drm?.netflixMsl == true && yeni.drm.netflixVideoId.isNotEmpty()
     if (netflixAkisi) {
+      if (netflixHazirlikKimligi == yeni.kimlik) return@anaIplikte
+      netflixHazirlikKimligi = yeni.kimlik
       durumYayinla("hazirlaniyor")
       agIs.execute { netflixHazirlaVeOynat(yeni) }
     } else {
+      netflixHazirlikKimligi = null
       oynaticiKur(yeni)
     }
   }
@@ -236,6 +240,7 @@ class AronPlayerView(context: Context, appContext: AppContext) : ExpoView(contex
     } catch (e: Throwable) {
       Log.e(TAG, "netflix hazirlik hatasi", e)
       anaIplikte {
+        netflixHazirlikKimligi = null
         if (yokEdildi) return@anaIplikte
         durumYayinla("hata")
         onHata(
@@ -360,6 +365,7 @@ class AronPlayerView(context: Context, appContext: AppContext) : ExpoView(contex
     sonKimlik = null
     yuzeyBagli = false
     netflixYonetici = null
+    netflixHazirlikKimligi = null
     try {
       p?.removeListener(dinleyici)
       p?.removeAnalyticsListener(cozumleyici)
