@@ -26,6 +26,7 @@ import { type Room } from "@/data/seed";
 import { useCachedResource } from "@/lib/cache";
 import { cevir, turkceMi, useCeviri } from "@/lib/ceviri";
 import { isSupabaseConfigured } from "@/lib/supabase";
+import { kurallarGoruldu, kurallariIsaretle } from "@/lib/ilkAcilis";
 import { rtcKanalAdi, rtcMotoruGetir } from "@/lib/rtc";
 import { DOGRUDAN_ADI, dogrudanMi, girisSayfasiMi, platformBul, type PlatformKodu } from "@/oda/platform";
 import {
@@ -415,6 +416,15 @@ export default function PartiOda() {
   const [bildirim, setBildirim] = useState("");
   const [atilma, setAtilma] = useState<PartiRol | null>(null);
   const [cikisOnayi, setCikisOnayi] = useState(false);
+  const [kurallar, setKurallar] = useState(false);
+
+  useEffect(() => {
+    let acik = true;
+    kurallarGoruldu()
+      .then((gorulmus) => { if (acik && !gorulmus) setKurallar(true); })
+      .catch(() => {});
+    return () => { acik = false; };
+  }, []);
   const [ilkDurumBekleniyor, setIlkDurumBekleniyor] = useState(false);
   const [beklenenOda, setBeklenenOda] = useState<string | null>(null);
   const akis = useRef<ScrollView>(null);
@@ -1494,6 +1504,28 @@ export default function PartiOda() {
         }}
       />
 
+      <CenterModal visible={kurallar} onClose={() => { setKurallar(false); kurallariIsaretle().catch(() => {}); }}>
+        <View style={styles.uyariKart}>
+          <View style={styles.kurallarSimge}>
+            <Icon name="shield" size={26} sw={2.1} color={C.gold2} />
+          </View>
+          <Txt weight="displayBold" size={16} color="#fff" align="center" style={{ marginTop: 14 }}>
+            {t("kurallar.baslik")}
+          </Txt>
+          <Txt size={13} color={C.dim} align="center" lh={1.5} style={{ marginTop: 10 }}>
+            {t("kurallar.metin")}
+          </Txt>
+          <View style={styles.uyariDugmeler}>
+            <Pressable
+              style={[styles.uyariBirincil, { flex: 1 }]}
+              onPress={() => { haptic.select(); setKurallar(false); kurallariIsaretle().catch(() => {}); }}
+            >
+              <Txt weight="extrabold" size={13} color="#241A05">{t("kurallar.onay")}</Txt>
+            </Pressable>
+          </View>
+        </View>
+      </CenterModal>
+
       <CenterModal visible={cikisOnayi} onClose={() => setCikisOnayi(false)}>
         <View style={styles.uyariKart}>
           <Txt weight="displayBold" size={16} color="#fff" align="center">{t("odaEkran.ayrilBaslik")}</Txt>
@@ -1554,6 +1586,12 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: C.line,
   },
   uyariDugmeler: { flexDirection: "row", gap: 10, marginTop: 18 },
+  kurallarSimge: {
+    width: 54, height: 54, borderRadius: 18, alignSelf: "center",
+    alignItems: "center", justifyContent: "center",
+    backgroundColor: "rgba(232,179,65,.12)",
+    borderWidth: 1, borderColor: "rgba(232,179,65,.26)",
+  },
   uyariIkincil: {
     flex: 1, alignItems: "center", justifyContent: "center", paddingVertical: 12,
     borderRadius: 12, backgroundColor: C.kontrol,

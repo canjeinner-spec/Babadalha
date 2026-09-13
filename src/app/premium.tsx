@@ -58,7 +58,7 @@ export default function Premium() {
   const kapat = useCallback(async () => {
     haptic.select();
     await premiumuIsaretle();
-    router.replace("/");
+    router.replace("/hazir");
   }, [router]);
 
   const basla = useCallback(() => {

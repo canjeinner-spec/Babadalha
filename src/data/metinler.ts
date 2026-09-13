@@ -207,6 +207,21 @@ export const METINLER = {
     tr: "İstediğin an iptal edebilirsin. İptal edersen Aron aynı şekilde açık kalır.",
     en: "Cancel any time. If you cancel, Aron stays open to you just the same.",
   },
+  "hazir.baslik": { tr: "Hazırsın", en: "You're all set" },
+  "hazir.altYazi": {
+    tr: "Odan bir dokunuş uzakta. Platformu seç, bağlantını paylaş, film aynı saniyede başlasın.",
+    en: "Your room is one tap away. Pick a platform, share your link, and the film starts on the same second.",
+  },
+  "hazir.kur": { tr: "İlk partini kur", en: "Set up your first party" },
+  "hazir.etrafaBak": { tr: "Önce etrafa bakayım", en: "Let me look around first" },
+
+  "kurallar.baslik": { tr: "Aron'da birlikteyiz", en: "We're in this together on Aron" },
+  "kurallar.metin": {
+    tr: "Odalar herkese açık olabiliyor. Küfür, hakaret, taciz ve 18 yaş altına uygun olmayan içerik yasak. Rahatsız eden birini odadan çıkarabilir, bildirebilirsin.",
+    en: "Rooms can be open to everyone. Swearing, insults, harassment and content unsuitable for under-18s are not allowed. You can remove someone who bothers you from the room, and report them.",
+  },
+  "kurallar.onay": { tr: "Anladım", en: "Got it" },
+
   "premium.yakinda": {
     tr: "Satın alma mağaza bağlantısı açıldığında etkinleşecek.",
     en: "Purchases will be enabled once the store connection is live.",
