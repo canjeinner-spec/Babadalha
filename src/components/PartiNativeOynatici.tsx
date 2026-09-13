@@ -23,6 +23,7 @@ const YOL_PANEL = "M4 5h16a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V6a1 1 0 01
 type Props = {
   adres: string;
   drm?: DrmYapilandirma;
+  baslik?: string | null;
   tamEkran?: boolean;
   onBoyut?: () => void;
   onSohbet?: () => void;
@@ -36,7 +37,7 @@ type Props = {
 const YOK_MESAJI = "Doğrudan bağlantı oynatıcısı yalnız Android geliştirme derlemesinde çalışıyor.";
 
 export const PartiNativeOynatici = forwardRef<OynaticiKolu, Props>(function PartiNativeOynatici(
-  { adres, drm, tamEkran, onBoyut, onSohbet, sohbetAcik, kontrolVar, kilitli, onOlay, ustKatman },
+  { adres, drm, baslik, tamEkran, onBoyut, onSohbet, sohbetAcik, kontrolVar, kilitli, onOlay, ustKatman },
   ref,
 ) {
   const kumanda = useRef<AronOynaticiKumanda>(null);
@@ -49,6 +50,7 @@ export const PartiNativeOynatici = forwardRef<OynaticiKolu, Props>(function Part
   const [sure, setSure] = useState(0);
   const [oynuyor, setOynuyor] = useState(false);
   const [videoVar, setVideoVar] = useState(false);
+  const [ses, setSes] = useState(1);
 
   const varMi = nativeOynaticiVar();
 
@@ -58,6 +60,8 @@ export const PartiNativeOynatici = forwardRef<OynaticiKolu, Props>(function Part
 
   const drmRef = useRef(drm);
   drmRef.current = drm;
+  const baslikRef = useRef(baslik);
+  baslikRef.current = baslik;
   const drmAnahtari = drm ? JSON.stringify(drm) : "";
 
   useEffect(() => {
@@ -77,14 +81,14 @@ export const PartiNativeOynatici = forwardRef<OynaticiKolu, Props>(function Part
     setSure(0);
     setOynuyor(false);
     setVideoVar(false);
-    const yapilandirma: Parameters<AronOynaticiKumanda["yukle"]>[0] = { manifestUrl: adres, otomatikBasla: true };
+    const yapilandirma: Parameters<AronOynaticiKumanda["yukle"]>[0] = { manifestUrl: adres, otomatikBasla: true, arkaPlandaDevam: true };
     const drmSuanki = drmRef.current;
     if (drmSuanki) yapilandirma.drm = drmSuanki;
     kumanda.current
       ?.yukle(yapilandirma)
       .then(() => {
         if (iptal) return;
-        bildir({ tur: "bilgi", baslik: null, yazar: null, adres, kapak: null, izleme: true });
+        bildir({ tur: "bilgi", baslik: baslikRef.current ?? null, yazar: null, adres, kapak: null, izleme: true });
       })
       .catch((e: unknown) => {
         if (iptal) return;
@@ -208,6 +212,8 @@ export const PartiNativeOynatici = forwardRef<OynaticiKolu, Props>(function Part
             setKonum(sn);
             kumanda.current?.ara(Math.max(0, sn) * 1000);
           }}
+          ses={ses}
+          onSes={(deger) => { setSes(deger); kumanda.current?.sesSeviyesi(deger); }}
           sagDugmeler={
             onBoyut ? (
               <View style={styles.kosuKutusu}>

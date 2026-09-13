@@ -9,6 +9,8 @@ const YOL_OYNAT = "M7 4l12 8-12 8V4z";
 const YOL_DURAKLAT = "M8 5v14M16 5v14";
 const YOL_GERI = "M1.6 4.4v6h6M4.1 15a9 9 0 1 0 2.13-9.36L1.6 10";
 const YOL_ILERI = "M22.4 4.4v6h-6M19.9 15a9 9 0 1 1-2.13-9.36L22.4 10";
+const YOL_SES = "M3 9.5v5h3.5L11 18.5v-13L6.5 9.5H3zM15 9.6a4 4 0 0 1 0 4.8M17.6 7.3a7.5 7.5 0 0 1 0 9.4";
+const YOL_SES_KAPALI = "M3 9.5v5h3.5L11 18.5v-13L6.5 9.5H3zM15.5 9.8l5 4.4M20.5 9.8l-5 4.4";
 const ATLAMA_SN = 10;
 const GIZLENME_MS = 3200;
 
@@ -23,15 +25,18 @@ export function zamanYaz(sn: number): string {
 }
 
 export const OynaticiKontrol = memo(function OynaticiKontrol({
-  konum, sure, oynuyor, onOynat, onDuraklat, onAtla, sagDugmeler,
+  konum, sure, oynuyor, onOynat, onDuraklat, onAtla, sagDugmeler, ses, onSes,
 }: {
   konum: number; sure: number; oynuyor: boolean;
   onOynat: () => void; onDuraklat: () => void; onAtla: (saniye: number) => void;
   sagDugmeler?: ReactNode;
+  ses?: number; onSes?: (deger: number) => void;
 }) {
   const [acik, setAcik] = useState(true);
   const [genislik, setGenislik] = useState(0);
   const [surukleme, setSurukleme] = useState<number | null>(null);
+  const [sesAcik, setSesAcik] = useState(false);
+  const [sesGenislik, setSesGenislik] = useState(0);
 
   useEffect(() => {
     if (!acik || surukleme != null) return;
@@ -44,6 +49,25 @@ export const OynaticiKontrol = memo(function OynaticiKontrol({
 
   const olculer = useRef({ genislik: 0, sure: 0, onAtla });
   useEffect(() => { olculer.current = { genislik, sure, onAtla }; }, [genislik, sure, onAtla]);
+
+  const sesOlculer = useRef({ genislik: 0, onSes });
+  useEffect(() => { sesOlculer.current = { genislik: sesGenislik, onSes }; }, [sesGenislik, onSes]);
+
+  const sesSur = useMemo(() => {
+    const uygula = (x: number) => {
+      const g = sesOlculer.current.genislik;
+      sesOlculer.current.onSes?.(g > 0 ? Math.min(1, Math.max(0, x / g)) : 0);
+    };
+    return PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderTerminationRequest: () => false,
+      onPanResponderGrant: (e) => uygula(e.nativeEvent.locationX),
+      onPanResponderMove: (e) => uygula(e.nativeEvent.locationX),
+    });
+  }, []);
+
+  const sesDegeri = Math.min(1, Math.max(0, ses ?? 1));
 
   const sur = useMemo(() => {
     let x0 = 0;
@@ -118,8 +142,40 @@ export const OynaticiKontrol = memo(function OynaticiKontrol({
           <View pointerEvents="none" style={[styles.tutamac, { left: Math.max(0, oran * genislik - 7) }, surukleme != null && styles.tutamacBuyuk]} />
         </View>
         <Txt weight="extrabold" size={11} color="rgba(255,255,255,.75)" style={styles.zaman}>{zamanYaz(sure)}</Txt>
+        {!!onSes && (
+          <Pressable
+            onPress={() => { haptic.select(); setSesAcik((v) => !v); setAcik(true); }}
+            hitSlop={10}
+            style={styles.kosuDugmesi}
+          >
+            <Icon path={sesDegeri === 0 ? YOL_SES_KAPALI : YOL_SES} size={20} sw={2.1} color="#fff" />
+          </Pressable>
+        )}
         {sagDugmeler}
       </View>
+
+      {!!onSes && sesAcik && (
+        <View style={styles.sesSatiri} pointerEvents="box-none">
+          <Pressable
+            onPress={() => { haptic.select(); onSes(sesDegeri === 0 ? 1 : 0); }}
+            hitSlop={10}
+            style={styles.kosuDugmesi}
+          >
+            <Icon path={sesDegeri === 0 ? YOL_SES_KAPALI : YOL_SES} size={19} sw={2.1} color="#fff" />
+          </Pressable>
+          <View
+            style={styles.sesRayYuva}
+            onLayout={(e: LayoutChangeEvent) => setSesGenislik(e.nativeEvent.layout.width)}
+            {...sesSur.panHandlers}
+          >
+            <View style={styles.ray} pointerEvents="none">
+              <View style={[styles.dolu, { width: `${sesDegeri * 100}%` }]} />
+            </View>
+            <View pointerEvents="none" style={[styles.tutamac, { left: Math.max(0, sesDegeri * sesGenislik - 7) }]} />
+          </View>
+          <Txt weight="extrabold" size={11} color="#fff" style={styles.zaman}>{Math.round(sesDegeri * 100)}</Txt>
+        </View>
+      )}
     </Pressable>
   );
 });
@@ -137,6 +193,9 @@ const styles = StyleSheet.create({
     shadowColor: "#000", shadowOpacity: 0.55, shadowRadius: 6, shadowOffset: { width: 0, height: 1 },
   },
   alt: { position: "absolute", left: 10, right: 10, bottom: 8, flexDirection: "row", alignItems: "center", gap: 8 },
+  sesSatiri: { position: "absolute", left: 10, right: 10, bottom: 46, flexDirection: "row", alignItems: "center", gap: 8 },
+  sesRayYuva: { flex: 1, height: 28, justifyContent: "center" },
+  kosuDugmesi: { width: 30, height: 30, alignItems: "center", justifyContent: "center" },
   zaman: { minWidth: 36, textAlign: "center" },
   rayYuva: { flex: 1, height: 28, justifyContent: "center" },
   ray: { height: 7, borderRadius: 4, backgroundColor: "rgba(255,255,255,.22)", overflow: "hidden" },

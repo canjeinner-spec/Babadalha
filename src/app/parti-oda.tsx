@@ -1057,7 +1057,7 @@ export default function PartiOda() {
       setOynuyor(false);
       setSimdiSecim(null);
     } else if (o.tur === "bilgi") {
-      setSimdiki(o.baslik);
+      if (o.baslik) setSimdiki(o.baslik);
       setSonAdres(o.adres);
       if (o.izleme) {
         yuklenenPlatformRef.current = oynatilan.platform;
@@ -1353,6 +1353,7 @@ export default function PartiOda() {
                 ? { scheme: "widevine" as const, licenseUrl: primeDrm.lisansUrl, primeAmazon: true, primeVideoId: primeDrm.videoId, primeCerezler: primeDrm.cerezler, primeMarketplaceId: primeDrm.marketplaceId }
                 : undefined
             }
+            baslik={simdiki}
             tamEkran={kip === "gezinme" || buyuk}
             onBoyut={boyutDegistir}
             onSohbet={() => setYanSohbet((v) => !v)}
