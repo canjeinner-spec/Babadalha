@@ -72,9 +72,28 @@ class YoutubePoTokenUretici(private val context: Context) {
     }
     val yanit = postJson("$INNERTUBE_KOK/att/get?key=$GOOGLE_API_KEY&prettyPrint=false", govde.toString(), true)
     val o = JSONObject(yanit)
+
+    val bg = o.optJSONObject("bgChallenge")
+    if (bg != null) {
+      val sarmal = bg.optJSONObject("interpreterUrl")
+        ?.optString("privateDoNotAccessOrElseTrustedResourceUrlWrappedValue", "")
+        .orEmpty()
+      val adres = when {
+        sarmal.startsWith("//") -> "https:$sarmal"
+        else -> sarmal
+      }
+      return JSONObject().apply {
+        put("interpreterUrl", adres)
+        put("interpreterHash", bg.optString("interpreterHash", ""))
+        put("program", bg.optString("program", ""))
+        put("globalName", bg.optString("globalName", ""))
+        put("clientExperimentsStateBlob", bg.optString("clientExperimentsStateBlob", ""))
+      }
+    }
+
     val duz = o.optString("challenge", "")
-    if (duz.isEmpty()) throw Exception("attestation challenge yok")
-    val cozulmus = String(Base64.decode(duz, Base64.DEFAULT), Charsets.UTF_8)
+    if (duz.isEmpty()) throw Exception("attestation challenge yok (bgChallenge de yok)")
+    val cozulmus = String(Base64.decode(duz.replace('-', '+').replace('_', '/'), Base64.DEFAULT), Charsets.UTF_8)
     val dizi = JSONArray(cozulmus)
     val icerik = dizi.optJSONArray(1) ?: throw Exception("challenge bicimi taninmadi")
     return JSONObject().apply {
@@ -87,8 +106,9 @@ class YoutubePoTokenUretici(private val context: Context) {
   }
 
   private fun yorumlayiciAl(meydan: JSONObject): String {
-    val ozet = meydan.optString("interpreterHash", "")
-    val adres = "https://www.google.com/js/th/$ozet.js"
+    val adres = meydan.optString("interpreterUrl", "").ifEmpty {
+      "https://www.google.com/js/th/${meydan.optString("interpreterHash", "")}.js"
+    }
     return try {
       getMetin(adres)
     } catch (e: Throwable) {
