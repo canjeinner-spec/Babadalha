@@ -13,6 +13,7 @@ import { gunYaz, partiIstatistiklerim, saatAraligiYaz, sureYaz, type PartiIstati
 import { Icon } from "@/icons/Icon";
 import { useCeviri } from "@/lib/ceviri";
 import { useDil } from "@/lib/dil";
+import { geriDon } from "@/lib/gezinme";
 import { haptic } from "@/lib/haptics";
 import { platformBul } from "@/oda/platform";
 import { useApp } from "@/store/appStore";
@@ -67,7 +68,7 @@ export default function PartiProfil() {
     <View style={styles.root}>
       <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
         <View style={styles.baslik}>
-          <Pressable onPress={() => router.back()} hitSlop={10} style={styles.geri}>
+          <Pressable onPress={() => geriDon()} hitSlop={10} style={styles.geri}>
             <Icon name="back" size={22} color="#fff" />
           </Pressable>
           <Txt weight="displayBold" size={17} color="#fff">{t("profil.baslik")}</Txt>

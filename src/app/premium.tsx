@@ -177,8 +177,7 @@ export default function Premium() {
 
         <ScrollView contentContainerStyle={styles.govde} showsVerticalScrollIndicator={false}>
           <Animated.View entering={FadeInDown.duration(520)} style={styles.amblem}>
-            <Gradient colors={[C.gold2, "rgba(232,179,65,.35)"]} deg={150} style={StyleSheet.absoluteFill} />
-            <Icon name="crown" size={30} color="#241A05" fill="#241A05" />
+            <PremiumAmblem ad="tac" yedek="crown" boyut={46} />
           </Animated.View>
 
           <Animated.View entering={FadeIn.duration(460).delay(120)}>
@@ -278,8 +277,10 @@ const styles = StyleSheet.create({
   kapatDugmesi: { width: 34, height: 34, alignItems: "center", justifyContent: "center" },
   govde: { paddingHorizontal: 20, paddingBottom: 20, alignItems: "center" },
   amblem: {
-    width: 64, height: 64, borderRadius: 22, overflow: "hidden",
+    width: 80, height: 80, borderRadius: 26,
     alignItems: "center", justifyContent: "center", marginTop: 4,
+    backgroundColor: "rgba(232,179,65,.08)",
+    borderWidth: 1, borderColor: "rgba(232,179,65,.22)",
   },
   baslik: { marginTop: 16, letterSpacing: 1.6 },
   giris: { marginTop: 14, paddingHorizontal: 6 },

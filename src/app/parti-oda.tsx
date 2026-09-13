@@ -73,6 +73,7 @@ import { cerezAl } from "../../modules/aron-webview";
 import { type PartiSecim, usePartiKuyruk } from "@/parti/kuyruk";
 import { icerikAnahtari } from "@/parti/icerik";
 import { Icon } from "@/icons/Icon";
+import { geriDon } from "@/lib/gezinme";
 import { haptic } from "@/lib/haptics";
 import { useApp } from "@/store/appStore";
 import { C } from "@/theme/colors";
@@ -498,8 +499,8 @@ export default function PartiOda() {
 
   const cik = useCallback(() => {
     if (!id || id === ODAM_ID || id === kendiKimlik) usePartiOdam.getState().kapat();
-    router.back();
-  }, [id, kendiKimlik, router]);
+    geriDon();
+  }, [id, kendiKimlik]);
 
   const boyutDegistir = useCallback(() => {
     haptic.select();

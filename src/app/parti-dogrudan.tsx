@@ -7,6 +7,7 @@ import { BaslatAmblemi } from "@/components/BaslatAmblemi";
 import { useCeviri } from "@/lib/ceviri";
 import { Txt } from "@/components/Txt";
 import { Icon } from "@/icons/Icon";
+import { geriDon } from "@/lib/gezinme";
 import { haptic } from "@/lib/haptics";
 import { oynatilabilirAdresMi } from "@/oda/platform";
 import { usePartiKuyruk } from "@/parti/kuyruk";
@@ -38,7 +39,7 @@ export default function PartiDogrudan() {
         secen: userName,
         secenFoto: userPhoto ?? undefined,
       });
-      router.back();
+      geriDon();
       return;
     }
     router.replace({ pathname: "/parti-oda", params: { platform: "dogrudan", adres: temiz } });
@@ -49,7 +50,7 @@ export default function PartiDogrudan() {
       <Zemin />
       <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
         <View style={styles.baslik}>
-          <Pressable onPress={() => router.back()} hitSlop={10} style={styles.geri}>
+          <Pressable onPress={() => geriDon()} hitSlop={10} style={styles.geri}>
             <Icon name="back" size={22} color="#fff" />
           </Pressable>
           <Txt weight="displayBold" size={17} color="#fff">{t("dogrudan.baslik")}</Txt>

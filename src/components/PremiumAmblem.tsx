@@ -5,9 +5,10 @@ import { Icon } from "@/icons/Icon";
 import { type IconName } from "@/icons/paths";
 import { C } from "@/theme/colors";
 
-export type PremiumAmblemAdi = "reklamsiz" | "ad-rengi" | "mikrofon" | "erken" | "daha";
+export type PremiumAmblemAdi = "tac" | "reklamsiz" | "ad-rengi" | "mikrofon" | "erken" | "daha";
 
 const GORSELLER: Record<PremiumAmblemAdi, number> = {
+  tac: require("@/assets/premium/tac.webp"),
   reklamsiz: require("@/assets/premium/reklamsiz.webp"),
   "ad-rengi": require("@/assets/premium/ad-rengi.webp"),
   mikrofon: require("@/assets/premium/mikrofon.webp"),

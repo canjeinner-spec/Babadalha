@@ -7,6 +7,7 @@ import { DogrudanLogo } from "@/components/DogrudanMarka";
 import { useCeviri } from "@/lib/ceviri";
 import { Txt } from "@/components/Txt";
 import { Icon } from "@/icons/Icon";
+import { geriDon } from "@/lib/gezinme";
 import { haptic } from "@/lib/haptics";
 import { PLATFORMLAR, platformBul, platformKilitNotu } from "@/oda/platform";
 import { usePartiKuyruk } from "@/parti/kuyruk";
@@ -25,7 +26,7 @@ export default function PartiPlatform() {
     <View style={styles.root}>
       <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
         <View style={styles.baslik}>
-          <Pressable onPress={() => router.back()} hitSlop={10} style={styles.geri}>
+          <Pressable onPress={() => geriDon()} hitSlop={10} style={styles.geri}>
             <Icon name="back" size={22} color="#fff" />
           </Pressable>
           <Txt weight="displayBold" size={17} color="#fff">{t("platform.baslik")}</Txt>
@@ -55,7 +56,7 @@ export default function PartiPlatform() {
                         secen: userName,
                         secenFoto: userPhoto ?? undefined,
                       });
-                      router.back();
+                      geriDon();
                     } else {
                       router.replace({ pathname: "/parti-oda", params: { platform: p.kod } });
                     }
