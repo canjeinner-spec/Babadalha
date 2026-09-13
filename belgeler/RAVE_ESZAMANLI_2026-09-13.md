@@ -460,3 +460,113 @@ düzeltiyoruz. Eklenmesi gereken üç parça:
 Bekleyen komutun iptali (`cancelPending` + `currentPlayPauseId`) da
 gerekiyor; art arda gelen oynat/duraklat komutlarında eski zamanlayıcı
 ateşlenirse oynatma geri teper.
+
+---
+
+## 13. İkinci kazı — 9.0.28 APK (aynı gün, akşam)
+
+İlk kazıdan sonra APK silinmişti; kullanıcı yeniden verdi ve üç soru için
+tekrar kazıldı. Bu bölüm önceki bölümlerdeki iki yanlışı düzeltiyor.
+
+### 13.1 Platformlar WebView'da mı oynuyor? — HAYIR
+
+Bölüm 11'de iOS `web.js`'inden yola çıkıp "video devralma tüm
+platformlarda geçerli" demiştim. Android'de durum **başka**.
+
+Android `assets/web.js` **323 bayt** ve tamamı şu: 100 ms'de bir adres
+değişimini yokluyor, değişmişse `JSInterface.pageChanged(...)` çağırıyor.
+Video devralma yok, `<video>` elemanına dokunmuyor.
+
+JS'ten native'e giden tek çağrılar, betik başına:
+
+| betik | çağrı |
+|---|---|
+| `web.js` | `pageChanged` |
+| `netflix.js` | `Netflix.saveLogin`, `Netflix.pageChanged` |
+| `amazon.js` | `onPlayClicked` |
+| `x.js` | `onVideoClick` |
+| `disney.js`, `crunchyroll.js` | `pageChanged` |
+| `pluto.js` | `splashFinished` |
+| `rutube.js` | `onCookiesChanged` |
+
+Devralma yok çünkü **gerek yok**: oynatma zaten WebView'da hiç
+başlamıyor. `legacy/server/` altında platform başına ayrı sunucu sınıfı
+var ve her biri platformun gerçek oynatma API'sine gidip manifest ve
+lisans alıyor:
+
+AmazonServer, CrunchyrollServer, DisneyServer, GoogleDriveServer,
+GooglePhotosServer, KaraokeServer, MaxServer, NetflixServer, PlutoServer,
+RaveDJServer, RaveWebServer, RutubeServer, TubiServer, TwitchServer,
+TwitterServer, VkServer, YouTubeServer.
+
+Ölçülen uç noktalar:
+
+| sunucu | oynatma ucu | DRM |
+|---|---|---|
+| Disney | `disney.api.edge.bamgrid.com/explore/v1.2/playerExperience/` | Widevine |
+| Max | `default.any-any.prd.api.max.com/any/playback/v1/playbackInfo` | PlayReady |
+| Tubi | `uapi.adrise.tv/` | Widevine |
+| Crunchyroll | crunchyroll API | Widevine |
+| Twitch | `api.twitch.tv/helix/` | yok, `.m3u8` |
+
+**Sonuç:** WebView yalnız gezinme, giriş ve seçim için. Rave'de oynatma
+her platformda native. Bizde şu an yalnız YouTube, Netflix ve Prime
+native; kalan sekizi WebView'da oynuyor.
+
+### 13.2 ClockManager — belgede olmayanlar
+
+Bölüm 4'e ek olarak `libwemesh-ndk` şu native işlevleri de veriyor:
+
+- `getCurrentSyncOffset()` — offset'in kendisi okunabiliyor
+- `getHealthChk()`, `getRunningStatus()` — NTP istemcisinin sağlığı
+  sürekli izleniyor
+- `restart()`, `kill()`, `init()` — istemci yeniden başlatılabiliyor
+- `getCurrentTimeMicroSecs()` — mikrosaniye çözünürlük
+
+Yani saat "bir kez kur ve unut" değil; bozulursa fark ediliyor ve
+yeniden kuruluyor.
+
+### 13.3 PlayerSynchronizer — atladığım dört şey
+
+Bölüm 6'daki sabitlerin hepsi doğrulandı (20, 3000, 5000, 500, 0.75,
+1.25, 0.25, 3.0, 0.001, 0.01). Ama şunlar belgede hiç yoktu:
+
+1. **`getInitialPositionMs(contentType)`** — odaya katılırken nereden
+   başlanacağı, döngüden ayrı hesaplanıyor. Yalnız OnDemand için: durum
+   PAUS ise anlık görüntünün konumu olduğu gibi, PLAY ise
+   `calculateDesiredPosition(simdi)`, diğer hâllerde `TIME_UNSET`
+   (canlıda oynatıcı kendi varsayılanını seçsin diye). Bizde katılma
+   anındaki konumlandırma hiç ele alınmamıştı.
+
+2. **`getPlaybackOffset()`** — o anki kaymayı dışarıya veren genel
+   metot. Arayüzde "senkron sapması" göstermek ya da günlüğe yazmak
+   için.
+
+3. **`startSyncing` iki ayrı coroutine başlatıyor**: biri senkron
+   döngüsü, diğeri `playbackConfigJob`. Yani oynatma yapılandırması
+   (hız, perde) bir akıştan sürekli izleniyor, bir kez okunmuyor.
+
+4. **`microSyncResetJob`** — mikro senkron sonrası eski hıza dönüş ayrı
+   bir iptal edilebilir iş. `stopSyncing()` bunu da iptal edip
+   `isMicroSyncing` bayrağını sıfırlıyor. İptal edilmezse hız yanlış
+   kalır.
+
+Ayrıca döngü bir `VideoSource`'a bağlı; kaynak değişince
+`stopSyncing()` + yeniden `startSyncing()` yapılıyor.
+
+### 13.4 Kapanan boşluklar
+
+- **`IdsRequest` üçüncü alanı**: tek alan değil, kurucu aşırı
+  yüklemesi. `(ids, deviceId, includeOnline: boolean)` arkadaş listesi
+  sorgusu, `(ids, deviceId, message: String)` davet mesajı.
+- **protoo bildirim adları (9.x)**: `chatMessage`, `newConsumer`,
+  `kicked`, `fullyJoined`, `consumerClosed` düz metin olarak var. Ama
+  durum anlık görüntüsünün adı iOS 8.0'daki `meshState` değil,
+  **`mesh_state`**. Sınıf `legacy/state/MeshState`.
+
+### 13.5 Hâlâ açık
+
+- Ping başarısızlık eşiği (atılma süresi). Aranan dizgiler üçüncü taraf
+  SDK'lardan çıkıyor (`PingIntervalConfig`, `PingRetryConfig` reklam
+  SDK'sına ait; `PingFangSC` bir yazı tipi). Rave'in kendi protoo ping
+  mantığı bulunamadı.
