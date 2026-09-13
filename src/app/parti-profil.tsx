@@ -11,16 +11,18 @@ import { RenkliAd } from "@/components/RenkliAd";
 import { Txt } from "@/components/Txt";
 import { gunYaz, partiIstatistiklerim, saatAraligiYaz, sureYaz, type PartiIstatistik } from "@/data/remote/partiRepo";
 import { Icon } from "@/icons/Icon";
+import { useCeviri } from "@/lib/ceviri";
+import { useDil } from "@/lib/dil";
 import { haptic } from "@/lib/haptics";
 import { platformBul } from "@/oda/platform";
 import { useApp } from "@/store/appStore";
 import { C } from "@/theme/colors";
 
-function tarihYaz(ham?: string | null): string {
+function tarihYaz(ham: string | null | undefined, dilKodu: string): string {
   if (!ham) return "—";
-  const t = new Date(ham);
-  if (Number.isNaN(t.getTime())) return "—";
-  return t.toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" });
+  const zaman = new Date(ham);
+  if (Number.isNaN(zaman.getTime())) return "—";
+  return zaman.toLocaleDateString(dilKodu, { day: "numeric", month: "long", year: "numeric" });
 }
 
 function Satir({ etiket, deger }: { etiket: string; deger: string }) {
@@ -34,6 +36,8 @@ function Satir({ etiket, deger }: { etiket: string; deger: string }) {
 
 export default function PartiProfil() {
   const router = useRouter();
+  const t = useCeviri();
+  const dilKodu = useDil((s) => s.dil.kod);
   const userName = useApp((s) => s.userName);
   const userPhoto = useApp((s) => s.userPhoto);
   const userLevel = useApp((s) => s.userLevel);
@@ -66,7 +70,7 @@ export default function PartiProfil() {
           <Pressable onPress={() => router.back()} hitSlop={10} style={styles.geri}>
             <Icon name="back" size={22} color="#fff" />
           </Pressable>
-          <Txt weight="displayBold" size={17} color="#fff">Profilim</Txt>
+          <Txt weight="displayBold" size={17} color="#fff">{t("profil.baslik")}</Txt>
           <View style={{ width: 30 }} />
         </View>
 
@@ -88,43 +92,43 @@ export default function PartiProfil() {
                   <OzelIdGosterim id={ozelId} tip={ozelIdTip} tema={ozelIdTema} punto={17} kapsulSize={13} />
                 </View>
               ) : publicId ? (
-                <Txt size={12} color={C.dim}>ID {publicId}</Txt>
+                <Txt size={12} color={C.dim}>{t("profil.kimlik", publicId)}</Txt>
               ) : null}
             </View>
           </View>
 
           <View style={styles.kutu}>
-            <Satir etiket="Seviye" deger={`Lv ${userLevel}`} />
+            <Satir etiket={t("profil.seviye")} deger={`Lv ${userLevel}`} />
             <View style={styles.ayirac} />
-            <Satir etiket="Kayıt tarihi" deger={tarihYaz(session?.user?.created_at)} />
+            <Satir etiket={t("profil.kayitTarihi")} deger={tarihYaz(session?.user?.created_at, dilKodu)} />
             <View style={styles.ayirac} />
-            <Satir etiket="Hesap" deger={session ? "Doğrulanmış" : "Misafir"} />
+            <Satir etiket={t("profil.hesap")} deger={session ? t("profil.dogrulanmis") : t("profil.misafir")} />
             <View style={styles.ayirac} />
             <DilSecici bicim="satir" />
           </View>
 
           <Txt weight="extrabold" size={12} color={C.dim2} style={styles.bolumBaslik}>
-            PARTİ MODU
+            {t("profil.partiModu")}
           </Txt>
 
           <View style={styles.kutu}>
-            <Satir etiket="Favori platform" deger={favori} />
+            <Satir etiket={t("profil.favoriPlatform")} deger={favori} />
             <View style={styles.ayirac} />
-            <Satir etiket="Toplam geçirilen süre" deger={sureYaz(istatistik?.toplamSaniye ?? null)} />
+            <Satir etiket={t("profil.toplamSure")} deger={sureYaz(istatistik?.toplamSaniye ?? null)} />
             <View style={styles.ayirac} />
-            <Satir etiket="Bu hafta" deger={sureYaz(istatistik?.buHaftaSaniye ?? null)} />
+            <Satir etiket={t("profil.buHafta")} deger={sureYaz(istatistik?.buHaftaSaniye ?? null)} />
             <View style={styles.ayirac} />
-            <Satir etiket="En uzun oturum" deger={sureYaz(istatistik?.enUzunSaniye ?? null)} />
+            <Satir etiket={t("profil.enUzunOturum")} deger={sureYaz(istatistik?.enUzunSaniye ?? null)} />
             <View style={styles.ayirac} />
-            <Satir etiket="Ortalama oturum" deger={sureYaz(istatistik?.ortalamaSaniye ?? null)} />
+            <Satir etiket={t("profil.ortalamaOturum")} deger={sureYaz(istatistik?.ortalamaSaniye ?? null)} />
             <View style={styles.ayirac} />
-            <Satir etiket="Oturum sayısı" deger={istatistik ? String(istatistik.oturumSayisi) : "—"} />
+            <Satir etiket={t("profil.oturumSayisi")} deger={istatistik ? String(istatistik.oturumSayisi) : "—"} />
             <View style={styles.ayirac} />
-            <Satir etiket="Farklı oda" deger={istatistik ? String(istatistik.farkliOda) : "—"} />
+            <Satir etiket={t("profil.farkliOda")} deger={istatistik ? String(istatistik.farkliOda) : "—"} />
             <View style={styles.ayirac} />
-            <Satir etiket="En aktif saat" deger={saatAraligiYaz(istatistik?.enAktifSaat ?? null)} />
+            <Satir etiket={t("profil.enAktifSaat")} deger={saatAraligiYaz(istatistik?.enAktifSaat ?? null)} />
             <View style={styles.ayirac} />
-            <Satir etiket="Son oturum" deger={gunYaz(istatistik?.sonOturum ?? null)} />
+            <Satir etiket={t("profil.sonOturum")} deger={gunYaz(istatistik?.sonOturum ?? null)} />
           </View>
 
           {session ? (
@@ -132,21 +136,20 @@ export default function PartiProfil() {
               style={[styles.hesapDugmesi, styles.cikisDugmesi]}
               onPress={() => { haptic.select(); setCikisOnayi(true); }}
             >
-              <Txt weight="extrabold" size={14} color={C.red}>Çıkış yap</Txt>
+              <Txt weight="extrabold" size={14} color={C.red}>{t("profil.cikisYap")}</Txt>
             </Pressable>
           ) : (
             <Pressable
               style={[styles.hesapDugmesi, styles.girisDugmesi]}
               onPress={() => { haptic.select(); router.push("/giris"); }}
             >
-              <Txt weight="extrabold" size={14} color="#241A05">Giriş yap</Txt>
+              <Txt weight="extrabold" size={14} color="#241A05">{t("giris.yap")}</Txt>
             </Pressable>
           )}
 
           {!session && (
             <Txt size={11.5} color={C.dim2} align="center" lh={1.5} style={styles.hesapNotu}>
-              Misafir olarak geziyorsun. Giriş yaparsan partilerin, arkadaşların
-              ve istatistiklerin cihaz değiştirsen de seninle kalır.
+              {t("profil.misafirNotu")}
             </Txt>
           )}
 
@@ -158,14 +161,13 @@ export default function PartiProfil() {
 
       <CenterModal visible={cikisOnayi} onClose={() => setCikisOnayi(false)}>
         <View style={styles.uyariKart}>
-          <Txt weight="displayBold" size={16} color="#fff" align="center">Çıkış yap</Txt>
+          <Txt weight="displayBold" size={16} color="#fff" align="center">{t("profil.cikisYap")}</Txt>
           <Txt size={13} color={C.dim} align="center" lh={1.45} style={{ marginTop: 8 }}>
-            Hesabından çıkacaksın. Partilerin ve istatistiklerin silinmiyor,
-            tekrar giriş yaptığında yerinde duruyor.
+            {t("profil.cikisOnayNotu")}
           </Txt>
           <View style={styles.uyariDugmeler}>
             <Pressable style={styles.uyariIkincil} onPress={() => setCikisOnayi(false)}>
-              <Txt weight="extrabold" size={13} color="#fff">Vazgeç</Txt>
+              <Txt weight="extrabold" size={13} color="#fff">{t("genel.vazgec")}</Txt>
             </Pressable>
             <Pressable
               style={[styles.uyariBirincil, cikiliyor && { opacity: 0.5 }]}
@@ -179,14 +181,14 @@ export default function PartiProfil() {
                   router.replace("/");
                 } catch {
                   setCikisOnayi(false);
-                  setHata("Çıkış yapılamadı. İnternetini kontrol edip tekrar dene.");
+                  setHata(t("profil.cikisHatasi"));
                 } finally {
                   setCikiliyor(false);
                 }
               }}
             >
               <Txt weight="extrabold" size={13} color="#fff">
-                {cikiliyor ? "Çıkılıyor..." : "Çıkış yap"}
+                {cikiliyor ? t("profil.cikiliyor") : t("profil.cikisYap")}
               </Txt>
             </Pressable>
           </View>

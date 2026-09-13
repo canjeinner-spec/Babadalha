@@ -24,6 +24,7 @@ import { PEOPLE } from "@/data/people";
 import { amIBannedFromRoom, banRoomUser, getRoomMembers, listRooms, odaKatilimcilariGetir, odaKatilimcilariniDinle, odaSahibi, removeRoomMember, setRoomMemberRole, type OdaKatilimcisi, type OdaSahibi } from "@/data/remote/roomsRepo";
 import { type Room } from "@/data/seed";
 import { useCachedResource } from "@/lib/cache";
+import { cevir, turkceMi, useCeviri } from "@/lib/ceviri";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { rtcKanalAdi, rtcMotoruGetir } from "@/lib/rtc";
 import { DOGRUDAN_ADI, dogrudanMi, girisSayfasiMi, platformBul, type PlatformKodu } from "@/oda/platform";
@@ -94,8 +95,9 @@ function iyelikEki(ad: string): string {
 }
 
 function karsilamaMetni(sahip: string): string {
-  const ad = sahip.trim() || "Oda sahibi";
-  return `${ad}'${iyelikEki(ad)} izleme partisine hoş geldin! Film ve dizi izlerken herkesin keyfi yerinde olsun diye küfür, argo ve hakaretten uzak duralım. Sohbet et, eğlen, iyi seyirler!`;
+  const ad = sahip.trim() || cevir("odaEkran.karsilamaSahipsiz");
+  const iyelik = turkceMi() ? `${ad}'${iyelikEki(ad)}` : `${ad}'s`;
+  return cevir("odaEkran.karsilama", iyelik);
 }
 
 const YOL_OYNAT = "M7 4l12 8-12 8V4z";
@@ -209,7 +211,7 @@ function SohbetOgesi({ oge, benimFoto, oynuyor, onOynatDurdur, onDavet }: {
     return (
       <Pressable onPress={onDavet} style={styles.davetSatir}>
         <Icon path={YOL_LINK} size={20} color="#fff" />
-        <Txt size={15} color="rgba(255,255,255,.9)">Davet linki: </Txt>
+        <Txt size={15} color="rgba(255,255,255,.9)">{cevir("odaEkran.davetLinki")}</Txt>
         <Txt size={15} color="#fff" style={styles.altCizgi}>{oge.adres}</Txt>
       </Pressable>
     );
@@ -228,7 +230,7 @@ function SohbetOgesi({ oge, benimFoto, oynuyor, onOynatDurdur, onDavet }: {
         )}
         <View style={{ flex: 1, minWidth: 0 }}>
           <Txt size={15} color="rgba(255,255,255,.9)" lh={1.35}>
-            <Txt weight="extrabold" size={15} color="#fff">{oge.baslik}</Txt> oynatılıyor
+            <Txt weight="extrabold" size={15} color="#fff">{oge.baslik}</Txt>{cevir("odaEkran.simdiOynatiliyor")}
           </Txt>
         </View>
         <Pressable hitSlop={8} onPress={onOynatDurdur}>
@@ -318,7 +320,7 @@ function AltBar({ altPay, onGonder, onDavet, onKisiler, mikAcilir, mikAcik, onMi
 
       <TextInput
         editable={sohbetAcik}
-        placeholder={sohbetAcik ? "Sohbet" : "Sohbet kapalı"}
+        placeholder={sohbetAcik ? cevir("odaEkran.sohbet") : cevir("odaEkran.sohbetKapali")}
         placeholderTextColor="rgba(255,255,255,.55)"
         style={styles.giris}
         value={metin}
@@ -351,6 +353,7 @@ function AltBar({ altPay, onGonder, onDavet, onKisiler, mikAcilir, mikAcik, onMi
 
 export default function PartiOda() {
   const router = useRouter();
+  const t = useCeviri();
   const insets = useSafeAreaInsets();
   const { id, platform: platformKodu, adres: adresParam } = useLocalSearchParams<{ id?: string; platform?: string; adres?: string }>();
   const userName = useApp((s) => s.userName);
@@ -458,7 +461,7 @@ export default function PartiOda() {
     usePartiOdam.getState().ac({
       ...PARTI_KART_TABANI,
       id: kanalOdaId,
-      name: `${userName} · ${p?.ad ?? (dogrudanMi(ilkPlatform) ? DOGRUDAN_ADI : "Parti")}`,
+      name: `${userName} · ${p?.ad ?? (dogrudanMi(ilkPlatform) ? DOGRUDAN_ADI : cevir("odaEkran.partiAdi"))}`,
       host: userName,
       online: 1,
       extra: 1,
@@ -504,7 +507,7 @@ export default function PartiOda() {
     setSahneRengi(null);
     setOynuyor(false);
     setSonKonum(0);
-    setEk((e) => [...e, { tur: "simdi", anahtar: "s" + s.anahtar, baslik: s.baslik ?? "Video", platform: s.platform }]);
+    setEk((e) => [...e, { tur: "simdi", anahtar: "s" + s.anahtar, baslik: s.baslik ?? cevir("odaEkran.varsayilanBaslik"), platform: s.platform }]);
     const p = platformBul(s.platform);
     const girisLazim = !!p?.hesapGerekir && !usePartiGiris.getState().girilmisMi(s.platform);
     setGirisGerekli(girisLazim);
@@ -599,7 +602,7 @@ export default function PartiOda() {
       setSimdikiKapak(d.kapak ?? null);
       setKip("oynatim");
       setEk((e) => [...e, {
-        tur: "simdi", anahtar: "s" + gelenAnahtar, baslik: d.baslik ?? "Video", platform: d.platform,
+        tur: "simdi", anahtar: "s" + gelenAnahtar, baslik: d.baslik ?? cevir("odaEkran.varsayilanBaslik"), platform: d.platform,
       }]);
       return;
     }
@@ -641,7 +644,7 @@ export default function PartiOda() {
     sahipAnahtariRef.current = benimAnahtarRef.current;
     setSahipAnahtari(benimAnahtarRef.current);
     setCanliRol("sahip");
-    setBildirim("Parti sahipliği sana geçti");
+    setBildirim(cevir("odaEkran.sahiplikSana"));
     kanalRef.current?.devirYayinla(ayrilanAnahtar, benimAnahtarRef.current);
   }, [gunluk]);
 
@@ -709,10 +712,10 @@ export default function PartiOda() {
       saatRef.current?.basla();
       if (o.yeniSahip === benimAnahtarRef.current) {
         setCanliRol("sahip");
-        setBildirim("Parti sahipliği sana geçti");
+        setBildirim(cevir("odaEkran.sahiplikSana"));
       } else {
         const yeni = agKisileriRef.current.find((k) => k.anahtar === o.yeniSahip);
-        setBildirim(yeni ? `${yeni.ad} parti sahibi oldu` : "Parti sahibi değişti");
+        setBildirim(yeni ? cevir("odaEkran.sahipOldu", yeni.ad) : cevir("odaEkran.sahipDegisti"));
       }
     } else if (o.tur === "saatIstek") {
       if (benSahipRef.current) kanalRef.current?.saatYanitYolla(o.soran, o.t0, Date.now());
@@ -743,7 +746,7 @@ export default function PartiOda() {
     } else if (o.tur === "mikrofonIzin") {
       setMikrofonIzinleri((m) => ({ ...m, [o.anahtar]: o.acik }));
       if (o.anahtar === benimAnahtarRef.current) {
-        setBildirim(o.acik ? "Mikrofonun açıldı" : "Mikrofonun kapatıldı");
+        setBildirim(o.acik ? cevir("odaEkran.mikAcildi") : cevir("odaEkran.mikKapatildi"));
       }
     } else if (o.tur === "baglanti" && o.acik) {
       setEk((e) => (
@@ -803,8 +806,8 @@ export default function PartiOda() {
 
   useEffect(() => {
     if (!ilkDurumBekleniyor) return;
-    const t = setTimeout(() => setIlkDurumBekleniyor(false), ILK_DURUM_TAVANI);
-    return () => clearTimeout(t);
+    const zamanlayici = setTimeout(() => setIlkDurumBekleniyor(false), ILK_DURUM_TAVANI);
+    return () => clearTimeout(zamanlayici);
   }, [ilkDurumBekleniyor]);
 
   useEffect(() => {
@@ -861,10 +864,10 @@ export default function PartiOda() {
 
   useEffect(() => {
     if (!benSahip) return;
-    const t = setInterval(() => {
+    const zamanlayici = setInterval(() => {
       if (Date.now() - sonYayinRef.current > 1000) durumYayinla();
     }, 1200);
-    return () => clearInterval(t);
+    return () => clearInterval(zamanlayici);
   }, [benSahip, durumYayinla]);
 
   useEffect(() => {
@@ -1057,7 +1060,7 @@ export default function PartiOda() {
           adres: sonAdres ?? oynatilan.adres, baslik: simdiki, secen: userName, secenFoto: userPhoto ?? undefined,
         };
         setSimdiSecim(s);
-        setEk((e) => [...e, { tur: "simdi", anahtar: "s" + s.anahtar, baslik: s.baslik ?? "Video", platform: s.platform }]);
+        setEk((e) => [...e, { tur: "simdi", anahtar: "s" + s.anahtar, baslik: s.baslik ?? cevir("odaEkran.varsayilanBaslik"), platform: s.platform }]);
       }
       setTimeout(() => durumYayinla(), 0);
     } else if (o.tur === "duraklat") {
@@ -1100,12 +1103,12 @@ export default function PartiOda() {
   const davetKopyala = useCallback(() => {
     haptic.select();
     Clipboard.setStringAsync(`https://${davetAdresi}`).catch(() => {});
-    setBildirim("Davet linki kopyalandı");
+    setBildirim(cevir("odaEkran.davetKopyalandi"));
   }, [davetAdresi]);
 
   const mesajGonder = useCallback((metin: string) => {
     if (!sohbetYazabilirMi(benimRolRef.current, odaAyariRef.current)) {
-      setBildirim("Sohbet kapalı");
+      setBildirim(cevir("odaEkran.sohbetKapali"));
       return;
     }
     const anahtar = "m" + Date.now();
@@ -1121,8 +1124,8 @@ export default function PartiOda() {
 
   useEffect(() => {
     if (!bildirim) return;
-    const t = setTimeout(() => setBildirim(""), 1600);
-    return () => clearTimeout(t);
+    const zamanlayici = setTimeout(() => setBildirim(""), 1600);
+    return () => clearTimeout(zamanlayici);
   }, [bildirim]);
 
   const ogeler = useMemo(() => {
@@ -1149,7 +1152,7 @@ export default function PartiOda() {
     if (ben) sistemEkle(sistemKisi(hedef), { cesit: "rol", veren: sistemKisi(ben), rol: yeniRol });
     if (dbId != null && hedef.dbId != null) {
       try { await setRoomMemberRole(dbId, hedef.dbId, yeniRol === "yardimci" ? "yardimci" : "uye"); }
-      catch { setBildirim("Rol kaydedilemedi"); }
+      catch { setBildirim(cevir("odaEkran.rolHatasi")); }
     }
   }, [dbId, sistemEkle, sistemKisi]);
 
@@ -1162,7 +1165,7 @@ export default function PartiOda() {
       try {
         await banRoomUser(dbId, hedef.dbId);
         await removeRoomMember(dbId, hedef.dbId);
-      } catch { setBildirim("Yasaklama kaydedilemedi"); }
+      } catch { setBildirim(cevir("odaEkran.yasakHatasi")); }
     }
   }, [dbId, sistemEkle, sistemKisi]);
 
@@ -1179,7 +1182,7 @@ export default function PartiOda() {
     if (!yetkiVar(benimRolRef.current, "mikrofonAyar")) return;
     setMikrofonIzinleri((m) => ({ ...m, [hedef.anahtar]: acik }));
     kanalRef.current?.mikrofonIzniYayinla(hedef.anahtar, acik);
-    setBildirim(acik ? `${hedef.ad} mikrofonu açabilir` : `${hedef.ad} mikrofonu kapatıldı`);
+    setBildirim(acik ? cevir("odaEkran.mikIzinVerildi", hedef.ad) : cevir("odaEkran.mikIzinAlindi", hedef.ad));
   }, []);
 
   useEffect(() => {
@@ -1233,7 +1236,7 @@ export default function PartiOda() {
     amIBannedFromRoom(dbId)
       .then((yasakli) => {
         if (iptal || !yasakli) return;
-        setBildirim("Bu odaya girişin kapalı");
+        setBildirim(cevir("odaEkran.girisKapali"));
         setTimeout(() => cikRef.current(), 1200);
       })
       .catch(() => {});
@@ -1356,7 +1359,7 @@ export default function PartiOda() {
         <View style={buyuk ? styles.yatayGovde : { flex: 1 }}>
         {ilkDurumBekleniyor ? (
           <View style={styles.oynatici}>
-            <Txt size={13} color={C.dim}>Partiye bağlanılıyor…</Txt>
+            <Txt size={13} color={C.dim}>{t("odaEkran.baglaniyor")}</Txt>
           </View>
         ) : dogrudanMi(oynatilan.platform) || (oynatilan.platform === "netflix" && Platform.OS === "android" && nfYerelAdres) || (oynatilan.platform === "hbo_max" && Platform.OS === "android" && maxYerelAdres) || ((oynatilan.platform === "youtube" || oynatilan.platform === "youtube_live") && Platform.OS === "android" && ytYerelAdres) || (oynatilan.platform === "prime_video" && Platform.OS === "android" && primeYerelAdres) ? (
           <PartiNativeOynatici
@@ -1493,23 +1496,23 @@ export default function PartiOda() {
 
       <CenterModal visible={cikisOnayi} onClose={() => setCikisOnayi(false)}>
         <View style={styles.uyariKart}>
-          <Txt weight="displayBold" size={16} color="#fff" align="center">Partiden ayrıl</Txt>
+          <Txt weight="displayBold" size={16} color="#fff" align="center">{t("odaEkran.ayrilBaslik")}</Txt>
           <Txt size={13} color={C.dim} align="center" lh={1.45} style={{ marginTop: 8 }}>
             {benSahip
               ? odaAyari.otomatikDevir
-                ? "Sen çıkınca parti odadaki birine geçecek."
-                : "Sahiplik devri kapalı; sen çıkınca parti kimseye geçmeyecek."
-              : "Partiden ayrılmak istediğine emin misin?"}
+                ? t("odaEkran.ayrilDevirAcik")
+                : t("odaEkran.ayrilDevirKapali")
+              : t("odaEkran.ayrilOnay")}
           </Txt>
           <View style={styles.uyariDugmeler}>
             <Pressable style={styles.uyariIkincil} onPress={() => setCikisOnayi(false)}>
-              <Txt weight="extrabold" size={13} color="#fff">Vazgeç</Txt>
+              <Txt weight="extrabold" size={13} color="#fff">{t("genel.vazgec")}</Txt>
             </Pressable>
             <Pressable
               style={styles.uyariBirincil}
               onPress={() => { setCikisOnayi(false); cik(); }}
             >
-              <Txt weight="extrabold" size={13} color="#241A05">Ayrıl</Txt>
+              <Txt weight="extrabold" size={13} color="#241A05">{t("odaEkran.ayril")}</Txt>
             </Pressable>
           </View>
         </View>
@@ -1517,16 +1520,16 @@ export default function PartiOda() {
 
       <CenterModal visible={atilma !== null} onClose={() => { setAtilma(null); cik(); }}>
         <View style={styles.uyariKart}>
-          <Txt weight="displayBold" size={16} color="#fff" align="center">Partiden çıkarıldın</Txt>
+          <Txt weight="displayBold" size={16} color="#fff" align="center">{t("odaEkran.atildinBaslik")}</Txt>
           <Txt size={13} color={C.dim} align="center" lh={1.45} style={{ marginTop: 8 }}>
-            {atilma ? `${rolAdi(atilma)} seni bu partiden çıkardı. Bu partiye tekrar giremezsin.` : ""}
+            {atilma ? t("odaEkran.atildinNot", rolAdi(atilma)) : ""}
           </Txt>
           <View style={styles.uyariDugmeler}>
             <Pressable
               style={[styles.uyariBirincil, { flex: 1 }]}
               onPress={() => { setAtilma(null); cik(); }}
             >
-              <Txt weight="extrabold" size={13} color="#241A05">Tamam</Txt>
+              <Txt weight="extrabold" size={13} color="#241A05">{t("genel.tamam")}</Txt>
             </Pressable>
           </View>
         </View>

@@ -1,15 +1,17 @@
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Txt } from "@/components/Txt";
 import { YazilanMetin, type YazilanBlok } from "@/components/YazilanMetin";
-import { KARSILAMA_SAYFALARI, type KarsilamaSayfasi } from "@/data/karsilamaSayfalari";
+import { karsilamaSayfalari, type KarsilamaSayfasi } from "@/data/karsilamaSayfalari";
 import { Icon } from "@/icons/Icon";
+import { useCeviri } from "@/lib/ceviri";
+import { useDil } from "@/lib/dil";
 import { haptic } from "@/lib/haptics";
 import { karsilamayiIsaretle } from "@/lib/ilkAcilis";
 import { useApp } from "@/store/appStore";
@@ -126,13 +128,16 @@ function Sayfa({
 
 export default function Karsilama() {
   const router = useRouter();
+  const t = useCeviri();
+  const dilKodu = useDil((s) => s.dil.kod);
+  const sayfalar = useMemo(() => karsilamaSayfalari(dilKodu), [dilKodu]);
   const { width } = useWindowDimensions();
   const akis = useRef<ScrollView>(null);
   const [sayfa, setSayfa] = useState(0);
-  const son = sayfa >= KARSILAMA_SAYFALARI.length - 1;
-  const cokSayfa = KARSILAMA_SAYFALARI.length > 1;
+  const son = sayfa >= sayfalar.length - 1;
+  const cokSayfa = sayfalar.length > 1;
   const [yazildi, setYazildi] = useState<Record<string, boolean>>({});
-  const buSayfaHazir = !!yazildi[KARSILAMA_SAYFALARI[sayfa]?.anahtar];
+  const buSayfaHazir = !!yazildi[sayfalar[sayfa]?.anahtar];
   const bittiIsaretle = useCallback(
     (anahtar: string) => setYazildi((o) => (o[anahtar] ? o : { ...o, [anahtar]: true })),
     [],
@@ -167,7 +172,7 @@ export default function Karsilama() {
           showsHorizontalScrollIndicator={false}
           onMomentumScrollEnd={(e) => setSayfa(Math.round(e.nativeEvent.contentOffset.x / width))}
         >
-          {KARSILAMA_SAYFALARI.map((s, i) => (
+          {sayfalar.map((s, i) => (
             <Sayfa
               key={s.anahtar}
               sayfa={s}
@@ -179,7 +184,7 @@ export default function Karsilama() {
         </ScrollView>
         ) : (
           <Sayfa
-            sayfa={KARSILAMA_SAYFALARI[0]}
+            sayfa={sayfalar[0]}
             genislik={width}
             etkin
             onBitti={bittiIsaretle}
@@ -191,22 +196,22 @@ export default function Karsilama() {
             <Animated.View entering={FadeIn.duration(240)}>
               <Pressable style={styles.dugme} onPress={ileri}>
                 <Txt weight="extrabold" size={15.5} color="#241A05">
-                  {son ? "Devam et" : "İleri"}
+                  {son ? t("genel.devam") : t("karsilama.ileri")}
                 </Txt>
                 <Icon name="chev" size={19} sw={2.4} color="#241A05" />
               </Pressable>
             </Animated.View>
           ) : (
             <View style={styles.dugmeYeri}>
-              {!KARSILAMA_SAYFALARI[sayfa]?.atlanamaz && (
-                <Txt size={12} color={C.dim2}>dokunarak geç</Txt>
+              {!sayfalar[sayfa]?.atlanamaz && (
+                <Txt size={12} color={C.dim2}>{t("karsilama.dokunarakGec")}</Txt>
               )}
             </View>
           )}
 
           {cokSayfa && (
             <View style={styles.noktalar}>
-              {KARSILAMA_SAYFALARI.map((s, i) => (
+              {sayfalar.map((s, i) => (
                 <View key={s.anahtar} style={[styles.nokta, i === sayfa && styles.noktaAcik]} />
               ))}
             </View>

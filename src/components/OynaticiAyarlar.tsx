@@ -4,6 +4,7 @@ import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { CenterModal } from "@/components/CenterModal";
 import { Txt } from "@/components/Txt";
 import { Icon } from "@/icons/Icon";
+import { useCeviri } from "@/lib/ceviri";
 import { haptic } from "@/lib/haptics";
 import { C } from "@/theme/colors";
 
@@ -33,6 +34,7 @@ export function OynaticiAyarlar({
   baslik?: string | null;
   altBaslik?: string | null;
 }) {
+  const t = useCeviri();
   const [bolum, setBolum] = useState<Bolum>("kok");
 
   const kapat = () => { setBolum("kok"); onKapat(); };
@@ -64,7 +66,7 @@ export function OynaticiAyarlar({
     }
     if (bolum === "altyazi") {
       return [
-        { anahtar: "kapali", ad: "Kapalı", secili: !seciliAltyazi, sec: () => onAltyazi(null) },
+        { anahtar: "kapali", ad: t("oynatici.kapali"), secili: !seciliAltyazi, sec: () => onAltyazi(null) },
         ...izler.altyazi.map((s) => ({
           anahtar: s.kod, ad: s.ad, secili: !!seciliAltyazi && seciliAltyazi.kod === s.kod,
           sec: () => onAltyazi(s.kod),
@@ -72,15 +74,15 @@ export function OynaticiAyarlar({
       ];
     }
     return [];
-  }, [bolum, hiz, izler, onAltyazi, onHiz, onKalite, onSesDili, seciliAltyazi, seciliKalite]);
+  }, [bolum, hiz, izler, onAltyazi, onHiz, onKalite, onSesDili, seciliAltyazi, seciliKalite, t]);
 
   const basliklar: Record<Bolum, string> = {
-    kok: "Ayarlar",
-    hiz: "Oynatma hızı",
-    kalite: "Video kalitesi",
-    ses: "Ses",
-    altyazi: "Altyazılar",
-    ayrinti: "Video ayrıntıları",
+    kok: t("oynatici.ayarlar"),
+    hiz: t("oynatici.hiz"),
+    kalite: t("oynatici.kalite"),
+    ses: t("oynatici.ses"),
+    altyazi: t("oynatici.altyazi"),
+    ayrinti: t("oynatici.ayrinti"),
   };
 
   return (
@@ -101,50 +103,50 @@ export function OynaticiAyarlar({
         <ScrollView style={styles.govde} contentContainerStyle={styles.govdeIc}>
           {bolum === "kok" && (
             <>
-              <Satir ad="Oynatma hızı" deger={`${hiz}x`} onPress={() => setBolum("hiz")} />
+              <Satir ad={t("oynatici.hiz")} deger={`${hiz}x`} onPress={() => setBolum("hiz")} />
               {izler.kalite.length > 0 && (
                 <Satir
-                  ad="Video kalitesi"
-                  deger={seciliKalite ? seciliKalite.ad : "Otomatik"}
+                  ad={t("oynatici.kalite")}
+                  deger={seciliKalite ? seciliKalite.ad : t("oynatici.otomatik")}
                   onPress={() => setBolum("kalite")}
                 />
               )}
               {izler.ses.length > 0 && (
                 <Satir
-                  ad="Ses"
+                  ad={t("oynatici.ses")}
                   deger={seciliSes ? seciliSes.ad : "-"}
                   onPress={() => setBolum("ses")}
                 />
               )}
               {izler.altyazi.length > 0 && (
                 <Satir
-                  ad="Altyazılar"
-                  deger={seciliAltyazi ? seciliAltyazi.ad : "Kapalı"}
+                  ad={t("oynatici.altyazi")}
+                  deger={seciliAltyazi ? seciliAltyazi.ad : t("oynatici.kapali")}
                   onPress={() => setBolum("altyazi")}
                 />
               )}
-              <Satir ad="Video ayrıntıları" deger="" onPress={() => setBolum("ayrinti")} />
+              <Satir ad={t("oynatici.ayrinti")} deger="" onPress={() => setBolum("ayrinti")} />
             </>
           )}
 
           {bolum === "ayrinti" && (
             <View style={styles.ayrinti}>
-              <Ayrinti ad="Başlık" deger={baslik || "-"} />
-              <Ayrinti ad="Kaynak" deger={altBaslik || "-"} />
-              <Ayrinti ad="Hız" deger={`${hiz}x`} />
+              <Ayrinti ad={t("oynatici.baslik")} deger={baslik || "-"} />
+              <Ayrinti ad={t("oynatici.kaynak")} deger={altBaslik || "-"} />
+              <Ayrinti ad={t("oynatici.hizKisa")} deger={`${hiz}x`} />
               {izler.kalite.length > 0 && (
-                <Ayrinti ad="Çözünürlük" deger={seciliKalite ? seciliKalite.ad : "Otomatik"} />
+                <Ayrinti ad={t("oynatici.cozunurluk")} deger={seciliKalite ? seciliKalite.ad : t("oynatici.otomatik")} />
               )}
               {izler.ses.length > 0 && (
                 <>
-                  <Ayrinti ad="Ses dili" deger={seciliSes ? seciliSes.ad : "-"} />
-                  <Ayrinti ad="Ses dili sayısı" deger={String(izler.ses.length)} />
+                  <Ayrinti ad={t("oynatici.sesDili")} deger={seciliSes ? seciliSes.ad : "-"} />
+                  <Ayrinti ad={t("oynatici.sesDiliSayisi")} deger={String(izler.ses.length)} />
                 </>
               )}
               {izler.altyazi.length > 0 && (
                 <>
-                  <Ayrinti ad="Altyazı" deger={seciliAltyazi ? seciliAltyazi.ad : "Kapalı"} />
-                  <Ayrinti ad="Altyazı sayısı" deger={String(izler.altyazi.length)} />
+                  <Ayrinti ad={t("oynatici.altyaziTek")} deger={seciliAltyazi ? seciliAltyazi.ad : t("oynatici.kapali")} />
+                  <Ayrinti ad={t("oynatici.altyaziSayisi")} deger={String(izler.altyazi.length)} />
                 </>
               )}
             </View>
@@ -152,7 +154,7 @@ export function OynaticiAyarlar({
 
           {bolum !== "kok" && bolum !== "ayrinti" && (
             secenekler.length === 0 ? (
-              <Txt size={13} color={C.dim} style={styles.bos}>Bu içerik için seçenek yok.</Txt>
+              <Txt size={13} color={C.dim} style={styles.bos}>{t("oynatici.secenekYok")}</Txt>
             ) : (
               secenekler.map((s) => (
                 <Pressable

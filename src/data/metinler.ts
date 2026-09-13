@@ -45,6 +45,182 @@ export const METINLER = {
   "profil.oturumSayisi": { tr: "Oturum sayısı", en: "Sessions" },
   "profil.toplamSure": { tr: "Toplam geçirilen süre", en: "Total time spent" },
   "profil.farkliOda": { tr: "Farklı oda", en: "Rooms visited" },
+  "giris.baslik1": { tr: "Arada ne kadar yol varsa,", en: "However far apart you are," },
+  "giris.baslik2": { tr: "film aynı saniyede başlar", en: "the film starts on the same second" },
+  "giris.altYazi": {
+    tr: "Netflix, Disney+, Prime Video, YouTube ve daha fazlası.",
+    en: "Netflix, Disney+, Prime Video, YouTube and more.",
+  },
+  "giris.apple": { tr: "Apple ile devam edin", en: "Continue with Apple" },
+  "giris.google": { tr: "Google ile devam edin", en: "Continue with Google" },
+  "giris.veya": { tr: "veya", en: "or" },
+  "giris.misafir": { tr: "Misafir Olarak Devam Et", en: "Continue as Guest" },
+  "giris.saglayiciKapali": {
+    tr: "{0} girişi sunucuda açık değil.",
+    en: "{0} sign-in is not enabled on the server.",
+  },
+
+  "profil.baslik": { tr: "Profilim", en: "My profile" },
+  "profil.seviye": { tr: "Seviye", en: "Level" },
+  "profil.hesap": { tr: "Hesap", en: "Account" },
+  "profil.misafir": { tr: "Misafir", en: "Guest" },
+  "profil.favoriPlatform": { tr: "Favori platform", en: "Favourite platform" },
+  "profil.buHafta": { tr: "Bu hafta", en: "This week" },
+  "profil.enUzunOturum": { tr: "En uzun oturum", en: "Longest session" },
+  "profil.ortalamaOturum": { tr: "Ortalama oturum", en: "Average session" },
+  "profil.enAktifSaat": { tr: "En aktif saat", en: "Most active hour" },
+  "profil.sonOturum": { tr: "Son oturum", en: "Last session" },
+
+  "odaEkran.baslik": { tr: "Parti", en: "Party" },
+  "odaEkran.sohbet": { tr: "Sohbet", en: "Chat" },
+  "odaEkran.sohbetKapali": { tr: "Sohbet kapalı", en: "Chat is off" },
+  "odaEkran.video": { tr: "Video", en: "Video" },
+  "odaEkran.odaSahibi": { tr: "Oda sahibi", en: "Room owner" },
+  "odaEkran.davetKopyalandi": { tr: "Davet linki kopyalandı", en: "Invite link copied" },
+  "odaEkran.mikAcildi": { tr: "Mikrofonun açıldı", en: "Your mic is on" },
+  "odaEkran.mikKapatildi": { tr: "Mikrofonun kapatıldı", en: "Your mic is off" },
+  "odaEkran.girisKapali": { tr: "Bu odaya girişin kapalı", en: "You cannot join this room" },
+  "odaEkran.sahipDegisti": { tr: "Parti sahibi değişti", en: "The party host changed" },
+  "odaEkran.sahiplikSana": { tr: "Parti sahipliği sana geçti", en: "You are the party host now" },
+  "odaEkran.ayrilOnay": {
+    tr: "Partiden ayrılmak istediğine emin misin?",
+    en: "Are you sure you want to leave the party?",
+  },
+  "odaEkran.ayrilNot": {
+    tr: "Sen çıkınca parti odadaki birine geçecek.",
+    en: "When you leave, the party passes to someone else in the room.",
+  },
+  "odaEkran.rolHatasi": { tr: "Rol kaydedilemedi", en: "Could not save the role" },
+  "odaEkran.yasakHatasi": { tr: "Yasaklama kaydedilemedi", en: "Could not save the ban" },
+
+  "profil.partiModu": { tr: "PARTİ MODU", en: "PARTY MODE" },
+  "profil.misafirNotu": {
+    tr: "Misafir olarak geziyorsun. Giriş yaparsan partilerin, arkadaşların ve istatistiklerin cihaz değiştirsen de seninle kalır.",
+    en: "You are browsing as a guest. Sign in and your parties, friends and stats stay with you even if you change devices.",
+  },
+  "profil.cikisOnayNotu": {
+    tr: "Hesabından çıkacaksın. Partilerin ve istatistiklerin silinmiyor, tekrar giriş yaptığında yerinde duruyor.",
+    en: "You will be signed out. Your parties and stats are not deleted; they are still there when you sign back in.",
+  },
+  "profil.kimlik": { tr: "ID {0}", en: "ID {0}" },
+  "profil.bos": { tr: "—", en: "—" },
+
+  "rol.sahip": { tr: "Parti Sahibi", en: "Party Host" },
+  "rol.yardimci": { tr: "Parti Yardımcısı", en: "Party Moderator" },
+  "rol.uye": { tr: "İzleyici", en: "Viewer" },
+
+  "sistem.katildinBen": { tr: "Partiye katıldın", en: "You joined the party" },
+  "sistem.katildi": { tr: "{0} partiye katıldı", en: "{0} joined the party" },
+  "sistem.ayrildinBen": { tr: "Partiden ayrıldın", en: "You left the party" },
+  "sistem.ayrildi": { tr: "{0} partiden ayrıldı", en: "{0} left the party" },
+  "sistem.yardimciAlindiBen": {
+    tr: "{0} yardımcılığını aldı",
+    en: "{0} removed you as a moderator",
+  },
+  "sistem.yardimciAlindi": {
+    tr: "{0}, {1} kullanıcısının yardımcılığını aldı",
+    en: "{0} removed {1} as a moderator",
+  },
+  "sistem.rolVerildiBen": { tr: "{0} seni {1} yaptı", en: "{0} made you a {1}" },
+  "sistem.rolVerildi": {
+    tr: "{0}, {1} kullanıcısını {2} yaptı",
+    en: "{0} made {1} a {2}",
+  },
+  "sistem.atildinBen": {
+    tr: "{0} tarafından partiden atıldın",
+    en: "You were removed from the party by the {0}",
+  },
+  "sistem.atildi": {
+    tr: "{0}, {1} tarafından partiden atıldı",
+    en: "{0} was removed from the party by the {1}",
+  },
+
+  "odaEkran.karsilamaSahipsiz": { tr: "Oda sahibi", en: "the room host" },
+  "odaEkran.karsilama": {
+    tr: "{0} izleme partisine hoş geldin! Film ve dizi izlerken herkesin keyfi yerinde olsun diye küfür, argo ve hakaretten uzak duralım. Sohbet et, eğlen, iyi seyirler!",
+    en: "Welcome to {0} watch party! Let's keep the swearing, slang and insults out so everyone enjoys the film. Chat, have fun, enjoy the show!",
+  },
+  "odaEkran.davetLinki": { tr: "Davet linki: ", en: "Invite link: " },
+  "odaEkran.simdiOynatiliyor": { tr: " oynatılıyor", en: " is playing" },
+  "odaEkran.baglaniyor": { tr: "Partiye bağlanılıyor…", en: "Connecting to the party…" },
+  "odaEkran.ayril": { tr: "Ayrıl", en: "Leave" },
+  "odaEkran.ayrilBaslik": { tr: "Partiden ayrıl", en: "Leave the party" },
+  "odaEkran.ayrilDevirAcik": {
+    tr: "Sen çıkınca parti odadaki birine geçecek.",
+    en: "When you leave, the party passes to someone else in the room.",
+  },
+  "odaEkran.ayrilDevirKapali": {
+    tr: "Sahiplik devri kapalı; sen çıkınca parti kimseye geçmeyecek.",
+    en: "Host transfer is off; when you leave, the party passes to no one.",
+  },
+  "odaEkran.atildinBaslik": { tr: "Partiden çıkarıldın", en: "You were removed from the party" },
+  "odaEkran.atildinNot": {
+    tr: "{0} seni bu partiden çıkardı. Bu partiye tekrar giremezsin.",
+    en: "The {0} removed you from this party. You cannot join it again.",
+  },
+  "odaEkran.sahipOldu": { tr: "{0} parti sahibi oldu", en: "{0} is the party host now" },
+  "odaEkran.mikIzinVerildi": { tr: "{0} mikrofonu açabilir", en: "{0} can turn the mic on" },
+  "odaEkran.mikIzinAlindi": { tr: "{0} mikrofonu kapatıldı", en: "{0}'s mic was turned off" },
+  "odaEkran.varsayilanBaslik": { tr: "Video", en: "Video" },
+  "odaEkran.partiAdi": { tr: "Parti", en: "Party" },
+
+  "karsilama.ileri": { tr: "İleri", en: "Next" },
+  "karsilama.dokunarakGec": { tr: "dokunarak geç", en: "tap to skip" },
+
+  "oynatici.ayarlar": { tr: "Ayarlar", en: "Settings" },
+  "oynatici.hiz": { tr: "Oynatma hızı", en: "Playback speed" },
+  "oynatici.kalite": { tr: "Video kalitesi", en: "Video quality" },
+  "oynatici.ses": { tr: "Ses", en: "Audio" },
+  "oynatici.altyazi": { tr: "Altyazılar", en: "Subtitles" },
+  "oynatici.ayrinti": { tr: "Video ayrıntıları", en: "Video details" },
+  "oynatici.kapali": { tr: "Kapalı", en: "Off" },
+  "oynatici.otomatik": { tr: "Otomatik", en: "Auto" },
+  "oynatici.baslik": { tr: "Başlık", en: "Title" },
+  "oynatici.kaynak": { tr: "Kaynak", en: "Source" },
+  "oynatici.hizKisa": { tr: "Hız", en: "Speed" },
+  "oynatici.cozunurluk": { tr: "Çözünürlük", en: "Resolution" },
+  "oynatici.sesDili": { tr: "Ses dili", en: "Audio language" },
+  "oynatici.sesDiliSayisi": { tr: "Ses dili sayısı", en: "Audio languages" },
+  "oynatici.altyaziTek": { tr: "Altyazı", en: "Subtitle" },
+  "oynatici.altyaziSayisi": { tr: "Altyazı sayısı", en: "Subtitles available" },
+  "oynatici.secenekYok": { tr: "Bu içerik için seçenek yok.", en: "No options for this content." },
+  "oynatici.yalnizAndroid": {
+    tr: "Doğrudan bağlantı oynatıcısı yalnız Android geliştirme derlemesinde çalışıyor.",
+    en: "The direct-link player only works on an Android development build.",
+  },
+  "oynatici.baglantiHatasi": { tr: "Bağlantı yüklenemedi.", en: "The link could not be loaded." },
+
+  "panel.devirAcik": {
+    tr: "Çıkarsan parti odadaki birine geçer",
+    en: "If you leave, the party passes to someone in the room",
+  },
+  "panel.devirKapali": {
+    tr: "Çıkarsan parti kimseye geçmez",
+    en: "If you leave, the party passes to no one",
+  },
+  "panel.yardimciYap": { tr: "Parti Yardımcısı yap", en: "Make a Party Moderator" },
+  "panel.yardimciAl": { tr: "Yardımcılığı al", en: "Remove moderator" },
+  "panel.mikKapat": { tr: "Mikrofonu kapat", en: "Turn the mic off" },
+  "panel.mikAc": { tr: "Mikrofonu aç", en: "Turn the mic on" },
+  "panel.yetkiYok": { tr: "Bu kişi için yetkin yok", en: "You have no rights over this person" },
+
+  "panel.odadakiler": { tr: "Odadakiler", en: "In the room" },
+  "panel.sahiplikDevri": { tr: "Sahiplik devri", en: "Host transfer" },
+  "panel.odadanAt": { tr: "Odadan at", en: "Remove from room" },
+
+  "banner.yeni": { tr: "YENİ", en: "NEW" },
+  "banner.baslik": { tr: "Birlikte izlemek artık burada", en: "Watching together is here" },
+  "banner.altYazi": {
+    tr: "Odanı kur, bağlantını paylaş, aynı sahneyi aynı anda izleyin. Sesli sohbet açık.",
+    en: "Set up your room, share your link, watch the same scene at the same time. Voice chat is on.",
+  },
+
+  "girisGerekli.baslik": { tr: "Giriş gerekli", en: "Sign-in required" },
+  "girisGerekli.dugme": { tr: "Giriş Yap", en: "Sign In" },
+  "girisGerekli.aciklama": {
+    tr: "Bu videoyu izlemek için {0} hesabında oturum aç",
+    en: "Sign in to your {0} account to watch this video",
+  },
 } as const;
 
 export function metinCevir(anahtar: string, dilKodu: string, degerler?: (string | number)[]): string {

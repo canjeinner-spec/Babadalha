@@ -9,6 +9,7 @@ import { ElmaIsareti, GoogleIsareti } from "@/components/MarkaIkonlari";
 import { TitrekYazi } from "@/components/TitrekYazi";
 import { Txt } from "@/components/Txt";
 import { KARSILAMA_KARELERI } from "@/data/karsilamaKareleri";
+import { useCeviri } from "@/lib/ceviri";
 import { signInWithApple, signInWithGoogle } from "@/data/remote/authRepo";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { haptic } from "@/lib/haptics";
@@ -17,6 +18,7 @@ import { C } from "@/theme/colors";
 
 export default function Giris() {
   const router = useRouter();
+  const t = useCeviri();
   const [markaHatasi, setMarkaHatasi] = useState(false);
   const [mesgul, setMesgul] = useState<"apple" | "google" | "misafir" | null>(null);
   const [hata, setHata] = useState("");
@@ -38,7 +40,7 @@ export default function Giris() {
     haptic.select();
     setHata("");
     if (!isSupabaseConfigured) {
-      setHata("Sunucu ayarları eksik, şimdilik misafir olarak devam edebilirsin.");
+      setHata(t("giris.sunucuEksik"));
       return;
     }
     setMesgul(saglayici);
@@ -50,13 +52,13 @@ export default function Giris() {
       const m = (e as Error)?.message ?? "";
       setHata(
         /provider is not enabled|not enabled|Unsupported provider/i.test(m)
-          ? `${saglayici === "google" ? "Google" : "Apple"} girişi sunucuda açık değil.`
-          : m || "Giriş tamamlanamadı, tekrar dene.",
+          ? t("giris.saglayiciKapali", saglayici === "google" ? "Google" : "Apple")
+          : m || t("giris.basarisiz"),
       );
     } finally {
       setMesgul(null);
     }
-  }, [mesgul, iceGir]);
+  }, [mesgul, iceGir, t]);
 
   return (
     <View style={styles.kok}>
@@ -82,14 +84,14 @@ export default function Giris() {
         <View style={styles.orta}>
           <TitrekYazi
             parcalar={[
-              { metin: "Arada ne kadar yol varsa,\n", renk: "#fff" },
-              { metin: "film aynı saniyede başlar", renk: C.gold2 },
+              { metin: `${t("giris.baslik1")}\n`, renk: "#fff" },
+              { metin: t("giris.baslik2"), renk: C.gold2 },
             ]}
             size={25}
             style={styles.baslik}
           />
           <Txt size={13.5} color="rgba(255,255,255,.86)" align="center" lh={1.5} style={styles.altYazi}>
-            Netflix, Disney+, Prime Video, YouTube ve daha fazlası.
+            {t("giris.altYazi")}
           </Txt>
         </View>
 
@@ -102,7 +104,7 @@ export default function Giris() {
           >
             <ElmaIsareti size={19} renk="#141018" />
             <Txt weight="extrabold" size={15.5} color="#141018">
-              {mesgul === "apple" ? "Bağlanılıyor…" : "Apple ile devam edin"}
+              {mesgul === "apple" ? t("giris.baglaniyor") : t("giris.apple")}
             </Txt>
           </Pressable>
 
@@ -112,13 +114,13 @@ export default function Giris() {
           >
             <GoogleIsareti size={19} />
             <Txt weight="extrabold" size={15.5} color="#141018">
-              {mesgul === "google" ? "Bağlanılıyor…" : "Google ile devam edin"}
+              {mesgul === "google" ? t("giris.baglaniyor") : t("giris.google")}
             </Txt>
           </Pressable>
 
           <View style={styles.ayrac}>
             <View style={styles.cizgi} />
-            <Txt weight="bold" size={13} color="rgba(255,255,255,.85)" style={styles.ayracYazi}>veya</Txt>
+            <Txt weight="bold" size={13} color="rgba(255,255,255,.85)" style={styles.ayracYazi}>{t("giris.veya")}</Txt>
             <View style={styles.cizgi} />
           </View>
 
@@ -126,7 +128,7 @@ export default function Giris() {
             style={[styles.misafirDugme, mesgul && mesgul !== "misafir" && styles.sonuk]}
             onPress={misafir}
           >
-            <Txt weight="extrabold" size={15.5} color="#fff">Misafir Olarak Devam Et</Txt>
+            <Txt weight="extrabold" size={15.5} color="#fff">{t("giris.misafir")}</Txt>
           </Pressable>
 
           {hata !== "" && (

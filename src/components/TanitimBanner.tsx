@@ -2,12 +2,14 @@ import { StyleSheet, View } from "react-native";
 
 import { Txt } from "@/components/Txt";
 import { Icon } from "@/icons/Icon";
+import { useCeviri } from "@/lib/ceviri";
 import { Gradient } from "@/theme/Gradient";
 
 const ORAN = 7 / 2;
 const VURGU = "#F5CE6E";
 
 export function TanitimBanner() {
+  const t = useCeviri();
   return (
     <View style={styles.banner}>
       <Gradient colors={["#2E1F45", "#171029"]} deg={125} style={StyleSheet.absoluteFill} />
@@ -30,15 +32,15 @@ export function TanitimBanner() {
           <View style={styles.ustSatir}>
             <Txt weight="bold" size={9} color={VURGU} style={{ letterSpacing: 2 }}>ARON PARTİ</Txt>
             <View style={styles.etiket}>
-              <Txt weight="extrabold" size={7.5} color="#241A05" style={{ letterSpacing: 0.5 }}>YENİ</Txt>
+              <Txt weight="extrabold" size={7.5} color="#241A05" style={{ letterSpacing: 0.5 }}>{t("banner.yeni")}</Txt>
             </View>
           </View>
 
           <Txt weight="displayBold" size={18} color="#fff" numberOfLines={1} style={styles.baslik}>
-            Birlikte izlemek artık burada
+            {t("banner.baslik")}
           </Txt>
           <Txt size={11} color="rgba(255,255,255,.78)" lh={1.35} numberOfLines={2} style={{ marginTop: 3 }}>
-            Odanı kur, bağlantını paylaş, aynı sahneyi aynı anda izleyin. Sesli sohbet açık.
+            {t("banner.altYazi")}
           </Txt>
         </View>
       </View>

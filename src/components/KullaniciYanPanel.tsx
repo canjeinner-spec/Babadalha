@@ -8,6 +8,7 @@ import { Portrait } from "@/components/Portrait";
 import { RenkliAd } from "@/components/RenkliAd";
 import { Txt } from "@/components/Txt";
 import { Icon } from "@/icons/Icon";
+import { useCeviri } from "@/lib/ceviri";
 import { atabilirMi, rolAdi, rolVerebilirMi, yetkiVar, type PartiRol } from "@/parti/yetki";
 
 export type YanPanelKisisi = {
@@ -44,6 +45,7 @@ export function KullaniciYanPanel({ acik, kisiler, onKapat, ustPay = 0, yetkiler
   ustPay?: number;
   yetkiler?: YanPanelYetkileri;
 }) {
+  const t = useCeviri();
   const [secili, setSecili] = useState<YanPanelKisisi | null>(null);
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -88,7 +90,7 @@ export function KullaniciYanPanel({ acik, kisiler, onKapat, ustPay = 0, yetkiler
         <View style={styles.parilti} pointerEvents="none" />
 
         <View style={styles.baslik}>
-          <Txt weight="displayBold" size={17} color={METIN}>Odadakiler</Txt>
+          <Txt weight="displayBold" size={17} color={METIN}>{t("panel.odadakiler")}</Txt>
           <View style={styles.sayi}>
             <Txt weight="extrabold" size={11} color={METIN}>{kisiler.length}</Txt>
           </View>
@@ -104,11 +106,11 @@ export function KullaniciYanPanel({ acik, kisiler, onKapat, ustPay = 0, yetkiler
             onPress={() => yetkiler.onOtomatikDevir?.(!yetkiler.otomatikDevir)}
           >
             <View style={{ flex: 1 }}>
-              <Txt weight="extrabold" size={12.5} color={METIN}>Sahiplik devri</Txt>
+              <Txt weight="extrabold" size={12.5} color={METIN}>{t("panel.sahiplikDevri")}</Txt>
               <Txt size={10.5} color="rgba(23,20,31,.6)" style={{ marginTop: 2 }}>
                 {yetkiler.otomatikDevir
-                  ? "Çıkarsan parti odadaki birine geçer"
-                  : "Çıkarsan parti kimseye geçmez"}
+                  ? t("panel.devirAcik")
+                  : t("panel.devirKapali")}
               </Txt>
             </View>
             <View style={[styles.anahtar, yetkiler.otomatikDevir && styles.anahtarAcik]}>
@@ -140,6 +142,7 @@ function YetkiMenusu({ kisi, yetkiler, onKapat }: {
   yetkiler: YanPanelYetkileri;
   onKapat: () => void;
 }) {
+  const t = useCeviri();
   const hedefRol: PartiRol = kisi.rol ?? (kisi.sahip ? "sahip" : "uye");
   const kendim = kisi.anahtar === yetkiler.benimAnahtar;
   const rolVerilir = !kendim && rolVerebilirMi(yetkiler.benimRol, hedefRol);
@@ -161,28 +164,28 @@ function YetkiMenusu({ kisi, yetkiler, onKapat }: {
 
           {rolVerilir && hedefRol !== "yardimci" && (
             <Pressable style={styles.menuOge} onPress={sec(() => yetkiler.onYetki(kisi, "yardimci"))}>
-              <Txt weight="extrabold" size={14} color={METIN}>Parti Yardımcısı yap</Txt>
+              <Txt weight="extrabold" size={14} color={METIN}>{t("panel.yardimciYap")}</Txt>
             </Pressable>
           )}
           {rolVerilir && hedefRol === "yardimci" && (
             <Pressable style={styles.menuOge} onPress={sec(() => yetkiler.onYetki(kisi, "uye"))}>
-              <Txt weight="extrabold" size={14} color={METIN}>Yardımcılığı al</Txt>
+              <Txt weight="extrabold" size={14} color={METIN}>{t("panel.yardimciAl")}</Txt>
             </Pressable>
           )}
           {mikVar && (
             <Pressable style={styles.menuOge} onPress={sec(() => yetkiler.onMikrofon(kisi, !kisi.mikrofonIzni))}>
               <Txt weight="extrabold" size={14} color={METIN}>
-                {kisi.mikrofonIzni ? "Mikrofonu kapat" : "Mikrofonu aç"}
+                {kisi.mikrofonIzni ? t("panel.mikKapat") : t("panel.mikAc")}
               </Txt>
             </Pressable>
           )}
           {atilir && (
             <Pressable style={styles.menuOge} onPress={sec(() => yetkiler.onAt(kisi))}>
-              <Txt weight="extrabold" size={14} color="#C0392B">Odadan at</Txt>
+              <Txt weight="extrabold" size={14} color="#C0392B">{t("panel.odadanAt")}</Txt>
             </Pressable>
           )}
           {hicbiri && (
-            <Txt weight="semibold" size={13} color="rgba(23,20,31,.55)">Bu kişi için yetkin yok</Txt>
+            <Txt weight="semibold" size={13} color="rgba(23,20,31,.55)">{t("panel.yetkiYok")}</Txt>
           )}
         </View>
       </View>
@@ -191,6 +194,7 @@ function YetkiMenusu({ kisi, yetkiler, onKapat }: {
 }
 
 function Satir({ kisi, onBasili }: { kisi: YanPanelKisisi; onBasili?: () => void }) {
+  const t = useCeviri();
   return (
     <Pressable style={styles.satir} onLongPress={onBasili} delayLongPress={280} disabled={!onBasili}>
       <View>
@@ -204,9 +208,9 @@ function Satir({ kisi, onBasili }: { kisi: YanPanelKisisi; onBasili?: () => void
       <View style={{ flex: 1, minWidth: 0 }}>
         <RenkliAd ad={kisi.ad} tip={kisi.ozelIdTip} tema={kisi.ozelIdTema} size={15} weight="extrabold" renk={METIN} />
         {kisi.rol === "sahip" || kisi.sahip ? (
-          <Txt weight="semibold" size={11} color={ALTIN} style={{ marginTop: 2 }}>Parti Sahibi</Txt>
+          <Txt weight="semibold" size={11} color={ALTIN} style={{ marginTop: 2 }}>{t("rol.sahip")}</Txt>
         ) : kisi.rol === "yardimci" ? (
-          <Txt weight="semibold" size={11} color="#2C7A7B" style={{ marginTop: 2 }}>Parti Yardımcısı</Txt>
+          <Txt weight="semibold" size={11} color="#2C7A7B" style={{ marginTop: 2 }}>{t("rol.yardimci")}</Txt>
         ) : null}
       </View>
       {kisi.yayinda && <Icon name="mic" size={18} sw={2} color="#2C7A7B" />}

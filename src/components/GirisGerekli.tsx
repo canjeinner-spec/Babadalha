@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 
 import { Txt } from "@/components/Txt";
 import { Icon } from "@/icons/Icon";
+import { useCeviri } from "@/lib/ceviri";
 import { type Platform } from "@/oda/platform";
 
 const YOL_GIRIS = "M10 17l5-5-5-5M15 12H3M12 3h7a2 2 0 012 2v14a2 2 0 01-2 2h-7";
@@ -18,17 +19,18 @@ export function GirisGerekli({ platform, onGiris }: {
   platform: Platform;
   onGiris: () => void;
 }) {
+  const t = useCeviri();
   const yazi = acikRenkMi(platform.vurgu) ? "#0A0910" : "#fff";
   return (
     <View style={styles.kok} pointerEvents="auto">
       <Image source={platform.logo} style={styles.logo} contentFit="contain" transition={0} />
-      <Txt weight="displayBold" size={18} color="#fff" style={{ marginTop: 10 }}>Giriş gerekli</Txt>
+      <Txt weight="displayBold" size={18} color="#fff" style={{ marginTop: 10 }}>{t("girisGerekli.baslik")}</Txt>
       <Txt size={13} color="rgba(255,255,255,.72)" align="center" style={{ marginTop: 4, paddingHorizontal: 24 }}>
-        Bu videoyu izlemek için {platform.ad} hesabında oturum aç
+        {t("girisGerekli.aciklama", platform.ad)}
       </Txt>
       <Pressable onPress={onGiris} style={[styles.dugme, { backgroundColor: platform.vurgu }]}>
         <Icon path={YOL_GIRIS} size={20} sw={2.2} color={yazi} />
-        <Txt weight="extrabold" size={15} color={yazi}>Giriş Yap</Txt>
+        <Txt weight="extrabold" size={15} color={yazi}>{t("girisGerekli.dugme")}</Txt>
       </Pressable>
     </View>
   );

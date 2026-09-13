@@ -5,6 +5,7 @@ import { OynaticiAyarlar } from "@/components/OynaticiAyarlar";
 import { OynaticiKontrol } from "@/components/OynaticiKontrol";
 import { Txt } from "@/components/Txt";
 import { Icon } from "@/icons/Icon";
+import { cevir } from "@/lib/ceviri";
 import { rtcMotoruGetir } from "@/lib/rtc";
 import { type OynaticiOlayi } from "@/parti/kopru";
 import { C } from "@/theme/colors";
@@ -38,8 +39,6 @@ type Props = {
   onOlay?: (o: OynaticiOlayi) => void;
   ustKatman?: ReactNode;
 };
-
-const YOK_MESAJI = "Doğrudan bağlantı oynatıcısı yalnız Android geliştirme derlemesinde çalışıyor.";
 
 function mimTuruBul(adres: string): string | null {
   const yol = adres.split("?")[0].toLowerCase();
@@ -86,8 +85,9 @@ export const PartiNativeOynatici = forwardRef<OynaticiKolu, Props>(function Part
   useEffect(() => {
     if (!varMi) {
       setYukleniyor(false);
-      setHata(YOK_MESAJI);
-      bildir({ tur: "engel", sebep: YOK_MESAJI });
+      const yokMesaji = cevir("oynatici.yalnizAndroid");
+      setHata(yokMesaji);
+      bildir({ tur: "engel", sebep: yokMesaji });
       return;
     }
     if (!adres) return;
@@ -116,7 +116,7 @@ export const PartiNativeOynatici = forwardRef<OynaticiKolu, Props>(function Part
       })
       .catch((e: unknown) => {
         if (iptal) return;
-        const sebep = (e as Error)?.message || "Bağlantı yüklenemedi.";
+        const sebep = (e as Error)?.message || cevir("oynatici.baglantiHatasi");
         setHata(sebep);
         bildir({ tur: "engel", sebep });
       });

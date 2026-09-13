@@ -1,3 +1,5 @@
+import { cevir } from "@/lib/ceviri";
+
 export type PartiRol = "sahip" | "yardimci" | "uye";
 
 export type PartiEylem =
@@ -33,9 +35,7 @@ export function yetkiVar(rol: PartiRol | null | undefined, eylem: PartiEylem): b
 }
 
 export function rolAdi(rol: PartiRol): string {
-  if (rol === "sahip") return "Parti Sahibi";
-  if (rol === "yardimci") return "Parti Yardımcısı";
-  return "İzleyici";
+  return cevir(`rol.${rol}`);
 }
 
 export function atabilirMi(benimRol: PartiRol | null | undefined, hedefRol: PartiRol): boolean {
