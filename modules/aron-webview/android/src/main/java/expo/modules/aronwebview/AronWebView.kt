@@ -194,7 +194,7 @@ class AronWebView(context: Context, appContext: AppContext) : ExpoView(context, 
     s.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
     s.loadWithOverviewMode = true
     s.useWideViewPort = true
-    s.builtInZoomControls = false
+    s.builtInZoomControls = true
     s.displayZoomControls = false
     s.setSupportZoom(true)
     s.javaScriptCanOpenWindowsAutomatically = true
