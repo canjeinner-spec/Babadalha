@@ -132,33 +132,49 @@ class YoutubePoTokenUretici(private val context: Context) {
         val html = context.assets.open("aron_potoken.html").use { String(it.readBytes(), Charsets.UTF_8) }
         w.loadDataWithBaseURL("https://www.youtube.com", html, "text/html", "utf-8", null)
 
-        val bitis = System.currentTimeMillis() + HAZIRLIK_SURESI
+        val hazirlikBitis = System.currentTimeMillis() + HAZIRLIK_SURESI
+        val sonucBitis = System.currentTimeMillis() + SONUC_SURESI
+        val sonucYokla = object : Runnable {
+          override fun run() {
+            w.evaluateJavascript("window.__potSonuc") { ham ->
+              val duz = cozJs(ham)
+              when {
+                duz.isNotEmpty() && duz != "null" && duz != "undefined" -> {
+                  try {
+                    sonuc = JSONObject(duz)
+                    if (sonuc.has("error")) hata = sonuc.optString("error")
+                    else if (sonuc.optString("botguardResponse", "").isEmpty()) {
+                      hata = "botguardResponse bos (sayfa sonucu: ${duz.take(120)})"
+                    }
+                  } catch (e: Throwable) {
+                    hata = "js sonucu ayristirilamadi: ${e.message} ham=${duz.take(120)}"
+                  }
+                  kilit.countDown()
+                }
+                System.currentTimeMillis() > sonucBitis -> {
+                  hata = "botguard sonucu ${SONUC_SURESI} ms icinde gelmedi"
+                  kilit.countDown()
+                }
+                else -> anaIplik.postDelayed(this, 250)
+              }
+            }
+          }
+        }
         val calistir = {
           val veri = JSONObject(meydan.toString()).apply {
             put("interpreterJavascript", yorumlayici)
           }
-          val js = "botguardCalistir(" + veri.toString() + ").then(function(r){" +
-            "return JSON.stringify({botguardResponse: r.botguardResponse});" +
-            "}).catch(function(e){ return JSON.stringify({error: String(e)}); })"
-          w.evaluateJavascript(js) { ham ->
-            try {
-              val duz = cozJs(ham)
-              sonuc = JSONObject(duz)
-              if (sonuc.has("error")) hata = sonuc.optString("error")
-            } catch (e: Throwable) {
-              hata = "js sonucu ayristirilamadi: ${e.message} ham=${ham?.take(120)}"
-            }
-            kilit.countDown()
-          }
+          w.evaluateJavascript("botguardBaslat(" + veri.toString() + ")", null)
+          anaIplik.postDelayed(sonucYokla, 300)
         }
         val bekle = object : Runnable {
           override fun run() {
-            w.evaluateJavascript("(typeof botguardCalistir)") { tur ->
+            w.evaluateJavascript("(typeof botguardBaslat)") { tur ->
               val hazir = tur != null && tur.contains("function")
               when {
                 hazir -> calistir()
-                System.currentTimeMillis() > bitis -> {
-                  hata = "botguardCalistir sayfada tanimlanmadi (${HAZIRLIK_SURESI} ms beklendi)"
+                System.currentTimeMillis() > hazirlikBitis -> {
+                  hata = "botguardBaslat sayfada tanimlanmadi (${HAZIRLIK_SURESI} ms beklendi)"
                   kilit.countDown()
                 }
                 else -> anaIplik.postDelayed(this, 200)
@@ -173,7 +189,7 @@ class YoutubePoTokenUretici(private val context: Context) {
       }
     }
 
-    if (!kilit.await(30, TimeUnit.SECONDS)) throw Exception("botguard zaman asimi")
+    if (!kilit.await(55, TimeUnit.SECONDS)) throw Exception("botguard zaman asimi")
     hata?.let { throw Exception("botguard hatasi: $it") }
     return sonuc
   }
@@ -277,6 +293,7 @@ class YoutubePoTokenUretici(private val context: Context) {
 
   companion object {
     private const val HAZIRLIK_SURESI = 20_000L
+    private const val SONUC_SURESI = 30_000L
     private const val TAG = "YtPoToken"
     private const val GOOGLE_API_KEY = "AIzaSyDyT5W0Jh49F30Pqqtyfdf7pDLFKLJoAnw"
     private const val ISTEK_ANAHTARI = "O43z0dpjhgX20SCx4KAo"

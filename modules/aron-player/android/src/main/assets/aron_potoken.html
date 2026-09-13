@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="en"><head><title></title><script>
 function botguardYukle(meydan) {
-  this.vm = this[meydan.globalName];
-  this.program = meydan.program;
-  this.vmFunctions = {};
-  this.syncSnapshotFunction = null;
+  window.vm = window[meydan.globalName];
+  window.program = meydan.program;
+  window.vmFunctions = {};
+  window.syncSnapshotFunction = null;
 
-  if (!this.vm) throw new Error('BotGuard: VM yok');
-  if (!this.vm.a) throw new Error('BotGuard: program yuklenemedi');
+  if (!window.vm) throw new Error('BotGuard: VM yok (' + meydan.globalName + ')');
+  if (!window.vm.a) throw new Error('BotGuard: program yuklenemedi');
 
   var geriCagri = function (asyncSnapshotFunction, shutdownFunction, passEventFunction, checkCameraFunction) {
-    this.vmFunctions = {
+    window.vmFunctions = {
       asyncSnapshotFunction: asyncSnapshotFunction,
       shutdownFunction: shutdownFunction,
       passEventFunction: passEventFunction,
@@ -18,13 +18,13 @@ function botguardYukle(meydan) {
     };
   };
 
-  this.syncSnapshotFunction = this.vm.a(this.program, geriCagri, true, this.userInteractionElement, function () {}, [[], []])[0];
+  window.syncSnapshotFunction = window.vm.a(window.program, geriCagri, true, window.userInteractionElement, function () {}, [[], []])[0];
 
   return new Promise(function (resolve, reject) {
     var i = 0;
     var z = setInterval(function () {
-      if (!!this.vmFunctions.asyncSnapshotFunction) { resolve(this); clearInterval(z); }
-      if (i >= 10000) { reject('asyncSnapshotFunction 10 saniyede gelmedi'); clearInterval(z); }
+      if (!!window.vmFunctions.asyncSnapshotFunction) { resolve(window); clearInterval(z); }
+      if (i >= 10000) { reject(new Error('asyncSnapshotFunction 10 saniyede gelmedi')); clearInterval(z); }
       i += 1;
     }, 1);
   });
@@ -32,9 +32,9 @@ function botguardYukle(meydan) {
 
 function anlikGoruntu(args) {
   return new Promise(function (resolve, reject) {
-    if (!this.vmFunctions.asyncSnapshotFunction)
+    if (!window.vmFunctions.asyncSnapshotFunction)
       return reject(new Error('BotGuard: asyncSnapshotFunction yok'));
-    this.vmFunctions.asyncSnapshotFunction(function (yanit) { resolve(yanit); }, [
+    window.vmFunctions.asyncSnapshotFunction(function (yanit) { resolve(yanit); }, [
       args.contentBinding,
       args.signedTimestamp,
       args.webPoSignalOutput,
@@ -45,19 +45,33 @@ function anlikGoruntu(args) {
 
 function botguardCalistir(meydan) {
   var yorumlayici = meydan.interpreterJavascript;
-  if (yorumlayici) { new Function(yorumlayici)(); } else { throw new Error('VM yuklenemedi'); }
+  if (!yorumlayici) throw new Error('VM yuklenemedi');
+  (0, eval)(yorumlayici);
 
   var webPoSignalOutput = [];
   window.webPoSignalOutputGlobal = webPoSignalOutput;
   return botguardYukle({
     globalName: meydan.globalName,
-    globalObj: this,
     program: meydan.program
-  }).then(function (bg) {
-    return anlikGoruntu.call(bg, { webPoSignalOutput: webPoSignalOutput });
+  }).then(function () {
+    return anlikGoruntu({ webPoSignalOutput: webPoSignalOutput });
   }).then(function (yanit) {
     return { webPoSignalOutput: webPoSignalOutput, botguardResponse: yanit };
   });
+}
+
+function botguardBaslat(meydan) {
+  window.__potSonuc = null;
+  try {
+    botguardCalistir(meydan).then(function (r) {
+      window.__potSonuc = JSON.stringify({ botguardResponse: r.botguardResponse || '' });
+    }).catch(function (e) {
+      window.__potSonuc = JSON.stringify({ error: String(e && e.message ? e.message : e) });
+    });
+  } catch (e) {
+    window.__potSonuc = JSON.stringify({ error: String(e && e.message ? e.message : e) });
+  }
+  return 'baslatildi';
 }
 
 var __basici = null;
