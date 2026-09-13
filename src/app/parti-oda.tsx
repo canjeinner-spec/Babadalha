@@ -956,8 +956,8 @@ export default function PartiOda() {
             ?? "";
           if (!token) { maxYerelYukleniyor.current = false; return; }
           const sonuc = await maxManifestAl(token, o.icerikId);
-          setMaxYerelAdres(sonuc.manifestUrl);
           setMaxLisansUrl(sonuc.lisansUrl);
+          setMaxYerelAdres(sonuc.manifestUrl);
         } catch {
           setMaxYerelAdres(null);
           setMaxLisansUrl(null);
@@ -995,8 +995,8 @@ export default function PartiOda() {
             ?? cerezler.match(/(?:^|;\s*)lc-acbtr=([^;]+)/)?.[1]
             ?? "";
           const sonuc = await primeManifestAl(o.videoId, cerezler, "");
-          setPrimeYerelAdres(sonuc.manifestUrl);
           setPrimeDrm({ lisansUrl: sonuc.lisansUrl, videoId: sonuc.videoId, cerezler, marketplaceId: sonuc.marketplaceId || marketplaceId, altyazilar: sonuc.altyazilar });
+          setPrimeYerelAdres(sonuc.manifestUrl);
           ayiklamaYaz(`prime: altyazi izi=${sonuc.altyazilar?.length ?? 0}`);
         } catch {
           setPrimeYerelAdres(null);
