@@ -5,7 +5,6 @@ import { Icon } from "@/icons/Icon";
 import { useCeviri } from "@/lib/ceviri";
 import { Gradient } from "@/theme/Gradient";
 
-const ORAN = 7 / 2;
 const VURGU = "#F5CE6E";
 
 export function TanitimBanner() {
@@ -51,7 +50,7 @@ export function TanitimBanner() {
 const styles = StyleSheet.create({
   banner: {
     width: "100%",
-    aspectRatio: ORAN,
+    height: 96,
     borderRadius: 20,
     overflow: "hidden",
     alignItems: "center",

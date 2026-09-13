@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AltinAmblem, type AltinAmblemAdi } from "@/components/AltinAmblem";
+import { BaslatAmblemi } from "@/components/BaslatAmblemi";
 import { Txt } from "@/components/Txt";
 import { type IconName } from "@/icons/paths";
 import { useCeviri } from "@/lib/ceviri";
@@ -55,7 +56,7 @@ export function AltCubuk() {
         onPress={() => { haptic.select(); router.push("/parti-platform"); }}
       >
         <Gradient colors={[C.gold2, "#C8922B"]} deg={135} style={styles.ortaKutu}>
-          <AltinAmblem ad="oynat" yedek="evParty" boyut={26} />
+          <BaslatAmblemi boyut={30} />
         </Gradient>
         <Txt weight="extrabold" size={10} color={C.gold2} style={{ marginTop: 5 }}>
           {t("cubuk.baslat")}
