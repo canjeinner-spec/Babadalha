@@ -61,7 +61,17 @@ etme, kesince kenarlarda beyaz hâle kalıyor.
 
 ## Görsel geldiğinde
 
-Üç kareye bölünüp `ev.webp`, `kapi.webp`, `kisi.webp` olarak kaydedilir,
-pasif hâlleri de aktiften türetilir. Kesme ve dönüştürme
-`belgeler/amblem_uret.py` yanında yapılır.
+```bash
+python3 belgeler/amblem_kes.py <gorsel.png> "ev,kapi,kisi" assets/amblem
+```
+
+Betik saydam kanala bakıp kümeleri kendi buluyor, eşit üçe bölmeye
+güvenmiyor. Yaptıkları: eşiğin altındaki tozu ve en büyük parçanın
+%2'sinden küçük lekeleri siliyor (üretilen görselde ikonların çevresinde
+kırmızı ve sarı serpintiler vardı), kalan yarı saydam kenardan bir tık
+kırpıp renk saçağını inceltiyor, her ikonu kendi sınırına göre kesip
+kareye ortalıyor, %8 kenar payı bırakıp 192×192 webp yazıyor.
+
+Pasif hâller dosya olarak üretilmiyor; `AltinAmblem` sönük istendiğinde
+aynı görseli düşük saydamlıkla çiziyor.
 
