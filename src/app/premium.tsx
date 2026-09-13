@@ -4,12 +4,14 @@ import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { RenkliAd } from "@/components/RenkliAd";
 import { Txt } from "@/components/Txt";
 import { Icon } from "@/icons/Icon";
 import { type IconName } from "@/icons/paths";
 import { useCeviri } from "@/lib/ceviri";
 import { useDil } from "@/lib/dil";
 import { haptic } from "@/lib/haptics";
+import { useApp } from "@/store/appStore";
 import { premiumuIsaretle } from "@/lib/ilkAcilis";
 import { C } from "@/theme/colors";
 import { Gradient } from "@/theme/Gradient";
@@ -21,18 +23,20 @@ const FIYATLAR: Record<string, Record<Paket, string>> = {
   en: { aylik: "$3.99", yillik: "$39.99" },
 };
 
-const AYRICALIKLAR: { simge: IconName; baslik: string; metin: string }[] = [
+const AYRICALIKLAR: { simge: IconName; baslik: string; metin: string; ornek?: boolean }[] = [
   { simge: "ban", baslik: "premium.reklamsizBaslik", metin: "premium.reklamsizMetin" },
-  { simge: "evStar", baslik: "premium.renkliAdBaslik", metin: "premium.renkliAdMetin" },
+  { simge: "evStar", baslik: "premium.renkliAdBaslik", metin: "premium.renkliAdMetin", ornek: true },
   { simge: "mic", baslik: "premium.mikrofonBaslik", metin: "premium.mikrofonMetin" },
   { simge: "bolt", baslik: "premium.erkenBaslik", metin: "premium.erkenMetin" },
+  { simge: "evDiamond", baslik: "premium.dahaBaslik", metin: "premium.dahaMetin" },
 ];
 
-function Ayricalik({ simge, baslik, metin, sira }: {
+function Ayricalik({ simge, baslik, metin, sira, ornekAdi }: {
   simge: IconName;
   baslik: string;
   metin: string;
   sira: number;
+  ornekAdi?: string;
 }) {
   return (
     <Animated.View entering={FadeInDown.duration(460).delay(560 + sira * 110)} style={styles.ayricalik}>
@@ -42,6 +46,11 @@ function Ayricalik({ simge, baslik, metin, sira }: {
       <View style={{ flex: 1, minWidth: 0 }}>
         <Txt weight="extrabold" size={14.5} color="#fff">{baslik}</Txt>
         <Txt size={12.5} color="rgba(255,255,255,.66)" lh={1.45} style={{ marginTop: 3 }}>{metin}</Txt>
+        {!!ornekAdi && (
+          <View style={styles.ornek}>
+            <RenkliAd ad={ornekAdi} tip="premium" size={14.5} weight="extrabold" renk="#fff" />
+          </View>
+        )}
       </View>
     </Animated.View>
   );
@@ -52,6 +61,7 @@ export default function Premium() {
   const t = useCeviri();
   const kod = useDil((s) => s.dil.kod).split("-")[0];
   const fiyat = FIYATLAR[kod] ?? FIYATLAR.en;
+  const ornekAdi = useApp((s) => s.userName) || "Aron";
   const [paket, setPaket] = useState<Paket>("yillik");
   const [not, setNot] = useState("");
 
@@ -127,6 +137,7 @@ export default function Premium() {
                 baslik={t(a.baslik)}
                 metin={t(a.metin)}
                 sira={i}
+                ornekAdi={a.ornek ? ornekAdi : undefined}
               />
             ))}
           </View>
@@ -212,6 +223,11 @@ const styles = StyleSheet.create({
     width: 36, height: 36, borderRadius: 12, alignItems: "center", justifyContent: "center",
     backgroundColor: "rgba(232,179,65,.13)",
     borderWidth: 1, borderColor: "rgba(232,179,65,.26)",
+  },
+  ornek: {
+    alignSelf: "flex-start", marginTop: 8,
+    borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5,
+    backgroundColor: "rgba(255,255,255,.06)",
   },
   paketler: { flexDirection: "row", gap: 11, marginTop: 22, width: "100%" },
   paket: {

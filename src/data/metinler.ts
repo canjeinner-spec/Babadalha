@@ -183,10 +183,10 @@ export const METINLER = {
     tr: "Oda listesinde ve izlerken reklam görmezsin.",
     en: "No ads in the room list or while you watch.",
   },
-  "premium.renkliAdBaslik": { tr: "Renkli ad", en: "Coloured name" },
+  "premium.renkliAdBaslik": { tr: "Özel ad rengin", en: "Your own name colour" },
   "premium.renkliAdMetin": {
-    tr: "Adın sohbette ve odada kendi seçtiğin renkte görünür.",
-    en: "Your name shows in a colour you pick, in chat and in the room.",
+    tr: "Kullanıcı adın sohbette ve odada özel renkte parlar. Rengini kendin seçersin.",
+    en: "Your username glows in a special colour in chat and in the room. You pick the colour.",
   },
   "premium.mikrofonBaslik": { tr: "Sınırsız mikrofon", en: "Unlimited mic" },
   "premium.mikrofonMetin": {
@@ -198,6 +198,12 @@ export const METINLER = {
     tr: "Yeni platformlar ve özellikler önce Premium'da açılır.",
     en: "New platforms and features open on Premium first.",
   },
+  "premium.dahaBaslik": { tr: "Ve çok daha fazlası", en: "And much more" },
+  "premium.dahaMetin": {
+    tr: "Premium'a özel yeni özellikler eklenmeye devam ediyor.",
+    en: "New Premium-only features keep arriving.",
+  },
+
   "premium.aylik": { tr: "Aylık", en: "Monthly" },
   "premium.yillik": { tr: "Yıllık", en: "Yearly" },
   "premium.ayBasi": { tr: "ayda {0}", en: "{0} per month" },
