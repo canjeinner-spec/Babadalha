@@ -17,8 +17,7 @@ export type AltinAmblemAdi =
   | "kisi-ekle"
   | "ev"
   | "kapi"
-  | "kisi"
-  | "oynat";
+  | "kisi";
 
 const GORSELLER: Record<AltinAmblemAdi, number> = {
   tac: require("@/assets/amblem/tac.webp"),
@@ -33,7 +32,6 @@ const GORSELLER: Record<AltinAmblemAdi, number> = {
   ev: require("@/assets/amblem/ev.webp"),
   kapi: require("@/assets/amblem/kapi.webp"),
   kisi: require("@/assets/amblem/kisi.webp"),
-  oynat: require("@/assets/amblem/oynat.webp"),
 };
 
 export function AltinAmblem({ ad, yedek, boyut = 24, sonuk = false }: {

@@ -1,20 +1,15 @@
 # Navbar ikonları: görsel üretim promptları
 
-Dört ikon gerekiyor. Üçü çubuktaki sekmeler (altın), biri ortadaki
-yükseltilmiş düğmenin içi (koyu).
+Üç ikon gerekiyor, hepsi altın.
 
-| dosya | sekme | dolgu |
-| --- | --- | --- |
-| `assets/amblem/ev.webp` | Ev | altın |
-| `assets/amblem/kapi.webp` | Partiler | altın |
-| `assets/amblem/kisi.webp` | Kişi | altın |
-| `assets/amblem/oynat.webp` | ortadaki düğme | koyu |
+| dosya | sekme |
+| --- | --- |
+| `assets/amblem/ev.webp` | Ev |
+| `assets/amblem/kapi.webp` | Partiler |
+| `assets/amblem/kisi.webp` | Profil |
 
-## Neden ortadaki farklı
-
-Ortadaki düğmenin zemini zaten altın degrade (parti başlat düğmesindeki
-gibi). Üstüne altın ikon konursa okunmaz; o yüzden koyu mürekkep
-(`#241A05`) isteniyor.
+Ortadaki yükseltilmiş düğme üretilmeyecek: içinde zaten kendi parti
+amblemimiz (`assets/marka/parti-amblem.webp`) duruyor.
 
 ## Neden pasif hâlini üretmeye gerek yok
 
@@ -61,12 +56,6 @@ okunuyor ve Rave ile Turtle'ın küresine benzemiyor.
 head above a rounded shoulders shape. Symmetrical, no facial features,
 no arms, no neck.`
 
-**4. Ortadaki düğme** — ortak bloğun altın satırları şununla değiştirilir:
-`Solid flat fill in one single dark colour #241A05, no gradient, no glow.`
-sonra + `A play triangle with softly rounded corners, pointing right,
-slightly optically centred. Nothing around it, no circle, no square, no
-ring.`
-
 ## Set birbirini tutmazsa
 
 Model ikonları tek tek üretirken üslubu kaydırıyorsa, dördünü tek
@@ -84,7 +73,7 @@ Bottom-right: a play triangle with rounded corners pointing right.
 No text, no frame, no background.
 ```
 
-Dördü kesilip ayrılır; ortadaki düğmenin koyu hâli ayrıca istenir.
+Üçü kesilip ayrılır.
 
 ## Dosyalar geldiğinde
 

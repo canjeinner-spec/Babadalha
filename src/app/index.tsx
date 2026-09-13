@@ -9,7 +9,6 @@ import { Image } from "expo-image";
 import { Portrait } from "@/components/Portrait";
 import { Txt } from "@/components/Txt";
 import { UstKaplama } from "@/components/UstKaplama";
-import { Icon } from "@/icons/Icon";
 import { useCeviri } from "@/lib/ceviri";
 import { haptic } from "@/lib/haptics";
 import { girisEkraniGecildi, karsilamaGoruldu, premiumGoruldu } from "@/lib/ilkAcilis";
@@ -18,8 +17,6 @@ import { useApp } from "@/store/appStore";
 import { C } from "@/theme/colors";
 import { TEMA_YAZI_GOLGESI, useTema } from "@/theme/tema";
 import { Zemin } from "@/theme/Zemin";
-
-const YOL_LINK = "M10 13a5 5 0 007.07 0l3-3a5 5 0 00-7.07-7.07l-1.72 1.71M14 11a5 5 0 00-7.07 0l-3 3a5 5 0 007.07 7.07l1.71-1.71";
 
 export default function AnaSayfa() {
   const t = useCeviri();
@@ -91,23 +88,6 @@ export default function AnaSayfa() {
           <TanitimBanner />
 
           <Txt weight="extrabold" size={12.5} color={C.text} style={styles.bolumBaslik}>
-            {t("ana.katilBaslik")}
-          </Txt>
-
-          <Pressable
-            style={styles.katil}
-            onPress={() => { haptic.select(); router.push("/parti-dogrudan"); }}
-          >
-            <Icon path={YOL_LINK} size={19} sw={2} color={C.gold2} />
-            <Txt size={13.5} color="rgba(255,255,255,.58)" style={{ flex: 1 }} numberOfLines={1}>
-              {t("ana.katilIpucu")}
-            </Txt>
-            <View style={styles.katilOk}>
-              <Icon name="chev" size={17} sw={2.4} color="#241A05" />
-            </View>
-          </Pressable>
-
-          <Txt weight="extrabold" size={12.5} color={C.text} style={styles.bolumBaslik}>
             {t("ana.platformBaslik")}
           </Txt>
           <Txt size={12} color={C.dim} style={styles.bolumAlt}>
@@ -159,15 +139,6 @@ const styles = StyleSheet.create({
   baslik: {
     flexDirection: "row", alignItems: "center", gap: 12,
     paddingHorizontal: 16, paddingTop: 8, paddingBottom: 14,
-  },
-  katil: {
-    flexDirection: "row", alignItems: "center", gap: 11,
-    borderRadius: 16, paddingVertical: 12, paddingLeft: 15, paddingRight: 10,
-    backgroundColor: C.kart, borderWidth: 1, borderColor: C.line,
-  },
-  katilOk: {
-    width: 34, height: 34, borderRadius: 12,
-    alignItems: "center", justifyContent: "center", backgroundColor: C.gold2,
   },
   izgara: {
     flexDirection: "row", flexWrap: "wrap",
