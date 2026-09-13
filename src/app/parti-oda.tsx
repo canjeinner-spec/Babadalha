@@ -1317,7 +1317,11 @@ export default function PartiOda() {
       >
         {!buyuk && (
         <View
-          style={[styles.ustZemin, { paddingTop: insets.top }]}
+          style={[
+            styles.ustZemin,
+            { paddingTop: insets.top },
+            kip === "gezinme" && styles.ustYuzen,
+          ]}
           onLayout={(e) => setUstYukseklik(e.nativeEvent.layout.height)}
         >
           <UstBar
@@ -1535,6 +1539,7 @@ const styles = StyleSheet.create({
   yatayGovde: { flex: 1, flexDirection: "row" },
   yanSutun: { width: "32%", minWidth: 240 },
   ustZemin: { paddingHorizontal: 18 },
+  ustYuzen: { position: "absolute", top: 0, left: 0, right: 0, zIndex: 10 },
   ustBar: {
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
     paddingVertical: 14,

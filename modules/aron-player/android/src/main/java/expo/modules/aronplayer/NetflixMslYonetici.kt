@@ -93,7 +93,7 @@ class NetflixMslYonetici(private val context: Context) {
       zincirDurum = if (oturum.sahipToken != null) "sahip:ok" else "sahip:bos"
       Log.d(TAG, "sahip tokeni alindi")
     } catch (e: Throwable) {
-      zincirDurum = "sahip:HATA(${e.message?.take(60)})"
+      zincirDurum = "sahip:HATA(${e.message?.take(200)})"
       Log.w(TAG, "sahip tokeni alinamadi, devam ediliyor: ${e.message}")
     }
   }
@@ -121,7 +121,7 @@ class NetflixMslYonetici(private val context: Context) {
       zincirDurum += if (oturum.kullaniciToken != null) " profil:ok" else " profil:bos"
       Log.d(TAG, "kullanici tokeni alindi, manifest artik useridtoken ile gidecek")
     } catch (e: Throwable) {
-      zincirDurum += " profil:HATA(${e.message?.take(60)})"
+      zincirDurum += " profil:HATA(${e.message?.take(200)})"
       Log.w(TAG, "profil degistirme basarisiz, sahip tokeniyle devam: ${e.message}")
     }
   }
