@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
     position: "absolute", left: 4, bottom: 4,
     width: 20, height: 20, borderRadius: 7,
     alignItems: "center", justifyContent: "center",
-    backgroundColor: "rgba(8,8,12,.8)",
+    backgroundColor: "rgba(10,8,3,.8)",
   },
   altSatir: { flexDirection: "row", alignItems: "center", gap: 5, marginTop: 5, minWidth: 0 },
   kisiCipi: {

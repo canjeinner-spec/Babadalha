@@ -5,7 +5,7 @@ import { Gradient } from "./Gradient";
 import { karart, saydam } from "./renk";
 import { useTema } from "./tema";
 
-const VARSAYILAN_TABAN = "#16121F";
+const VARSAYILAN_TABAN = "#191307";
 
 export function Zemin({ hale = true }: { hale?: boolean }) {
   const { ic } = useTema();

@@ -83,7 +83,7 @@ export default function PartiDogrudan() {
               style={[styles.dugme, !gecerli && styles.dugmePasif]}
             >
               {gecerli && <BaslatAmblemi />}
-              <Txt weight="extrabold" size={14} color={gecerli ? "#08080C" : C.dim2}>
+              <Txt weight="extrabold" size={14} color={gecerli ? C.bg : C.dim2}>
                 {secim ? "Bu bağlantıya geç" : "Partiyi başlat"}
               </Txt>
             </Pressable>

@@ -74,7 +74,7 @@ export const UstKaplama = memo(function UstKaplama({ uzat = 0, yumusak = false, 
       )}
 
       <View
-        style={[StyleSheet.absoluteFill, { backgroundColor: `rgba(8,8,12,${ic.perde ?? VARSAYILAN_PERDE})` }]}
+        style={[StyleSheet.absoluteFill, { backgroundColor: `rgba(10,8,3,${ic.perde ?? VARSAYILAN_PERDE})` }]}
       />
       <Gradient
         colors={["transparent", "transparent", zemin ?? ic.zemin ?? C.bg]}

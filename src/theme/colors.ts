@@ -1,5 +1,5 @@
 export const C = {
-  bg: "#08080C",
+  bg: "#0A0803",
   card: "#131319",
   card2: "#17171F",
   line: "rgba(255,255,255,.07)",

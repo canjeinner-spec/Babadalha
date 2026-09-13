@@ -153,7 +153,7 @@ export default function Karsilama() {
   return (
     <View style={styles.kok}>
       <LinearGradient
-        colors={["rgba(232,179,65,.10)", "rgba(8,8,12,0)"]}
+        colors={["rgba(232,179,65,.10)", "rgba(10,8,3,0)"]}
         style={styles.isik}
         pointerEvents="none"
       />
