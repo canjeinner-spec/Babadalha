@@ -1,12 +1,18 @@
 import { type ImageSourcePropType } from "react-native";
 
+import { type AltinAmblemAdi } from "@/components/AltinAmblem";
 import { type IconName } from "@/icons/paths";
 
 export type KarsilamaYazisi = { tr: string; en: string };
 
 export type KarsilamaParagrafi = { metin: string; vurgu?: boolean; selam?: boolean };
 
-export type KarsilamaAdimi = { simge: IconName; baslik: string; metin: string };
+export type KarsilamaAdimi = {
+  amblem: AltinAmblemAdi;
+  simge: IconName;
+  baslik: string;
+  metin: string;
+};
 
 export type KarsilamaSayfasi = {
   anahtar: string;
@@ -21,7 +27,12 @@ export type KarsilamaSayfasi = {
 
 type HamParagraf = { metin: KarsilamaYazisi; vurgu?: boolean; selam?: boolean };
 
-type HamAdim = { simge: IconName; baslik: KarsilamaYazisi; metin: KarsilamaYazisi };
+type HamAdim = {
+  amblem: AltinAmblemAdi;
+  simge: IconName;
+  baslik: KarsilamaYazisi;
+  metin: KarsilamaYazisi;
+};
 
 type HamSayfa = {
   anahtar: string;
@@ -93,6 +104,7 @@ const HAM_SAYFALAR: HamSayfa[] = [
     altYazi: { tr: "Dört adım, tek oda.", en: "Four steps, one room." },
     adimlar: [
       {
+        amblem: "parti",
         simge: "evParty",
         baslik: { tr: "Odanı aç", en: "Open your room" },
         metin: {
@@ -101,6 +113,7 @@ const HAM_SAYFALAR: HamSayfa[] = [
         },
       },
       {
+        amblem: "kisi-ekle",
         simge: "userAdd",
         baslik: { tr: "Sevdiklerini çağır", en: "Invite the people you love" },
         metin: {
@@ -109,6 +122,7 @@ const HAM_SAYFALAR: HamSayfa[] = [
         },
       },
       {
+        amblem: "simsek",
         simge: "bolt",
         baslik: { tr: "Aynı saniyede izleyin", en: "Watch on the same second" },
         metin: {
@@ -117,6 +131,7 @@ const HAM_SAYFALAR: HamSayfa[] = [
         },
       },
       {
+        amblem: "mikrofon",
         simge: "mic",
         baslik: { tr: "Sesini aç", en: "Turn your voice on" },
         metin: {
@@ -146,6 +161,7 @@ export function karsilamaSayfalari(dilKodu: string): KarsilamaSayfasi[] {
       selam: p.selam,
     })),
     adimlar: (s.adimlar ?? []).map((a) => ({
+      amblem: a.amblem,
       simge: a.simge,
       baslik: yaziSec(a.baslik, dilKodu),
       metin: yaziSec(a.metin, dilKodu),

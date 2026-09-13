@@ -6,6 +6,7 @@ import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import { Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { AltinAmblem } from "@/components/AltinAmblem";
 import { Txt } from "@/components/Txt";
 import { YazilanMetin, type YazilanBlok } from "@/components/YazilanMetin";
 import { karsilamaSayfalari, type KarsilamaAdimi, type KarsilamaSayfasi } from "@/data/karsilamaSayfalari";
@@ -27,7 +28,7 @@ function AdimSatiri({ adim, sira }: { adim: KarsilamaAdimi; sira: number }) {
       style={styles.adimSatiri}
     >
       <View style={styles.adimSimge}>
-        <Icon name={adim.simge} size={20} sw={2} color={C.gold2} />
+        <AltinAmblem ad={adim.amblem} yedek={adim.simge} boyut={26} />
       </View>
       <View style={{ flex: 1, minWidth: 0 }}>
         <Txt weight="extrabold" size={15} color="#fff">{adim.baslik}</Txt>
@@ -152,7 +153,7 @@ function Sayfa({
         {adimli ? (
           <View style={styles.adimListesi}>
             {basladi && sayfa.adimlar.map((a, i) => (
-              <AdimSatiri key={a.simge} adim={a} sira={i} />
+              <AdimSatiri key={a.amblem} adim={a} sira={i} />
             ))}
           </View>
         ) : (
@@ -301,9 +302,9 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: "rgba(255,255,255,.08)",
   },
   adimSimge: {
-    width: 42, height: 42, borderRadius: 14, alignItems: "center", justifyContent: "center",
-    backgroundColor: "rgba(232,179,65,.14)",
-    borderWidth: 1, borderColor: "rgba(232,179,65,.28)",
+    width: 46, height: 46, borderRadius: 15, alignItems: "center", justifyContent: "center",
+    backgroundColor: "rgba(232,179,65,.09)",
+    borderWidth: 1, borderColor: "rgba(232,179,65,.2)",
   },
   adimNo: {
     width: 22, height: 22, borderRadius: 11, alignItems: "center", justifyContent: "center",

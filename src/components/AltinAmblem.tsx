@@ -7,21 +7,25 @@ import { C } from "@/theme/colors";
 
 export type AltinAmblemAdi =
   | "tac"
-  | "hazir"
-  | "reklamsiz"
-  | "ad-rengi"
+  | "onay"
+  | "yasak"
+  | "yildiz"
   | "mikrofon"
-  | "erken"
-  | "daha";
+  | "simsek"
+  | "elmas"
+  | "parti"
+  | "kisi-ekle";
 
 const GORSELLER: Record<AltinAmblemAdi, number> = {
   tac: require("@/assets/amblem/tac.webp"),
-  hazir: require("@/assets/amblem/hazir.webp"),
-  reklamsiz: require("@/assets/amblem/reklamsiz.webp"),
-  "ad-rengi": require("@/assets/amblem/ad-rengi.webp"),
+  onay: require("@/assets/amblem/onay.webp"),
+  yasak: require("@/assets/amblem/yasak.webp"),
+  yildiz: require("@/assets/amblem/yildiz.webp"),
   mikrofon: require("@/assets/amblem/mikrofon.webp"),
-  erken: require("@/assets/amblem/erken.webp"),
-  daha: require("@/assets/amblem/daha.webp"),
+  simsek: require("@/assets/amblem/simsek.webp"),
+  elmas: require("@/assets/amblem/elmas.webp"),
+  parti: require("@/assets/amblem/parti.webp"),
+  "kisi-ekle": require("@/assets/amblem/kisi-ekle.webp"),
 };
 
 export function AltinAmblem({ ad, yedek, boyut = 24 }: {

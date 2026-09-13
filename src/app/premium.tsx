@@ -35,11 +35,11 @@ const AYRICALIKLAR: {
   metin: string;
   ornek?: boolean;
 }[] = [
-  { amblem: "reklamsiz", simge: "ban", baslik: "premium.reklamsizBaslik", metin: "premium.reklamsizMetin" },
-  { amblem: "ad-rengi", simge: "evStar", baslik: "premium.renkliAdBaslik", metin: "premium.renkliAdMetin", ornek: true },
+  { amblem: "yasak", simge: "ban", baslik: "premium.reklamsizBaslik", metin: "premium.reklamsizMetin" },
+  { amblem: "yildiz", simge: "evStar", baslik: "premium.renkliAdBaslik", metin: "premium.renkliAdMetin", ornek: true },
   { amblem: "mikrofon", simge: "mic", baslik: "premium.mikrofonBaslik", metin: "premium.mikrofonMetin" },
-  { amblem: "erken", simge: "bolt", baslik: "premium.erkenBaslik", metin: "premium.erkenMetin" },
-  { amblem: "daha", simge: "evDiamond", baslik: "premium.dahaBaslik", metin: "premium.dahaMetin" },
+  { amblem: "simsek", simge: "bolt", baslik: "premium.erkenBaslik", metin: "premium.erkenMetin" },
+  { amblem: "elmas", simge: "evDiamond", baslik: "premium.dahaBaslik", metin: "premium.dahaMetin" },
 ];
 
 function MarkaSeridi() {

@@ -40,7 +40,7 @@ export default function Hazir() {
       <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
         <View style={styles.orta}>
           <Animated.View entering={FadeInDown.duration(560)} style={styles.amblem}>
-            <AltinAmblem ad="hazir" yedek="check" boyut={48} />
+            <AltinAmblem ad="onay" yedek="check" boyut={48} />
           </Animated.View>
 
           <Animated.View entering={FadeIn.duration(520).delay(220)}>
