@@ -202,7 +202,6 @@ export default function PartiAnaEkran() {
         <View style={styles.listeBasligi}>
           <Txt weight="extrabold" size={12.5} color={C.text}>Canlı partiler</Txt>
           <View style={{ flex: 1 }} />
-          <Txt size={11} color={C.dim2}>{gosterilecek.length}</Txt>
         </View>
 
         <FlatList
@@ -254,12 +253,12 @@ const styles = StyleSheet.create({
     backgroundColor: C.kart, borderWidth: 1, borderColor: C.line,
   },
   kartArkadas: { borderColor: "rgba(232,179,65,.30)" },
-  kapak: { width: 116, aspectRatio: 16 / 9, borderRadius: 10, overflow: "hidden", backgroundColor: "#14100A" },
+  kapak: { width: 144, aspectRatio: 16 / 9, borderRadius: 11, overflow: "hidden", backgroundColor: "#14100A" },
   platformRozet: {
     position: "absolute", left: 5, bottom: 5, paddingHorizontal: 4, paddingVertical: 3,
     borderRadius: 6, backgroundColor: "rgba(0,0,0,.55)",
   },
-  platformLogo: { width: 30, height: 10 },
+  platformLogo: { width: 34, height: 11 },
   canliRozet: {
     position: "absolute", right: 5, top: 5, flexDirection: "row", alignItems: "center", gap: 3,
     paddingHorizontal: 5, paddingVertical: 2.5, borderRadius: 6, backgroundColor: "rgba(220,38,38,.92)",
