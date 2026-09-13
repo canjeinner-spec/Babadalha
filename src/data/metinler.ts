@@ -167,7 +167,13 @@ export const METINLER = {
   "karsilama.ileri": { tr: "İleri", en: "Next" },
   "karsilama.dokunarakGec": { tr: "dokunarak geç", en: "tap to skip" },
 
-  "premium.girisCumlesi": { tr: "Bir şey daha…", en: "One more thing…" },
+  "birSeyDaha.ustSatir": { tr: "Bir şey daha…", en: "One more thing…" },
+  "birSeyDaha.baslik": { tr: "Aron'un tamamı ücretsiz.", en: "All of Aron is free." },
+  "birSeyDaha.altSatir": {
+    tr: "Sıradaki ekranı okumadan geçebilirsin. Hiçbir şey kaybetmezsin.",
+    en: "You can skip the next screen without reading it. You lose nothing.",
+  },
+
   "premium.baslik": { tr: "ARON PREMIUM", en: "ARON PREMIUM" },
   "premium.altYazi": { tr: "İsteğe bağlı. Gerçekten.", en: "Optional. Really." },
   "premium.giris": {
@@ -198,6 +204,14 @@ export const METINLER = {
     tr: "Yeni platformlar ve özellikler önce Premium'da açılır.",
     en: "New platforms and features open on Premium first.",
   },
+  "premium.ornekAd": { tr: "Elif", en: "Alex" },
+  "premium.ornekAd2": { tr: "Deniz", en: "Sam" },
+  "premium.ornekMesaj": {
+    tr: "aynı anda başlıyoruz, hazır mısınız?",
+    en: "we start on the same second, ready?",
+  },
+  "premium.ornekMesaj2": { tr: "hazırım, aç gitsin", en: "ready, hit play" },
+
   "premium.dahaBaslik": { tr: "Ve çok daha fazlası", en: "And much more" },
   "premium.dahaMetin": {
     tr: "Premium'a özel yeni özellikler eklenmeye devam ediyor.",

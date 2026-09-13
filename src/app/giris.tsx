@@ -30,7 +30,7 @@ export default function Giris() {
       return;
     }
     if (!(await premiumGoruldu())) {
-      router.replace("/premium");
+      router.replace("/bir-sey-daha");
       return;
     }
     router.replace("/");

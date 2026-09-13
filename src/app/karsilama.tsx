@@ -204,7 +204,7 @@ export default function Karsilama() {
       return;
     }
     await karsilamayiIsaretle();
-    router.replace((await premiumGoruldu()) ? "/" : "/premium");
+    router.replace((await premiumGoruldu()) ? "/" : "/bir-sey-daha");
   }, [son, sayfa, width, router]);
 
   return (

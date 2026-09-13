@@ -151,7 +151,7 @@ export default function PartiAnaEkran() {
         return;
       }
       if (!(await premiumGoruldu())) {
-        if (acik) router.replace("/premium");
+        if (acik) router.replace("/bir-sey-daha");
       }
     })().catch(() => {});
     return () => { acik = false; };

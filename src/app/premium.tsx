@@ -1,9 +1,10 @@
 import { useRouter } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useState, type ReactNode } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { Portrait } from "@/components/Portrait";
 import { RenkliAd } from "@/components/RenkliAd";
 import { Txt } from "@/components/Txt";
 import { Icon } from "@/icons/Icon";
@@ -31,26 +32,64 @@ const AYRICALIKLAR: { simge: IconName; baslik: string; metin: string; ornek?: bo
   { simge: "evDiamond", baslik: "premium.dahaBaslik", metin: "premium.dahaMetin" },
 ];
 
-function Ayricalik({ simge, baslik, metin, sira, ornekAdi }: {
+function SohbetKirpmasi({ ad, mesaj, ad2, mesaj2 }: {
+  ad: string;
+  mesaj: string;
+  ad2: string;
+  mesaj2: string;
+}) {
+  return (
+    <View style={styles.kirpma}>
+      <View style={styles.kirpmaIc}>
+        <View style={styles.kirpmaSatir}>
+          <Portrait name={ad} size={30} halkasiz />
+          <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+            <RenkliAd
+              ad={ad}
+              tip="premium"
+              size={12.5}
+              weight="extrabold"
+              renk="#fff"
+              style={{ alignSelf: "flex-start" }}
+            />
+            <Txt size={12.5} color="rgba(255,255,255,.92)" lh={1.3}>{mesaj}</Txt>
+          </View>
+        </View>
+
+        <View style={styles.kirpmaSatir}>
+          <Portrait name={ad2} size={30} halkasiz />
+          <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+            <Txt weight="extrabold" size={12.5} color="rgba(255,255,255,.78)">{ad2}</Txt>
+            <Txt size={12.5} color="rgba(255,255,255,.92)" lh={1.3}>{mesaj2}</Txt>
+          </View>
+        </View>
+      </View>
+      <Gradient
+        colors={["rgba(18,14,8,0)", "rgba(18,14,8,.96)"]}
+        deg={180}
+        style={styles.kirpmaSolma}
+        pointerEvents="none"
+      />
+    </View>
+  );
+}
+
+function Ayricalik({ simge, baslik, metin, sira, onizleme }: {
   simge: IconName;
   baslik: string;
   metin: string;
   sira: number;
-  ornekAdi?: string;
+  onizleme?: ReactNode;
 }) {
   return (
-    <Animated.View entering={FadeInDown.duration(460).delay(560 + sira * 110)} style={styles.ayricalik}>
+    <Animated.View entering={FadeInDown.duration(460).delay(240 + sira * 110)} style={styles.ayricalik}>
       <View style={styles.ayricalikSimge}>
         <Icon name={simge} size={18} sw={2} color={C.gold2} />
       </View>
       <View style={{ flex: 1, minWidth: 0 }}>
         <Txt weight="extrabold" size={14.5} color="#fff">{baslik}</Txt>
         <Txt size={12.5} color="rgba(255,255,255,.66)" lh={1.45} style={{ marginTop: 3 }}>{metin}</Txt>
-        {!!ornekAdi && (
-          <View style={styles.ornek}>
-            <RenkliAd ad={ornekAdi} tip="premium" size={14.5} weight="extrabold" renk="#fff" />
-          </View>
-        )}
+        {onizleme}
       </View>
     </Animated.View>
   );
@@ -61,7 +100,8 @@ export default function Premium() {
   const t = useCeviri();
   const kod = useDil((s) => s.dil.kod).split("-")[0];
   const fiyat = FIYATLAR[kod] ?? FIYATLAR.en;
-  const ornekAdi = useApp((s) => s.userName) || "Aron";
+  const kendiAdi = useApp((s) => s.userName);
+  const ornekAdi = kendiAdi && kendiAdi !== "Sen" ? kendiAdi : t("premium.ornekAd");
   const [paket, setPaket] = useState<Paket>("yillik");
   const [not, setNot] = useState("");
 
@@ -106,18 +146,12 @@ export default function Premium() {
         </View>
 
         <ScrollView contentContainerStyle={styles.govde} showsVerticalScrollIndicator={false}>
-          <Animated.View entering={FadeIn.duration(620)}>
-            <Txt weight="bold" size={13} color="rgba(255,255,255,.6)" align="center" style={styles.girisCumlesi}>
-              {t("premium.girisCumlesi")}
-            </Txt>
-          </Animated.View>
-
-          <Animated.View entering={FadeInDown.duration(520).delay(320)} style={styles.amblem}>
+          <Animated.View entering={FadeInDown.duration(520)} style={styles.amblem}>
             <Gradient colors={[C.gold2, "rgba(232,179,65,.35)"]} deg={150} style={StyleSheet.absoluteFill} />
             <Icon name="crown" size={30} color="#241A05" fill="#241A05" />
           </Animated.View>
 
-          <Animated.View entering={FadeIn.duration(460).delay(440)}>
+          <Animated.View entering={FadeIn.duration(460).delay(120)}>
             <Txt weight="displayBold" size={23} color="#fff" align="center" style={styles.baslik}>
               {t("premium.baslik")}
             </Txt>
@@ -137,12 +171,19 @@ export default function Premium() {
                 baslik={t(a.baslik)}
                 metin={t(a.metin)}
                 sira={i}
-                ornekAdi={a.ornek ? ornekAdi : undefined}
+                onizleme={a.ornek ? (
+                  <SohbetKirpmasi
+                    ad={ornekAdi}
+                    mesaj={t("premium.ornekMesaj")}
+                    ad2={t("premium.ornekAd2")}
+                    mesaj2={t("premium.ornekMesaj2")}
+                  />
+                ) : undefined}
               />
             ))}
           </View>
 
-          <Animated.View entering={FadeInDown.duration(460).delay(1020)} style={styles.paketler}>
+          <Animated.View entering={FadeInDown.duration(460).delay(800)} style={styles.paketler}>
             <Pressable
               style={[styles.paket, paket === "aylik" && styles.paketSecili]}
               onPress={() => { haptic.select(); setPaket("aylik"); }}
@@ -171,7 +212,7 @@ export default function Premium() {
             </Pressable>
           </Animated.View>
 
-          <Animated.View entering={FadeIn.duration(460).delay(1140)}>
+          <Animated.View entering={FadeIn.duration(460).delay(920)}>
             <Txt size={12.5} color="rgba(255,255,255,.62)" align="center" lh={1.5} style={styles.gerekce}>
               {t("premium.gerekce")}
             </Txt>
@@ -205,7 +246,6 @@ const styles = StyleSheet.create({
   tepe: { flexDirection: "row", alignItems: "center", paddingHorizontal: 14, paddingTop: 4 },
   kapatDugmesi: { width: 34, height: 34, alignItems: "center", justifyContent: "center" },
   govde: { paddingHorizontal: 20, paddingBottom: 20, alignItems: "center" },
-  girisCumlesi: { letterSpacing: 0.4, marginBottom: 18 },
   amblem: {
     width: 64, height: 64, borderRadius: 22, overflow: "hidden",
     alignItems: "center", justifyContent: "center", marginTop: 4,
@@ -224,11 +264,14 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(232,179,65,.13)",
     borderWidth: 1, borderColor: "rgba(232,179,65,.26)",
   },
-  ornek: {
-    alignSelf: "flex-start", marginTop: 8,
-    borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5,
-    backgroundColor: "rgba(255,255,255,.06)",
+  kirpma: {
+    marginTop: 10, borderRadius: 12, overflow: "hidden", height: 84,
+    backgroundColor: "rgba(18,14,8,.85)",
+    borderWidth: 1, borderColor: "rgba(255,255,255,.09)",
   },
+  kirpmaIc: { paddingHorizontal: 10, paddingTop: 9, gap: 10 },
+  kirpmaSatir: { flexDirection: "row", alignItems: "flex-start", gap: 9 },
+  kirpmaSolma: { position: "absolute", left: 0, right: 0, bottom: 0, height: 30 },
   paketler: { flexDirection: "row", gap: 11, marginTop: 22, width: "100%" },
   paket: {
     flex: 1, alignItems: "center", borderRadius: 18, paddingVertical: 16, paddingHorizontal: 10,
