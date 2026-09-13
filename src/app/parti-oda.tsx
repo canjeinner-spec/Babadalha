@@ -47,6 +47,7 @@ import {
   devralanBenMiyim,
   type DevirZamanlayici,
 } from "@/parti/devir";
+import { baloncukRengi } from "@/parti/baloncuk";
 import { usePartiGiris } from "@/parti/giris";
 import { usePartiIzleme } from "@/parti/izleme";
 import { odayiLobideYayinla, type LobiYayini } from "@/parti/lobi";
@@ -242,6 +243,8 @@ function SohbetOgesi({ oge, benimFoto, oynuyor, onOynatDurdur, onDavet }: {
     );
   }
 
+  const baloncuk = baloncukRengi(oge.ozelIdTip, oge.ozelIdTema);
+
   if (oge.benim) {
     return (
       <View style={styles.benimSatir}>
@@ -254,7 +257,13 @@ function SohbetOgesi({ oge, benimFoto, oynuyor, onOynatDurdur, onDavet }: {
             weight="extrabold"
             renk="#fff"
           />
-          <Txt size={15} color="#fff" style={{ textAlign: "right" }} lh={1.35}>{oge.metin}</Txt>
+          {baloncuk ? (
+            <View style={[styles.baloncuk, styles.baloncukSag, { backgroundColor: baloncuk.arka, borderColor: baloncuk.kenar }]}>
+              <Txt size={15} color="#fff" style={{ textAlign: "right" }} lh={1.35}>{oge.metin}</Txt>
+            </View>
+          ) : (
+            <Txt size={15} color="#fff" style={{ textAlign: "right" }} lh={1.35}>{oge.metin}</Txt>
+          )}
         </View>
         <Portrait name={oge.kisi} size={AVATAR} photo={benimFoto ?? PEOPLE[oge.kisi]?.photo} halkasiz />
       </View>
@@ -282,7 +291,13 @@ function SohbetOgesi({ oge, benimFoto, oynuyor, onOynatDurdur, onDavet }: {
           renk="#fff"
           style={{ alignSelf: "flex-start" }}
         />
-        <Txt size={15} color="#fff" lh={1.35}>{oge.metin}</Txt>
+        {baloncuk ? (
+          <View style={[styles.baloncuk, styles.baloncukSol, { backgroundColor: baloncuk.arka, borderColor: baloncuk.kenar }]}>
+            <Txt size={15} color="#fff" lh={1.35}>{oge.metin}</Txt>
+          </View>
+        ) : (
+          <Txt size={15} color="#fff" lh={1.35}>{oge.metin}</Txt>
+        )}
       </View>
     </View>
   );
@@ -1637,6 +1652,9 @@ const styles = StyleSheet.create({
   simdiLogo: { width: 52, height: 20 },
   mesajSatir: { flexDirection: "row", alignItems: "flex-start", gap: 10 },
   benimSatir: { flexDirection: "row", alignItems: "flex-start", justifyContent: "flex-end", gap: 10 },
+  baloncuk: { borderRadius: 14, paddingHorizontal: 11, paddingVertical: 7, borderWidth: 1 },
+  baloncukSol: { alignSelf: "flex-start", borderTopLeftRadius: 5 },
+  baloncukSag: { alignSelf: "flex-end", borderTopRightRadius: 5 },
   tac: { position: "absolute", top: -9, left: -3, transform: [{ rotate: "-22deg" }] },
 
   altBar: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 12, paddingTop: 8 },

@@ -6,6 +6,7 @@ import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Portrait } from "@/components/Portrait";
+import { PremiumAmblem, type PremiumAmblemAdi } from "@/components/PremiumAmblem";
 import { RenkliAd } from "@/components/RenkliAd";
 import { Txt } from "@/components/Txt";
 import { Icon } from "@/icons/Icon";
@@ -27,12 +28,18 @@ const FIYATLAR: Record<string, Record<Paket, string>> = {
   en: { aylik: "$3.99", yillik: "$39.99" },
 };
 
-const AYRICALIKLAR: { simge: IconName; baslik: string; metin: string; ornek?: boolean }[] = [
-  { simge: "ban", baslik: "premium.reklamsizBaslik", metin: "premium.reklamsizMetin" },
-  { simge: "evStar", baslik: "premium.renkliAdBaslik", metin: "premium.renkliAdMetin", ornek: true },
-  { simge: "mic", baslik: "premium.mikrofonBaslik", metin: "premium.mikrofonMetin" },
-  { simge: "bolt", baslik: "premium.erkenBaslik", metin: "premium.erkenMetin" },
-  { simge: "evDiamond", baslik: "premium.dahaBaslik", metin: "premium.dahaMetin" },
+const AYRICALIKLAR: {
+  amblem: PremiumAmblemAdi;
+  simge: IconName;
+  baslik: string;
+  metin: string;
+  ornek?: boolean;
+}[] = [
+  { amblem: "reklamsiz", simge: "ban", baslik: "premium.reklamsizBaslik", metin: "premium.reklamsizMetin" },
+  { amblem: "ad-rengi", simge: "evStar", baslik: "premium.renkliAdBaslik", metin: "premium.renkliAdMetin", ornek: true },
+  { amblem: "mikrofon", simge: "mic", baslik: "premium.mikrofonBaslik", metin: "premium.mikrofonMetin" },
+  { amblem: "erken", simge: "bolt", baslik: "premium.erkenBaslik", metin: "premium.erkenMetin" },
+  { amblem: "daha", simge: "evDiamond", baslik: "premium.dahaBaslik", metin: "premium.dahaMetin" },
 ];
 
 function MarkaSeridi() {
@@ -78,7 +85,9 @@ function SohbetKirpmasi({ ad, mesaj, ad2, mesaj2 }: {
         <View style={styles.kirpmaSatirSag}>
           <View style={{ flexShrink: 1, alignItems: "flex-end", gap: 2 }}>
             <RenkliAd ad={ad} tip="premium" size={12.5} weight="extrabold" renk="#fff" />
-            <Txt size={12.5} color="#fff" lh={1.3} style={{ textAlign: "right" }}>{mesaj}</Txt>
+            <View style={styles.kirpmaBaloncuk}>
+              <Txt size={12.5} color="#fff" lh={1.3} style={{ textAlign: "right" }}>{mesaj}</Txt>
+            </View>
           </View>
           <Portrait name={ad} size={KIRPMA_AVATAR} halkasiz />
         </View>
@@ -94,7 +103,8 @@ function SohbetKirpmasi({ ad, mesaj, ad2, mesaj2 }: {
   );
 }
 
-function Ayricalik({ simge, baslik, metin, sira, onizleme }: {
+function Ayricalik({ amblem, simge, baslik, metin, sira, onizleme }: {
+  amblem: PremiumAmblemAdi;
   simge: IconName;
   baslik: string;
   metin: string;
@@ -104,7 +114,7 @@ function Ayricalik({ simge, baslik, metin, sira, onizleme }: {
   return (
     <Animated.View entering={FadeInDown.duration(460).delay(240 + sira * 110)} style={styles.ayricalik}>
       <View style={styles.ayricalikSimge}>
-        <Icon name={simge} size={18} sw={2} color={C.gold2} />
+        <PremiumAmblem ad={amblem} yedek={simge} boyut={24} />
       </View>
       <View style={{ flex: 1, minWidth: 0 }}>
         <Txt weight="extrabold" size={14.5} color="#fff">{baslik}</Txt>
@@ -186,7 +196,8 @@ export default function Premium() {
           <View style={styles.ayricaliklar}>
             {AYRICALIKLAR.map((a, i) => (
               <Ayricalik
-                key={a.simge}
+                key={a.amblem}
+                amblem={a.amblem}
                 simge={a.simge}
                 baslik={t(a.baslik)}
                 metin={t(a.metin)}
@@ -280,9 +291,9 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: "rgba(255,255,255,.07)",
   },
   ayricalikSimge: {
-    width: 36, height: 36, borderRadius: 12, alignItems: "center", justifyContent: "center",
-    backgroundColor: "rgba(232,179,65,.13)",
-    borderWidth: 1, borderColor: "rgba(232,179,65,.26)",
+    width: 38, height: 38, borderRadius: 13, alignItems: "center", justifyContent: "center",
+    backgroundColor: "rgba(232,179,65,.09)",
+    borderWidth: 1, borderColor: "rgba(232,179,65,.2)",
   },
   kirpma: {
     marginTop: 11, borderRadius: 13, overflow: "hidden",
@@ -298,6 +309,11 @@ const styles = StyleSheet.create({
   kirpmaIc: { paddingHorizontal: 11, paddingTop: 11, paddingBottom: 14, gap: 11 },
   kirpmaSatir: { flexDirection: "row", alignItems: "flex-start", gap: 9 },
   kirpmaSatirSag: { flexDirection: "row", alignItems: "flex-start", justifyContent: "flex-end", gap: 9 },
+  kirpmaBaloncuk: {
+    alignSelf: "flex-end", borderRadius: 12, borderTopRightRadius: 4,
+    paddingHorizontal: 9, paddingVertical: 6, borderWidth: 1,
+    backgroundColor: "rgba(232,179,65,.14)", borderColor: "rgba(232,179,65,.3)",
+  },
   kirpmaSolma: { position: "absolute", left: 0, right: 0, bottom: 0, height: 16 },
   paketler: { flexDirection: "row", gap: 11, marginTop: 22, width: "100%" },
   paket: {
