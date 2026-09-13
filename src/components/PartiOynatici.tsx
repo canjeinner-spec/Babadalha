@@ -2,16 +2,20 @@ import { forwardRef, type ReactNode, useEffect, useImperativeHandle, useMemo, us
 import { ActivityIndicator, Platform, Pressable, StyleSheet, View } from "react-native";
 
 import { KopruWeb, type KopruWebKolu } from "@/components/KopruWeb";
+import { OynaticiAyarlar } from "@/components/OynaticiAyarlar";
 import { OynaticiKontrol } from "@/components/OynaticiKontrol";
 import { Txt } from "@/components/Txt";
 import { Icon } from "@/icons/Icon";
 import { type PlatformKodu } from "@/oda/platform";
+import { rtcMotoruGetir } from "@/lib/rtc";
 import { KOMUT, kopruBetigi, kullaniciAjani, masaustuIcerikMi, olayCoz, type OynaticiOlayi } from "@/parti/kopru";
 import { C } from "@/theme/colors";
 
 const YOL_BUYUT = "M4 4l6.5 6.5M4 4v6M4 4h6M20 20l-6.5-6.5M20 20v-6M20 20h-6";
 const YOL_KUCULT = "M4 4l6.5 6.5M10.5 4.5v6M4.5 10.5h6M20 20l-6.5-6.5M13.5 19.5v-6M19.5 13.5h-6";
 const YOL_PANEL = "M4 5h16a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V6a1 1 0 011-1zM15 5v14";
+
+const BOS_IZLER = { ses: [], altyazi: [], kalite: [], altyaziAcik: false };
 
 export type OynaticiKolu = {
   oynat: () => void;
@@ -24,6 +28,8 @@ export type OynaticiKolu = {
 export const PartiOynatici = forwardRef<OynaticiKolu, {
   adres: string;
   platform: PlatformKodu;
+  baslik?: string | null;
+  altBaslik?: string | null;
   tamEkran?: boolean;
   onBoyut?: () => void;
   onSohbet?: () => void;
@@ -32,7 +38,7 @@ export const PartiOynatici = forwardRef<OynaticiKolu, {
   kilitli?: boolean;
   onOlay?: (o: OynaticiOlayi) => void;
   ustKatman?: ReactNode;
-}>(function PartiOynatici({ adres, platform, tamEkran, onBoyut, onSohbet, sohbetAcik, kontrolVar, kilitli, onOlay, ustKatman }, ref) {
+}>(function PartiOynatici({ adres, platform, baslik, altBaslik, tamEkran, onBoyut, onSohbet, sohbetAcik, kontrolVar, kilitli, onOlay, ustKatman }, ref) {
   const betik = useMemo(() => kopruBetigi(platform), [platform]);
   const masaustu = masaustuIcerikMi(platform);
   useEffect(() => { console.warn(`[parti-oynatici] ${Platform.OS} yeni oynatici ${platform} ${adres.slice(0, 70)}`); }, [platform, adres]);
@@ -43,6 +49,9 @@ export const PartiOynatici = forwardRef<OynaticiKolu, {
   const [konum, setKonum] = useState(0);
   const [sure, setSure] = useState(0);
   const [oynuyor, setOynuyor] = useState(false);
+  const [hizi, setHizi] = useState(1);
+  const [ayarlarAcik, setAyarlarAcik] = useState(false);
+  const [odak, setOdak] = useState(0.5);
   const [videoVar, setVideoVar] = useState(false);
 
   useImperativeHandle(ref, () => ({
@@ -117,6 +126,18 @@ export const PartiOynatici = forwardRef<OynaticiKolu, {
           onOynat={() => web.current?.enjekte(KOMUT.oynat)}
           onDuraklat={() => web.current?.enjekte(KOMUT.duraklat)}
           onAtla={(sn) => { setKonum(sn); web.current?.enjekte(KOMUT.atla(sn)); }}
+          baslik={baslik}
+          altBaslik={altBaslik}
+          hiz={hizi}
+          onAyarlar={() => setAyarlarAcik(true)}
+          odak={odak}
+          onOdak={(deger) => {
+            setOdak(deger);
+            const medya = deger < 0.5 ? 0.15 + (deger / 0.5) * 0.85 : 1;
+            const mikrofon = deger > 0.5 ? 1 - (deger - 0.5) / 0.5 : 1;
+            web.current?.enjekte(KOMUT.ses(medya));
+            rtcMotoruGetir().uzakSesSeviyesi(mikrofon).catch(() => {});
+          }}
           sagDugmeler={
             onBoyut ? (
               <View style={styles.kosuKutusu}>
@@ -133,6 +154,19 @@ export const PartiOynatici = forwardRef<OynaticiKolu, {
           }
         />
       )}
+
+      <OynaticiAyarlar
+        acik={ayarlarAcik}
+        onKapat={() => setAyarlarAcik(false)}
+        izler={BOS_IZLER}
+        hiz={hizi}
+        baslik={baslik}
+        altBaslik={altBaslik}
+        onHiz={(deger) => { setHizi(deger); web.current?.enjekte(KOMUT.hiz(deger)); }}
+        onSesDili={() => {}}
+        onAltyazi={() => {}}
+        onKalite={() => {}}
+      />
 
       {ustKatman}
 

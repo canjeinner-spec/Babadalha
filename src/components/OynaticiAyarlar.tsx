@@ -102,24 +102,27 @@ export function OynaticiAyarlar({
           {bolum === "kok" && (
             <>
               <Satir ad="Oynatma hızı" deger={`${hiz}x`} onPress={() => setBolum("hiz")} />
-              <Satir
-                ad="Video kalitesi"
-                deger={seciliKalite ? seciliKalite.ad : "Otomatik"}
-                onPress={() => setBolum("kalite")}
-                kapali={izler.kalite.length === 0}
-              />
-              <Satir
-                ad="Ses"
-                deger={seciliSes ? seciliSes.ad : "-"}
-                onPress={() => setBolum("ses")}
-                kapali={izler.ses.length === 0}
-              />
-              <Satir
-                ad="Altyazılar"
-                deger={seciliAltyazi ? seciliAltyazi.ad : "Kapalı"}
-                onPress={() => setBolum("altyazi")}
-                kapali={izler.altyazi.length === 0}
-              />
+              {izler.kalite.length > 0 && (
+                <Satir
+                  ad="Video kalitesi"
+                  deger={seciliKalite ? seciliKalite.ad : "Otomatik"}
+                  onPress={() => setBolum("kalite")}
+                />
+              )}
+              {izler.ses.length > 0 && (
+                <Satir
+                  ad="Ses"
+                  deger={seciliSes ? seciliSes.ad : "-"}
+                  onPress={() => setBolum("ses")}
+                />
+              )}
+              {izler.altyazi.length > 0 && (
+                <Satir
+                  ad="Altyazılar"
+                  deger={seciliAltyazi ? seciliAltyazi.ad : "Kapalı"}
+                  onPress={() => setBolum("altyazi")}
+                />
+              )}
               <Satir ad="Video ayrıntıları" deger="" onPress={() => setBolum("ayrinti")} />
             </>
           )}
@@ -128,11 +131,22 @@ export function OynaticiAyarlar({
             <View style={styles.ayrinti}>
               <Ayrinti ad="Başlık" deger={baslik || "-"} />
               <Ayrinti ad="Kaynak" deger={altBaslik || "-"} />
-              <Ayrinti ad="Çözünürlük" deger={seciliKalite ? seciliKalite.ad : "Otomatik"} />
-              <Ayrinti ad="Ses dili" deger={seciliSes ? seciliSes.ad : "-"} />
-              <Ayrinti ad="Altyazı" deger={seciliAltyazi ? seciliAltyazi.ad : "Kapalı"} />
-              <Ayrinti ad="Ses dili sayısı" deger={String(izler.ses.length)} />
-              <Ayrinti ad="Altyazı sayısı" deger={String(izler.altyazi.length)} />
+              <Ayrinti ad="Hız" deger={`${hiz}x`} />
+              {izler.kalite.length > 0 && (
+                <Ayrinti ad="Çözünürlük" deger={seciliKalite ? seciliKalite.ad : "Otomatik"} />
+              )}
+              {izler.ses.length > 0 && (
+                <>
+                  <Ayrinti ad="Ses dili" deger={seciliSes ? seciliSes.ad : "-"} />
+                  <Ayrinti ad="Ses dili sayısı" deger={String(izler.ses.length)} />
+                </>
+              )}
+              {izler.altyazi.length > 0 && (
+                <>
+                  <Ayrinti ad="Altyazı" deger={seciliAltyazi ? seciliAltyazi.ad : "Kapalı"} />
+                  <Ayrinti ad="Altyazı sayısı" deger={String(izler.altyazi.length)} />
+                </>
+              )}
             </View>
           )}
 

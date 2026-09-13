@@ -1393,6 +1393,8 @@ export default function PartiOda() {
             ref={oynatici}
             adres={oynatilan.adres}
             platform={oynatilan.platform}
+            baslik={simdiki}
+            altBaslik={platformBul(oynatilan.platform)?.ad ?? null}
             tamEkran={kip === "gezinme" || buyuk}
             onBoyut={boyutDegistir}
             onSohbet={() => setYanSohbet((v) => !v)}

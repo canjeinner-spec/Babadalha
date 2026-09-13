@@ -832,6 +832,7 @@ const ORTAK = `
       }, 900);
     },
     ses: function (s) { if (video) { try { video.muted = false; video.volume = Math.max(0, Math.min(1, s)); } catch (e) {} } },
+    hiz: function (h) { if (video) { try { video.playbackRate = Math.max(0.25, Math.min(3, h)); } catch (e) {} } },
     konum: function () { return konum(); },
     sadelestir: function () {
       var izleme = izlemeSayfasi();
@@ -2649,6 +2650,7 @@ export const KOMUT = {
   sadelestir: komut("window.__aron && window.__aron.sadelestir()"),
   atla: (saniye: number) => komut(`window.__aron && window.__aron.atla(${saniye})`),
   ses: (deger: number) => komut(`window.__aron && window.__aron.ses(${deger})`),
+  hiz: (deger: number) => komut(`window.__aron && window.__aron.hiz(${deger})`),
 };
 
 export function olayCoz(ham: string): OynaticiOlayi | null {
