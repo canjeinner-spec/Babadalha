@@ -64,7 +64,6 @@ export function AltCubuk() {
       </Pressable>
 
       <Sekmesi sekme={SEKMELER[2]} secili={yol === SEKMELER[2].yol} onBas={() => git(SEKMELER[2].yol)} />
-      <View style={styles.sekme} />
     </View>
   );
 }
@@ -90,7 +89,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(232,179,65,.12)",
     borderWidth: 1, borderColor: "rgba(232,179,65,.24)",
   },
-  orta: { flex: 1.15, alignItems: "center", marginBottom: 2 },
+  orta: { flex: 1, alignItems: "center", marginBottom: 2 },
   ortaKutu: {
     width: 52, height: 52, borderRadius: 18,
     alignItems: "center", justifyContent: "center",
