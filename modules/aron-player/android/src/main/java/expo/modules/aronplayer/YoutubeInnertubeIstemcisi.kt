@@ -173,7 +173,8 @@ class YoutubeInnertubeIstemcisi(private val context: Context) {
     }
     val potDurum = "pot[oturum=${if (poToken?.oturumToken?.isNotEmpty() == true) "var" else "yok"}" +
       " icerik=${if (poToken?.icerikToken?.isNotEmpty() == true) "var" else "yok"}" +
-      " visitor=${if (oynaticiBilgisi?.visitorData?.isNotEmpty() == true) "var" else "yok"}]"
+      " visitor=${if (oynaticiBilgisi?.visitorData?.isNotEmpty() == true) "var" else "yok"}" +
+      (poUretici.sonHata?.let { " neden=${it.take(90)}" } ?: "") + "]"
     throw Exception("$potDurum ${hatalar.joinToString("; ")}")
   }
 

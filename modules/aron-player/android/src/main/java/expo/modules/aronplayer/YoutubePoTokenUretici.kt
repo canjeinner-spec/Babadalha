@@ -28,9 +28,12 @@ class YoutubePoTokenUretici(private val context: Context) {
   @Volatile private var web: WebView? = null
   @Volatile private var integrityToken: String? = null
   @Volatile private var gecerlilikSonu: Long = 0L
+  @Volatile var sonHata: String? = null
+    private set
 
   fun uret(visitorData: String, videoId: String): PoTokenSonucu? {
     if (visitorData.isEmpty()) return null
+    sonHata = null
     return try {
       hazirla()
       val oturum = tokenBas(visitorData)
@@ -38,6 +41,7 @@ class YoutubePoTokenUretici(private val context: Context) {
       if (oturum.isEmpty() && icerik.isEmpty()) null
       else PoTokenSonucu(oturum, icerik)
     } catch (e: Throwable) {
+      sonHata = e.message ?: e.javaClass.simpleName
       Log.w(TAG, "potoken uretilemedi: ${e.message}")
       null
     }
@@ -108,7 +112,8 @@ class YoutubePoTokenUretici(private val context: Context) {
         val html = context.assets.open("aron_potoken.html").use { String(it.readBytes(), Charsets.UTF_8) }
         w.loadDataWithBaseURL("https://www.youtube.com", html, "text/html", "utf-8", null)
 
-        anaIplik.postDelayed({
+        val bitis = System.currentTimeMillis() + HAZIRLIK_SURESI
+        val calistir = {
           val veri = JSONObject(meydan.toString()).apply {
             put("interpreterJavascript", yorumlayici)
           }
@@ -125,7 +130,23 @@ class YoutubePoTokenUretici(private val context: Context) {
             }
             kilit.countDown()
           }
-        }, 600)
+        }
+        val bekle = object : Runnable {
+          override fun run() {
+            w.evaluateJavascript("(typeof botguardCalistir)") { tur ->
+              val hazir = tur != null && tur.contains("function")
+              when {
+                hazir -> calistir()
+                System.currentTimeMillis() > bitis -> {
+                  hata = "botguardCalistir sayfada tanimlanmadi (${HAZIRLIK_SURESI} ms beklendi)"
+                  kilit.countDown()
+                }
+                else -> anaIplik.postDelayed(this, 200)
+              }
+            }
+          }
+        }
+        anaIplik.postDelayed(bekle, 200)
       } catch (e: Throwable) {
         hata = e.message
         kilit.countDown()
@@ -235,6 +256,7 @@ class YoutubePoTokenUretici(private val context: Context) {
   }
 
   companion object {
+    private const val HAZIRLIK_SURESI = 20_000L
     private const val TAG = "YtPoToken"
     private const val GOOGLE_API_KEY = "AIzaSyDyT5W0Jh49F30Pqqtyfdf7pDLFKLJoAnw"
     private const val ISTEK_ANAHTARI = "O43z0dpjhgX20SCx4KAo"
