@@ -80,7 +80,6 @@ class NetflixMslYonetici(private val context: Context) {
 
   fun sahipTokenAl() {
     if (oturum.sahipToken != null) return
-    if (oturum.kullaniciToken == null) return
     try {
       val yuk = istek.sahipTokenYuku()
       val sonuc = mslPost(NetflixDrmGeriCagri.ROUTER_URL, yuk, "sahip-token")
@@ -88,6 +87,55 @@ class NetflixMslYonetici(private val context: Context) {
       Log.d(TAG, "sahip tokeni alindi")
     } catch (e: Throwable) {
       Log.w(TAG, "sahip tokeni alinamadi, devam ediliyor: ${e.message}")
+    }
+  }
+
+  fun kullaniciTokenHazirla() {
+    if (oturum.kullaniciToken != null) return
+    sahipTokenAl()
+    if (oturum.sahipToken == null) return
+    val guid = profilGuidAl() ?: return
+    try {
+      val yuk = istek.profilDegistirYuku(guid)
+      val sonuc = mslPost(NetflixDrmGeriCagri.ROUTER_URL, yuk, "profil-degistir")
+      yanit.profilDegistirCoz(sonuc)
+      kaydet()
+      Log.d(TAG, "kullanici tokeni alindi, manifest artik useridtoken ile gidecek")
+    } catch (e: Throwable) {
+      Log.w(TAG, "profil degistirme basarisiz, cerezle devam: ${e.message}")
+    }
+  }
+
+  private fun profilGuidAl(): String? {
+    val kayitli = prefs?.getString(PROFIL_ANAHTARI, null)
+    if (!kayitli.isNullOrBlank()) return kayitli
+    return try {
+      val baglanti = URL(GOZAT_URL).openConnection() as HttpURLConnection
+      try {
+        baglanti.setRequestProperty(
+          "Cookie",
+          "NetflixId=${oturum.netflixId}; SecureNetflixId=${oturum.netflixSecureId}"
+        )
+        baglanti.setRequestProperty("User-Agent", KULLANICI_AJANI)
+        baglanti.setRequestProperty("Accept", "text/html")
+        baglanti.connectTimeout = 20_000
+        baglanti.readTimeout = 20_000
+        val govde = baglanti.inputStream.use { String(DataInputStream(it).readBytes()) }
+        val guid = Regex("\"userGuid\"\\s*:\\s*\"([^\"]+)\"").find(govde)?.groupValues?.get(1)
+        if (guid.isNullOrBlank()) {
+          Log.w(TAG, "profil guid sayfada bulunamadi (${govde.length} bayt)")
+          null
+        } else {
+          prefs?.edit()?.putString(PROFIL_ANAHTARI, guid)?.apply()
+          Log.d(TAG, "profil guid alindi: $guid")
+          guid
+        }
+      } finally {
+        baglanti.disconnect()
+      }
+    } catch (e: Throwable) {
+      Log.w(TAG, "profil guid alinamadi: ${e.message}")
+      null
     }
   }
 
@@ -263,6 +311,8 @@ class NetflixMslYonetici(private val context: Context) {
     private const val TAG = "NetflixMsl"
     private const val MAKS_DENEME = 3
     private const val ESN_ANAHTARI = "netflix_esn"
+    private const val PROFIL_ANAHTARI = "netflix_profil_guid"
+    private const val GOZAT_URL = "https://www.netflix.com/browse"
     private const val VARLIK_YENIDEN_KIMLIK = 3
     private const val VARLIK_VERISI_YENIDEN_KIMLIK = 6
     private const val SON_BASARILI_ANAHTARI = "son_basarili_baslik"
