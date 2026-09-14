@@ -13,6 +13,7 @@ import { PLATFORMLAR, platformBul, platformKilitNotu } from "@/oda/platform";
 import { usePartiKuyruk } from "@/parti/kuyruk";
 import { useApp } from "@/store/appStore";
 import { C } from "@/theme/colors";
+import { icerikKapsul } from "@/theme/duzen";
 
 export default function PartiPlatform() {
   const t = useCeviri();
@@ -24,7 +25,7 @@ export default function PartiPlatform() {
 
   return (
     <View style={styles.root}>
-      <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
+      <SafeAreaView style={{ flex: 1 }} edges={["top", "left", "right"]}>
         <View style={styles.baslik}>
           <Pressable onPress={() => geriDon()} hitSlop={10} style={styles.geri}>
             <Icon name="back" size={22} color="#fff" />
@@ -34,7 +35,7 @@ export default function PartiPlatform() {
         </View>
 
         <ScrollView
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40, paddingTop: 6 }}
+          contentContainerStyle={[{ paddingHorizontal: 20, paddingBottom: 40, paddingTop: 6 }, icerikKapsul]}
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.izgara}>

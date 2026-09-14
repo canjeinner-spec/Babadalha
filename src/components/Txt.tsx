@@ -14,11 +14,17 @@ type TxtProps = TextProps & {
   align?: TextStyle["textAlign"];
 };
 
-export function Txt({ weight = "medium", size = 14, color = C.text, lh, align, style, ...rest }: TxtProps) {
+const EN_COK_BUYUTME = 1.25;
+
+export function Txt({
+  weight = "medium", size = 14, color = C.text, lh, align, style,
+  maxFontSizeMultiplier = EN_COK_BUYUTME, ...rest
+}: TxtProps) {
   renderSay("Txt");
   return (
     <Text
       {...rest}
+      maxFontSizeMultiplier={maxFontSizeMultiplier}
       style={[
         {
           fontFamily: Font[weight],

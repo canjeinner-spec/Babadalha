@@ -11,6 +11,7 @@ import { geriDon } from "@/lib/gezinme";
 import { haptic } from "@/lib/haptics";
 import { PLATFORMLAR } from "@/oda/platform";
 import { C } from "@/theme/colors";
+import { icerikKapsul } from "@/theme/duzen";
 import { Gradient } from "@/theme/Gradient";
 
 const SURUM = "1.0.0";
@@ -47,7 +48,7 @@ export default function Duyuru() {
         style={styles.isik}
         pointerEvents="none"
       />
-      <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
+      <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom", "left", "right"]}>
         <View style={styles.tepe}>
           <Pressable onPress={() => geriDon()} hitSlop={10} style={styles.geri}>
             <Icon name="back" size={22} color="#fff" />
@@ -56,7 +57,7 @@ export default function Duyuru() {
           <View style={{ width: 30 }} />
         </View>
 
-        <ScrollView contentContainerStyle={styles.govde} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[styles.govde, icerikKapsul]} showsVerticalScrollIndicator={false}>
           <Animated.View entering={FadeInDown.duration(420)} style={styles.tanit}>
             <View style={styles.amblem}>
               <Image

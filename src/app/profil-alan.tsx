@@ -17,6 +17,7 @@ import { isSupabaseConfigured } from "@/lib/supabase";
 import { kalanSureYaz } from "@/lib/sureYazim";
 import { useApp } from "@/store/appStore";
 import { C } from "@/theme/colors";
+import { icerikKapsul } from "@/theme/duzen";
 
 type Alan = "ad" | "kullaniciAdi" | "biyografi" | "ulke" | "sehir";
 
@@ -183,7 +184,7 @@ export default function ProfilAlan() {
 
   return (
     <View style={styles.kok}>
-      <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
+      <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom", "left", "right"]}>
         <View style={styles.tepe}>
           <Pressable onPress={() => geriDon()} hitSlop={10} style={styles.geri}>
             <Icon name="back" size={22} color="#fff" />
@@ -196,12 +197,13 @@ export default function ProfilAlan() {
           <View style={styles.ortala}><ActivityIndicator color={C.gold2} /></View>
         ) : (
           <KeyboardAware>
-            <ScrollView contentContainerStyle={styles.govde} showsVerticalScrollIndicator={false}>
+            <ScrollView contentContainerStyle={[styles.govde, icerikKapsul]} showsVerticalScrollIndicator={false}>
               <Pressable style={styles.yaziSatiri} onPress={() => !kilitli && girdiRef.current?.focus()}>
                 {hangi === "kullaniciAdi" && (
                   <Txt weight="displayBold" size={19} color={C.gold2}>@</Txt>
                 )}
                 <TextInput
+          maxFontSizeMultiplier={1.25}
                   ref={girdiRef}
                   value={deger}
                   onChangeText={yaz}

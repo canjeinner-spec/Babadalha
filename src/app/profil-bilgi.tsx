@@ -13,6 +13,7 @@ import { geriDon } from "@/lib/gezinme";
 import { platformBul } from "@/oda/platform";
 import { useApp } from "@/store/appStore";
 import { C } from "@/theme/colors";
+import { icerikKapsul } from "@/theme/duzen";
 
 type Tur = "hesap" | "parti";
 
@@ -59,7 +60,7 @@ export default function ProfilBilgi() {
 
   return (
     <View style={styles.kok}>
-      <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
+      <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom", "left", "right"]}>
         <View style={styles.tepe}>
           <Pressable onPress={() => geriDon()} hitSlop={10} style={styles.geri}>
             <Icon name="back" size={22} color="#fff" />
@@ -70,7 +71,7 @@ export default function ProfilBilgi() {
           <View style={{ width: 30 }} />
         </View>
 
-        <ScrollView contentContainerStyle={styles.govde} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[styles.govde, icerikKapsul]} showsVerticalScrollIndicator={false}>
           {hangi === "hesap" ? (
             <>
               <Kart simge="trophy" etiket={t("profil.seviye")} deger={`Lv ${userLevel}`} />

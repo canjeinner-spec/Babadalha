@@ -21,6 +21,7 @@ import { basariUyar, hataUyar } from "@/lib/uyari";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { useApp } from "@/store/appStore";
 import { C } from "@/theme/colors";
+import { icerikKapsul } from "@/theme/duzen";
 
 const GOKKUSAGI_ANAHTARI = "gokkusagi";
 const MOCK_OTURUMSUZ = true;
@@ -172,7 +173,7 @@ export default function ProfilDuzenle() {
 
   return (
     <View style={styles.kok}>
-      <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
+      <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom", "left", "right"]}>
         <View style={styles.tepe}>
           <Pressable onPress={() => geriDon()} hitSlop={10} style={styles.geri}>
             <Icon name="back" size={22} color="#fff" />
@@ -185,7 +186,7 @@ export default function ProfilDuzenle() {
           <View style={styles.ortala}><ActivityIndicator color={C.gold2} /></View>
         ) : (
           <KeyboardAware>
-            <ScrollView contentContainerStyle={styles.govde} showsVerticalScrollIndicator={false}>
+            <ScrollView contentContainerStyle={[styles.govde, icerikKapsul]} showsVerticalScrollIndicator={false}>
               <View style={styles.yuz}>
                 <Pressable onPress={avatarSec} disabled={avatarMesgul}>
                   <Portrait name={gosterilenAd} size={96} photo={userPhoto ?? undefined} halkasiz />

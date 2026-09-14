@@ -17,6 +17,7 @@ import { premiumuIsaretle } from "@/lib/ilkAcilis";
 import { premiumSatinAl, satinAlmaHazirMi, satinAlmalariGeriYukle } from "@/lib/satinalma";
 import { basariUyar, hataUyar, uyar } from "@/lib/uyari";
 import { C } from "@/theme/colors";
+import { icerikKapsul } from "@/theme/duzen";
 import { Gradient } from "@/theme/Gradient";
 
 type Paket = "aylik" | "yillik";
@@ -137,7 +138,7 @@ export default function Premium() {
         pointerEvents="none"
       />
 
-      <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
+      <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom", "left", "right"]}>
         <View style={styles.tepe}>
           <View style={{ width: 34 }} />
           <View style={{ flex: 1 }} />
@@ -146,7 +147,7 @@ export default function Premium() {
           </Pressable>
         </View>
 
-        <ScrollView contentContainerStyle={styles.govde} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[styles.govde, icerikKapsul]} showsVerticalScrollIndicator={false}>
           <Animated.View entering={FadeInDown.duration(520)} style={styles.amblem}>
             <AltinAmblem ad="tac" yedek="crown" boyut={46} />
           </Animated.View>

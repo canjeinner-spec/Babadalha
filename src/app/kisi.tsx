@@ -27,6 +27,7 @@ import { haptic } from "@/lib/haptics";
 import { basariUyar, hataUyar, uyar } from "@/lib/uyari";
 import { platformBul } from "@/oda/platform";
 import { C } from "@/theme/colors";
+import { icerikKapsul } from "@/theme/duzen";
 import { Gradient } from "@/theme/Gradient";
 
 function sayiYaz(n: number): string {
@@ -276,7 +277,7 @@ export default function Kisi() {
         style={styles.isik}
         pointerEvents="none"
       />
-      <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
+      <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom", "left", "right"]}>
         <View style={styles.tepe}>
           <Pressable onPress={() => geriDon()} hitSlop={10} style={styles.geri}>
             <Icon name="back" size={22} color="#fff" />
@@ -291,7 +292,7 @@ export default function Kisi() {
           )}
         </View>
 
-        <ScrollView contentContainerStyle={styles.govde} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[styles.govde, icerikKapsul]} showsVerticalScrollIndicator={false}>
           <View style={styles.tanit}>
             <Portrait name={ad} size={104} photo={foto} halkasiz />
             <View style={{ alignItems: "center", marginTop: 14, gap: 6 }}>

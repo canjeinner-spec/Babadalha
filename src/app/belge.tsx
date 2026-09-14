@@ -9,6 +9,7 @@ import { useCeviri } from "@/lib/ceviri";
 import { useDil } from "@/lib/dil";
 import { geriDon } from "@/lib/gezinme";
 import { C } from "@/theme/colors";
+import { icerikKapsul } from "@/theme/duzen";
 
 export default function BelgeEkrani() {
   const t = useCeviri();
@@ -20,7 +21,7 @@ export default function BelgeEkrani() {
 
   return (
     <View style={styles.kok}>
-      <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
+      <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom", "left", "right"]}>
         <View style={styles.tepe}>
           <Pressable onPress={() => geriDon()} hitSlop={10} style={styles.geri}>
             <Icon name="back" size={22} color="#fff" />
@@ -31,7 +32,7 @@ export default function BelgeEkrani() {
           <View style={{ width: 30 }} />
         </View>
 
-        <ScrollView contentContainerStyle={styles.govde} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[styles.govde, icerikKapsul]} showsVerticalScrollIndicator={false}>
           <Txt size={13.5} color={C.gold2} lh={1.5}>{y(belge.ozet)}</Txt>
           <Txt size={11.5} color={C.dim2} style={{ marginTop: 6 }}>
             {t("belge.guncelleme", BELGE_TARIHI)}

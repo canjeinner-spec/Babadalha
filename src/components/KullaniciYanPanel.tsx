@@ -87,7 +87,7 @@ export function KullaniciYanPanel({ acik, kisiler, onKapat, ustPay = 0, yetkiler
         <Pressable style={StyleSheet.absoluteFill} onPress={onKapat} />
       </Animated.View>
 
-      <Animated.View style={[styles.panel, { width: genislik, paddingTop: ustBosluk, paddingBottom: insets.bottom + 14 }, panelStil]}>
+      <Animated.View style={[styles.panel, { width: genislik + insets.right, paddingTop: ustBosluk, paddingBottom: insets.bottom + 14, paddingRight: insets.right }, panelStil]}>
         {!ANDROID && <BlurView intensity={55} tint="light" style={StyleSheet.absoluteFill} pointerEvents="none" />}
         <View style={[StyleSheet.absoluteFill, ANDROID ? styles.camAndroid : styles.cam]} pointerEvents="none" />
         <View style={styles.parilti} pointerEvents="none" />

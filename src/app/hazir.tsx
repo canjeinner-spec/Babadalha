@@ -37,7 +37,7 @@ export default function Hazir() {
       />
       <Konfeti />
 
-      <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
+      <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom", "left", "right"]}>
         <View style={styles.orta}>
           <Animated.View entering={FadeInDown.duration(560)} style={styles.amblem}>
             <AltinAmblem ad="onay" yedek="check" boyut={48} />

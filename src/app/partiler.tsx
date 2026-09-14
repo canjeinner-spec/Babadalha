@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { FlatList, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { AltCubuk, CUBUK_YUKSEKLIGI } from "@/components/AltCubuk";
+import { AltCubuk, useCubukPayi } from "@/components/AltCubuk";
 import { TanitimBanner } from "@/components/TanitimBanner";
 import { Anim } from "@/components/Anim";
 import { useCeviri } from "@/lib/ceviri";
@@ -17,6 +17,7 @@ import { platformBul } from "@/oda/platform";
 import { lobiyiDinle, type LobiOdasi } from "@/parti/lobi";
 import { useApp } from "@/store/appStore";
 import { C } from "@/theme/colors";
+import { icerikKapsul } from "@/theme/duzen";
 import { Gradient } from "@/theme/Gradient";
 import { TEMA_YAZI_GOLGESI, useTema } from "@/theme/tema";
 import { Zemin } from "@/theme/Zemin";
@@ -135,6 +136,7 @@ function OdaKarti({ oda, onBas }: { oda: LobiOdasi; onBas: () => void }) {
 }
 
 export default function Partiler() {
+  const cubukPayi = useCubukPayi();
   const t = useCeviri();
   const router = useRouter();
 
@@ -151,7 +153,7 @@ export default function Partiler() {
     <View style={styles.kok}>
       <Zemin hale={!temali} />
       <UstKaplama uzat={96} yumusak />
-      <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
+      <SafeAreaView style={{ flex: 1 }} edges={["top", "left", "right"]}>
         <View style={styles.baslik}>
           <View style={{ flex: 1, minWidth: 0 }}>
             <Txt
@@ -178,7 +180,7 @@ export default function Partiler() {
         <FlatList
           data={gosterilecek}
           keyExtractor={(o) => o.odaId}
-          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: CUBUK_YUKSEKLIGI + 20 }}
+          contentContainerStyle={[{ paddingHorizontal: 16, paddingBottom: cubukPayi + 20 }, icerikKapsul]}
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={
             <>

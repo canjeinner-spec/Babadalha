@@ -78,6 +78,7 @@ export function TanitimBanner() {
       style={styles.banner}
       onLayout={(o) => setGenislik(Math.round(o.nativeEvent.layout.width))}
     >
+      {genislik > 0 && (
       <ScrollView
         ref={kaydirRef}
         horizontal
@@ -90,7 +91,7 @@ export function TanitimBanner() {
         {SLAYTLAR.map((slayt) => (
           <Pressable
             key={slayt.anahtar}
-            style={{ width: genislik || undefined, height: YUKSEKLIK }}
+            style={{ width: genislik, height: YUKSEKLIK }}
             onPress={() => { haptic.select(); router.push("/duyuru"); }}
           >
             <Gradient colors={slayt.renkler} deg={125} style={StyleSheet.absoluteFill} />
@@ -113,7 +114,7 @@ export function TanitimBanner() {
                 />
               </View>
 
-              <View style={{ flex: 1, minWidth: 0 }}>
+              <View style={styles.yazilar}>
                 <View style={styles.ustSatir}>
                   <Txt weight="bold" size={9} color={VURGU} style={{ letterSpacing: 2 }}>ARON PARTİ</Txt>
                   <View style={styles.etiket}>
@@ -134,6 +135,7 @@ export function TanitimBanner() {
           </Pressable>
         ))}
       </ScrollView>
+      )}
     </View>
   );
 }
@@ -149,6 +151,7 @@ const styles = StyleSheet.create({
   },
   hale: { position: "absolute", right: -28, top: -34, width: 150, height: 150, borderRadius: 75 },
   icerik: { flex: 1, flexDirection: "row", alignItems: "center", gap: 13, paddingHorizontal: 16 },
+  yazilar: { flex: 1, minWidth: 0, flexShrink: 1 },
   amblem: {
     width: 56, height: 56, borderRadius: 18, overflow: "hidden",
     borderWidth: 1, borderColor: "rgba(255,255,255,.2)",

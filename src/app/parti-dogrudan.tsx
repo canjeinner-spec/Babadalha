@@ -48,7 +48,7 @@ export default function PartiDogrudan() {
   return (
     <View style={styles.root}>
       <Zemin />
-      <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
+      <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom", "left", "right"]}>
         <View style={styles.baslik}>
           <Pressable onPress={() => geriDon()} hitSlop={10} style={styles.geri}>
             <Icon name="back" size={22} color="#fff" />
@@ -63,6 +63,7 @@ export default function PartiDogrudan() {
         >
           <View style={styles.govde}>
             <TextInput
+          maxFontSizeMultiplier={1.25}
               value={adres}
               onChangeText={setAdres}
               placeholder="https://..."

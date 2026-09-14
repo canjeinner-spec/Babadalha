@@ -216,7 +216,7 @@ export default function Karsilama() {
         pointerEvents="none"
       />
 
-      <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
+      <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom", "left", "right"]}>
         {cokSayfa ? (
         <ScrollView
           ref={akis}

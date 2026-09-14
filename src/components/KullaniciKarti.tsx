@@ -158,7 +158,13 @@ export function KullaniciKarti({ kisi, onKapat, onProfil, onEngelle, onRaporla, 
             <Pressable style={StyleSheet.absoluteFill} onPress={onKapat} />
           </Animated.View>
 
-          <Animated.View style={[styles.sayfa, { paddingBottom: insets.bottom + 18 }, sayfaStil]}>
+          <Animated.View
+            style={[
+              styles.sayfa,
+              { paddingBottom: insets.bottom + 18, paddingLeft: insets.left, paddingRight: insets.right },
+              sayfaStil,
+            ]}
+          >
             <Gradient
               colors={["rgba(232,179,65,.1)", "rgba(20,16,10,0)"]}
               deg={180}

@@ -35,7 +35,7 @@ export function AltCubuk() {
   const router = useRouter();
   const t = useCeviri();
   const yol = usePathname();
-  const altPay = useSafeAreaInsets().bottom;
+  const insets = useSafeAreaInsets();
 
   const git = (hedef: Href) => {
     if (hedef === yol) return;
@@ -44,7 +44,16 @@ export function AltCubuk() {
   };
 
   return (
-    <View style={[styles.kok, { paddingBottom: altPay > 0 ? altPay : 10 }]}>
+    <View
+      style={[
+        styles.kok,
+        {
+          paddingBottom: insets.bottom > 0 ? insets.bottom : 10,
+          paddingLeft: insets.left,
+          paddingRight: insets.right,
+        },
+      ]}
+    >
       <View style={styles.zemin} pointerEvents="none" />
       <Sekmesi sekme={SEKMELER[0]} secili={yol === SEKMELER[0].yol} onBas={() => git(SEKMELER[0].yol)} />
       <Sekmesi sekme={SEKMELER[1]} secili={yol === SEKMELER[1].yol} onBas={() => git(SEKMELER[1].yol)} />
@@ -66,6 +75,11 @@ export function AltCubuk() {
 }
 
 export const CUBUK_YUKSEKLIGI = 74;
+
+export function useCubukPayi(): number {
+  const insets = useSafeAreaInsets();
+  return CUBUK_YUKSEKLIGI + (insets.bottom > 0 ? insets.bottom : 10);
+}
 
 const styles = StyleSheet.create({
   kok: {

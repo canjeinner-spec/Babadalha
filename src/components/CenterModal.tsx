@@ -32,6 +32,6 @@ export function CenterModal({
 }
 
 const styles = StyleSheet.create({
-  center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 28 },
+  center: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 28, paddingVertical: 28 },
   wrap: { width: "100%", maxWidth: 320, alignItems: "stretch" },
 });

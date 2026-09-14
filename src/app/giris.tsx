@@ -72,7 +72,7 @@ export default function Giris() {
     <View style={styles.kok}>
       <AkanDuvar gorseller={KARSILAMA_KARELERI} sutunSayisi={3} sutunOrani={0.42} karartma={0.38} />
 
-      <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
+      <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom", "left", "right"]}>
         <View style={styles.tepe}>
           {markaHatasi ? (
             <Txt weight="displayBold" size={28} color={C.gold2}>Aron</Txt>

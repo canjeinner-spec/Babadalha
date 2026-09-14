@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { AltCubuk, CUBUK_YUKSEKLIGI } from "@/components/AltCubuk";
+import { AltCubuk, useCubukPayi } from "@/components/AltCubuk";
 import { CenterModal } from "@/components/CenterModal";
 import { DilSecici } from "@/components/DilSecici";
 import { Portrait } from "@/components/Portrait";
@@ -18,6 +18,7 @@ import { haptic } from "@/lib/haptics";
 import { hataUyar } from "@/lib/uyari";
 import { useApp } from "@/store/appStore";
 import { C } from "@/theme/colors";
+import { icerikKapsul } from "@/theme/duzen";
 
 function Kart({ simge, etiket, deger, altYazi, ok, renk, onPress }: {
   simge: IconName;
@@ -52,6 +53,7 @@ function Kart({ simge, etiket, deger, altYazi, ok, renk, onPress }: {
 const MOCK_GIRIS_DUZENLEMEYE = true;
 
 export default function PartiProfil() {
+  const cubukPayi = useCubukPayi();
   const router = useRouter();
   const t = useCeviri();
   const userName = useApp((s) => s.userName);
@@ -71,7 +73,7 @@ export default function PartiProfil() {
 
   return (
     <View style={styles.root}>
-      <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
+      <SafeAreaView style={{ flex: 1 }} edges={["top", "left", "right"]}>
         <View style={styles.baslik}>
           <Pressable onPress={() => geriDon()} hitSlop={10} style={styles.geri}>
             <Icon name="back" size={22} color="#fff" />
@@ -80,7 +82,7 @@ export default function PartiProfil() {
           <View style={{ width: 30 }} />
         </View>
 
-        <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: CUBUK_YUKSEKLIGI + 20 }} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[{ paddingHorizontal: 16, paddingBottom: cubukPayi + 20 }, icerikKapsul]} showsVerticalScrollIndicator={false}>
           <Pressable
             style={styles.kart}
             onPress={() => {

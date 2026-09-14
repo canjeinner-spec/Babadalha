@@ -316,6 +316,7 @@ function AltBar({ altPay, onGonder, onDavet, onKisiler, mikAcilir, mikAcik, onMi
       </Pressable>
 
       <TextInput
+          maxFontSizeMultiplier={1.25}
         editable={sohbetAcik}
         placeholder={sohbetAcik ? cevir("odaEkran.sohbet") : cevir("odaEkran.sohbetKapali")}
         placeholderTextColor="rgba(255,255,255,.55)"
@@ -1473,7 +1474,16 @@ export default function PartiOda() {
         </View>
         )}
 
-        <View style={buyuk ? styles.yatayGovde : { flex: 1 }}>
+        <View
+          style={
+            buyuk
+              ? [
+                  styles.yatayGovde,
+                  { paddingLeft: insets.left, paddingRight: insets.right, paddingBottom: insets.bottom },
+                ]
+              : { flex: 1 }
+          }
+        >
         {ilkDurumBekleniyor ? (
           <View style={styles.oynatici}>
             <Txt size={13} color={C.dim}>{t("odaEkran.baglaniyor")}</Txt>

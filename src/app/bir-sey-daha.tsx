@@ -61,7 +61,7 @@ export default function BirSeyDaha() {
         pointerEvents="none"
       />
 
-      <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
+      <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom", "left", "right"]}>
         <View style={styles.orta}>
           <Animated.View entering={FadeIn.duration(700).delay(UST_GECIKME)} style={styles.ustKume}>
             <Animated.View style={[styles.nokta, noktaStil]} />
