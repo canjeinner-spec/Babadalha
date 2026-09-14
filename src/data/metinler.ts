@@ -120,6 +120,10 @@ export const METINLER = {
   "odaEkran.rolHatasi": { tr: "Rol kaydedilemedi", en: "Could not save the role" },
   "odaEkran.yasakHatasi": { tr: "Yasaklama kaydedilemedi", en: "Could not save the ban" },
 
+  "profil.hesapKart": { tr: "Hesap bilgilerim", en: "My account details" },
+  "profil.hesapKartAlt": { tr: "Seviye, kayıt tarihi, dil", en: "Level, member since, language" },
+  "profil.partiKart": { tr: "Parti modu", en: "Party mode" },
+  "profil.partiKartAlt": { tr: "İzleme istatistiklerin", en: "Your watching stats" },
   "profil.hesapBolumu": { tr: "HESAP", en: "ACCOUNT" },
   "profil.dil": { tr: "Uygulama dili", en: "App language" },
   "profil.duzenle": { tr: "Profili düzenle", en: "Edit profile" },
@@ -147,6 +151,10 @@ export const METINLER = {
   "duzenle.adRengiKilit": {
     tr: "Ad rengi Premium'a özel. Premium'a geçince buradan seçersin.",
     en: "Name colour is Premium only. Once you have Premium you pick it here.",
+  },
+  "duzenle.adRengiDeneme": {
+    tr: "Hesabın bağlı değil, seçimin şimdilik yalnız bu cihazda duruyor.",
+    en: "Your account is not connected, your choice stays on this device for now.",
   },
   "duzenle.gokkusagi": { tr: "Gökkuşağı", en: "Rainbow" },
   "duzenle.adKilit": {

@@ -1,32 +1,21 @@
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AltCubuk, CUBUK_YUKSEKLIGI } from "@/components/AltCubuk";
 import { CenterModal } from "@/components/CenterModal";
-import { DilSecici } from "@/components/DilSecici";
 import { OzelIdGosterim } from "@/components/OzelId";
 import { Portrait } from "@/components/Portrait";
 import { RenkliAd } from "@/components/RenkliAd";
 import { Txt } from "@/components/Txt";
-import { gunYaz, partiIstatistiklerim, saatAraligiYaz, sureYaz, type PartiIstatistik } from "@/data/remote/partiRepo";
 import { Icon } from "@/icons/Icon";
 import { type IconName } from "@/icons/paths";
 import { useCeviri } from "@/lib/ceviri";
-import { useDil } from "@/lib/dil";
 import { geriDon } from "@/lib/gezinme";
 import { haptic } from "@/lib/haptics";
-import { platformBul } from "@/oda/platform";
 import { useApp } from "@/store/appStore";
 import { C } from "@/theme/colors";
-
-function tarihYaz(ham: string | null | undefined, dilKodu: string): string {
-  if (!ham) return "—";
-  const zaman = new Date(ham);
-  if (Number.isNaN(zaman.getTime())) return "—";
-  return zaman.toLocaleDateString(dilKodu, { day: "numeric", month: "long", year: "numeric" });
-}
 
 function Kart({ simge, etiket, deger, altYazi, ok, renk, onPress }: {
   simge: IconName;
@@ -63,32 +52,20 @@ const MOCK_GIRIS_DUZENLEMEYE = true;
 export default function PartiProfil() {
   const router = useRouter();
   const t = useCeviri();
-  const dilKodu = useDil((s) => s.dil.kod);
   const userName = useApp((s) => s.userName);
   const userPhoto = useApp((s) => s.userPhoto);
-  const userLevel = useApp((s) => s.userLevel);
   const publicId = useApp((s) => s.publicId);
   const session = useApp((s) => s.session);
   const ozelId = useApp((s) => s.ozelId);
   const ozelIdTip = useApp((s) => s.ozelIdTip);
   const ozelIdTema = useApp((s) => s.ozelIdTema);
-  const dbId = useApp((s) => s.dbId);
   const signOutApp = useApp((s) => s.signOutApp);
   const [cikisOnayi, setCikisOnayi] = useState(false);
   const [misafirUyarisi, setMisafirUyarisi] = useState(false);
   const [cikiliyor, setCikiliyor] = useState(false);
   const [hata, setHata] = useState("");
 
-  const [istatistik, setIstatistik] = useState<PartiIstatistik | null>(null);
-  useEffect(() => {
-    let acik = true;
-    partiIstatistiklerim(dbId)
-      .then((r) => { if (acik) setIstatistik(r); })
-      .catch(() => {});
-    return () => { acik = false; };
-  }, [dbId]);
 
-  const favori = platformBul(istatistik?.favoriPlatform)?.ad ?? "—";
 
   return (
     <View style={styles.root}>
@@ -133,35 +110,21 @@ export default function PartiProfil() {
             <Icon name="chev" size={20} sw={2.2} color={C.dim2} />
           </Pressable>
 
-          <Txt weight="extrabold" size={12} color={C.dim2} style={styles.bolumBaslik}>
-            {t("profil.hesapBolumu")}
-          </Txt>
-
-          <View style={styles.kume}>
-            <Kart simge="trophy" etiket={t("profil.seviye")} deger={`Lv ${userLevel}`} />
-            <Kart simge="cal" etiket={t("profil.kayitTarihi")} deger={tarihYaz(session?.user?.created_at, dilKodu)} />
+          <View style={[styles.kume, { marginTop: 4 }]}>
             <Kart
               simge="idcard"
-              etiket={t("profil.hesap")}
-              deger={session ? t("profil.dogrulanmis") : t("profil.misafir")}
+              etiket={t("profil.hesapKart")}
+              altYazi={t("profil.hesapKartAlt")}
+              ok
+              onPress={() => { haptic.select(); router.push({ pathname: "/profil-bilgi", params: { tur: "hesap" } }); }}
             />
-            <DilSecici bicim="kart" />
-          </View>
-
-          <Txt weight="extrabold" size={12} color={C.dim2} style={styles.bolumBaslik}>
-            {t("profil.partiModu")}
-          </Txt>
-
-          <View style={styles.kume}>
-            <Kart simge="evStar" etiket={t("profil.favoriPlatform")} deger={favori} />
-            <Kart simge="bars" etiket={t("profil.toplamSure")} deger={sureYaz(istatistik?.toplamSaniye ?? null)} />
-            <Kart simge="flame" etiket={t("profil.buHafta")} deger={sureYaz(istatistik?.buHaftaSaniye ?? null)} />
-            <Kart simge="bolt" etiket={t("profil.enUzunOturum")} deger={sureYaz(istatistik?.enUzunSaniye ?? null)} />
-            <Kart simge="minimize" etiket={t("profil.ortalamaOturum")} deger={sureYaz(istatistik?.ortalamaSaniye ?? null)} />
-            <Kart simge="evParty" etiket={t("profil.oturumSayisi")} deger={istatistik ? String(istatistik.oturumSayisi) : "—"} />
-            <Kart simge="users" etiket={t("profil.farkliOda")} deger={istatistik ? String(istatistik.farkliOda) : "—"} />
-            <Kart simge="eye" etiket={t("profil.enAktifSaat")} deger={saatAraligiYaz(istatistik?.enAktifSaat ?? null)} />
-            <Kart simge="pin" etiket={t("profil.sonOturum")} deger={gunYaz(istatistik?.sonOturum ?? null)} />
+            <Kart
+              simge="evParty"
+              etiket={t("profil.partiKart")}
+              altYazi={t("profil.partiKartAlt")}
+              ok
+              onPress={() => { haptic.select(); router.push({ pathname: "/profil-bilgi", params: { tur: "parti" } }); }}
+            />
           </View>
 
           <Txt weight="extrabold" size={12} color={C.dim2} style={styles.bolumBaslik}>

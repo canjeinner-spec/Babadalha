@@ -6,7 +6,7 @@ import * as GorselSecici from "expo-image-picker";
 
 import { KeyboardAware } from "@/components/KeyboardAware";
 import { Portrait } from "@/components/Portrait";
-import { RenkliAd } from "@/components/RenkliAd";
+import { SohbetKirpmasi } from "@/components/SohbetKirpmasi";
 import { Txt } from "@/components/Txt";
 import { avatarYukle, getMyProfile, isUsernameAvailable, setOzelId, updateMyProfile } from "@/data/remote/profileRepo";
 import { AMBLEM_ADI, AMBLEM_RENK, OZEL_ID_AMBLEMLERI, type OzelIdAmblemi } from "@/data/specialId";
@@ -25,6 +25,7 @@ const AD_AZAMI = 32;
 const BIYOGRAFI_AZAMI = 160;
 const BAKMA_GECIKMESI = 550;
 const GOKKUSAGI_ANAHTARI = "gokkusagi";
+const MOCK_OTURUMSUZ = true;
 
 type AdDurumu = "bos" | "kisa" | "gecersiz" | "bakiliyor" | "musait" | "dolu";
 
@@ -65,7 +66,9 @@ export default function ProfilDuzenle() {
   const ozelIdTip = useApp((s) => s.ozelIdTip);
   const ozelIdTema = useApp((s) => s.ozelIdTema);
   const setOzelIdKimlik = useApp((s) => s.setOzelIdKimlik);
-  const premiumMi = ozelIdTip === "premium";
+  const session = useApp((s) => s.session);
+  const baglandi = !!session && isSupabaseConfigured;
+  const premiumMi = ozelIdTip === "premium" || (MOCK_OTURUMSUZ && !baglandi);
 
   const [yukleniyor, setYukleniyor] = useState(true);
   const [ad, setAd] = useState(userName);
@@ -125,9 +128,15 @@ export default function ProfilDuzenle() {
       quality: 0.85,
     });
     if (secim.canceled || !secim.assets?.[0]?.uri) return;
+    const yerel = secim.assets[0].uri;
+    if (!baglandi) {
+      setUserPhoto(yerel);
+      setBildirim(t("duzenle.kaydedildi"));
+      return;
+    }
     setAvatarMesgul(true);
     try {
-      const adres = await avatarYukle(secim.assets[0].uri);
+      const adres = await avatarYukle(yerel);
       await updateMyProfile({ profil_resmi: adres });
       setUserPhoto(adres);
       setBildirim(t("duzenle.kaydedildi"));
@@ -136,13 +145,17 @@ export default function ProfilDuzenle() {
     } finally {
       setAvatarMesgul(false);
     }
-  }, [avatarMesgul, setUserPhoto, t]);
+  }, [avatarMesgul, baglandi, setUserPhoto, t]);
 
   const renkSec = useCallback(async (yeni: string) => {
-    if (!premiumMi || !ozelId) return;
+    if (!premiumMi) return;
     haptic.select();
     const onceki = renk;
     setRenk(yeni);
+    if (!baglandi || !ozelId) {
+      setOzelIdKimlik(ozelId, "premium", yeni);
+      return;
+    }
     try {
       await setOzelId(ozelId, "premium", yeni);
       setOzelIdKimlik(ozelId, "premium", yeni);
@@ -150,7 +163,7 @@ export default function ProfilDuzenle() {
       setRenk(onceki);
       setHata(t("duzenle.hata"));
     }
-  }, [premiumMi, ozelId, renk, setOzelIdKimlik, t]);
+  }, [premiumMi, baglandi, ozelId, renk, setOzelIdKimlik, t]);
 
   const adYaz = useCallback((deger: string) => {
     const temiz = deger.trim().slice(0, AD_AZAMI);
@@ -282,13 +295,12 @@ export default function ProfilDuzenle() {
                 {premiumMi ? (
                   <>
                     <View style={styles.renkOnizleme}>
-                      <RenkliAd
+                      <SohbetKirpmasi
                         ad={ad || userName}
-                        tip="premium"
                         tema={renk}
-                        size={19}
-                        weight="displayBold"
-                        renk="#fff"
+                        mesaj={t("premium.ornekMesaj")}
+                        ad2={t("premium.ornekAd2")}
+                        mesaj2={t("premium.ornekMesaj2")}
                       />
                     </View>
                     <View style={styles.renkler}>
@@ -315,6 +327,11 @@ export default function ProfilDuzenle() {
                         </Pressable>
                       ))}
                     </View>
+                    {!baglandi && (
+                      <Txt size={11.5} color={C.dim} lh={1.45} style={{ marginTop: 10 }}>
+                        {t("duzenle.adRengiDeneme")}
+                      </Txt>
+                    )}
                   </>
                 ) : (
                   <View style={styles.kilitliKutu}>
@@ -410,11 +427,7 @@ const styles = StyleSheet.create({
     backgroundColor: C.gold2, borderWidth: 3, borderColor: C.bg,
   },
   alan: { marginBottom: 18 },
-  renkOnizleme: {
-    alignSelf: "flex-start", borderRadius: 12,
-    paddingHorizontal: 12, paddingVertical: 8, marginBottom: 12,
-    backgroundColor: C.kart, borderWidth: 1, borderColor: C.line,
-  },
+  renkOnizleme: { marginBottom: 14 },
   renkler: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   renkKutu: {
     width: 72, alignItems: "center",
