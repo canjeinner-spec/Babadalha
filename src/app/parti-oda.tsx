@@ -24,7 +24,7 @@ import { etiketAdi, sistemParcalari, type SistemKisi, type SistemOlayi } from "@
 import { MOCK_KISILER, mockOdaAkisi } from "@/data/partiOdaMock";
 import { PEOPLE } from "@/data/people";
 import { amIBannedFromRoom, banRoomUser, getRoomMembers, listRooms, odaKatilimcilariGetir, odaKatilimcilariniDinle, odaSahibi, removeRoomMember, setRoomMemberRole, type OdaKatilimcisi, type OdaSahibi } from "@/data/remote/roomsRepo";
-import { engelle as sunucuEngelle, engeliKaldir as sunucuEngeliKaldir } from "@/data/remote/sosyalRepo";
+import { BILDIRIM_SEBEPLERI, engelle as sunucuEngelle, engeliKaldir as sunucuEngeliKaldir, kullaniciyiBildir, TabloYok, type BildirimSebebi } from "@/data/remote/sosyalRepo";
 import { type Room } from "@/data/seed";
 import { useCachedResource } from "@/lib/cache";
 import { cevir, useCeviri } from "@/lib/ceviri";
@@ -413,6 +413,7 @@ export default function PartiOda() {
   const [cikisOnayi, setCikisOnayi] = useState(false);
   const [kurallar, setKurallar] = useState(false);
   const [kartKisisi, setKartKisisi] = useState<KartKisisi | null>(null);
+  const [bildirKisisi, setBildirKisisi] = useState<KartKisisi | null>(null);
   const [sohbetKapalilar, setSohbetKapalilar] = useState<Record<string, boolean>>({});
   const engelListesi = useEngellenenler((s) => s.liste);
   const engelDegistir = useEngellenenler((s) => s.degistir);
@@ -1185,6 +1186,23 @@ export default function PartiOda() {
     return () => clearTimeout(zamanlayici);
   }, [userName, benimAnahtar]);
 
+  const bildirGonder = async (sebep: BildirimSebebi) => {
+    const hedef = bildirKisisi;
+    setBildirKisisi(null);
+    if (!hedef) return;
+    haptic.select();
+    if (hedef.dbId == null) {
+      basariUyar(cevir("kisi.bildirildi"));
+      return;
+    }
+    try {
+      await kullaniciyiBildir(hedef.dbId, sebep, oda.dbId ?? null);
+      basariUyar(cevir("kisi.bildirildi"));
+    } catch (e) {
+      hataUyar(cevir(e instanceof TabloYok ? "kisi.baglanmadi" : "duzenle.hata"));
+    }
+  };
+
   const kartAc = useCallback((anahtar: string | null, ad: string) => {
     const k = agKisileri.find((x) => (anahtar ? x.anahtar === anahtar : x.ad === ad));
     haptic.select();
@@ -1618,19 +1636,7 @@ export default function PartiOda() {
           }
           uyar(cevir(acildi ? "kisi.engellendi" : "kisi.engelKalkti", k.ad));
         }}
-        onRaporla={(k) => router.push({
-          pathname: "/kisi",
-          params: {
-            id: k.dbId != null ? String(k.dbId) : "",
-            ad: k.ad,
-            kullaniciAdi: k.kullaniciAdi ?? "",
-            foto: k.foto ?? "",
-            tip: k.ozelIdTip ?? "",
-            tema: k.ozelIdTema ?? "",
-            oda: oda.dbId != null ? String(oda.dbId) : "",
-            bildir: "1",
-          },
-        })}
+        onRaporla={(k) => setBildirKisisi(k)}
         onProfil={(k) => router.push({
           pathname: "/kisi",
           params: {
@@ -1675,6 +1681,24 @@ export default function PartiOda() {
             : undefined,
         }}
       />
+
+      <CenterModal visible={bildirKisisi != null} onClose={() => setBildirKisisi(null)}>
+        <View style={styles.bildirMenu}>
+          <Txt weight="displayBold" size={15.5} color="#fff" align="center" style={{ marginBottom: 6 }}>
+            {cevir("kisi.bildirBaslik")}
+          </Txt>
+          {BILDIRIM_SEBEPLERI.map((sb) => (
+            <Pressable key={sb} style={styles.bildirSebep} onPress={() => bildirGonder(sb)}>
+              <Txt weight="bold" size={13.5} color="#fff">
+                {cevir(`kisi.sebep${sb.charAt(0).toLocaleUpperCase("tr")}${sb.slice(1)}`)}
+              </Txt>
+            </Pressable>
+          ))}
+          <Pressable style={styles.bildirKapat} onPress={() => setBildirKisisi(null)}>
+            <Txt weight="extrabold" size={13.5} color="#fff">{cevir("genel.vazgec")}</Txt>
+          </Pressable>
+        </View>
+      </CenterModal>
 
       <CenterModal visible={cikisOnayi} onClose={() => setCikisOnayi(false)}>
         <View style={styles.uyariKart}>
@@ -1791,6 +1815,18 @@ const styles = StyleSheet.create({
   simdiLogo: { width: 52, height: 20 },
   mesajSatir: { flexDirection: "row", alignItems: "flex-start", gap: 10 },
   benimSatir: { flexDirection: "row", alignItems: "flex-start", justifyContent: "flex-end", gap: 10 },
+  bildirMenu: {
+    backgroundColor: C.card, borderRadius: 20, padding: 14,
+    borderWidth: 1, borderColor: C.line, gap: 6,
+  },
+  bildirSebep: {
+    paddingVertical: 13, paddingHorizontal: 14, borderRadius: 13,
+    backgroundColor: "rgba(255,255,255,.05)",
+  },
+  bildirKapat: {
+    alignItems: "center", justifyContent: "center", paddingVertical: 12,
+    borderRadius: 13, backgroundColor: "rgba(255,255,255,.06)", marginTop: 4,
+  },
   baloncuk: { borderRadius: 14, paddingHorizontal: 11, paddingVertical: 7, borderWidth: 1 },
   baloncukSol: { alignSelf: "flex-start", borderTopLeftRadius: 5 },
   baloncukSag: { alignSelf: "flex-end", borderTopRightRadius: 5 },

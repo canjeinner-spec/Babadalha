@@ -59,7 +59,7 @@ export default function Kisi() {
   const dilKodu = useDil((s) => s.dil.kod);
   const p = useLocalSearchParams<{
     id?: string; ad?: string; kullaniciAdi?: string; foto?: string; tip?: string; tema?: string;
-    oda?: string; bildir?: string;
+    oda?: string;
   }>();
   const gelenId = p.id && !Number.isNaN(Number(p.id)) ? Number(p.id) : null;
   const odaDbId = p.oda && !Number.isNaN(Number(p.oda)) ? Number(p.oda) : null;
@@ -129,12 +129,6 @@ export default function Kisi() {
       .catch(() => {});
     return () => { acik = false; };
   }, [dbId, mockKisi]);
-
-  useEffect(() => {
-    if (p.bildir !== "1") return;
-    const z = setTimeout(() => setBildirAcik(true), 360);
-    return () => clearTimeout(z);
-  }, [p.bildir]);
 
   const tazele = useCallback(async () => {
     if (!dbId || mockKisi) return;
@@ -515,12 +509,6 @@ const styles = StyleSheet.create({
   menuKapat: {
     alignItems: "center", justifyContent: "center", paddingVertical: 12,
     borderRadius: 13, backgroundColor: "rgba(255,255,255,.06)", marginTop: 4,
-  },
-  bildirim: {
-    position: "absolute", left: 24, right: 24, bottom: 44,
-    backgroundColor: "rgba(20,16,10,.96)", borderRadius: 14,
-    paddingHorizontal: 16, paddingVertical: 12,
-    borderWidth: 1, borderColor: "rgba(232,179,65,.25)",
   },
   kartSimge: {
     width: 34, height: 34, borderRadius: 11,
