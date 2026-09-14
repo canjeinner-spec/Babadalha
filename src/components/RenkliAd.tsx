@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Text, type TextStyle, type ViewStyle } from "react-native";
 import Animated, { Easing, makeMutable, useAnimatedStyle, withRepeat, withTiming } from "react-native-reanimated";
 
-import { OZEL_ID_TEMA_RENK, type OzelIdKart } from "@/data/specialId";
+import { AMBLEM_RENK, OZEL_ID_TEMA_RENK, type OzelIdAmblemi, type OzelIdKart } from "@/data/specialId";
 import { C } from "@/theme/colors";
 import { Font } from "@/theme/fonts";
 import { renderSay } from "@/lib/takilma/sayac";
@@ -28,7 +28,13 @@ export const AKIS_FAZI = ilerleme;
 export const akisiBaslat = saatiBaslat;
 
 function adRenkleri(tip?: string | null, tema?: string | null): string[] | null {
-  if (tip === "premium") return GOKKUSAGI;
+  if (tip === "premium") {
+    if (tema && tema !== "gokkusagi") {
+      const a = AMBLEM_RENK[tema as OzelIdAmblemi];
+      if (a) return [a.accent, a.g[0], a.g[1], a.g[0], a.accent];
+    }
+    return GOKKUSAGI;
+  }
   if (tip === "kapsul" && tema) {
     const t = OZEL_ID_TEMA_RENK[tema as OzelIdKart];
     if (t) return [t.g[0], t.accent, t.g[1]];

@@ -2,12 +2,17 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import * as GorselSecici from "expo-image-picker";
+
 import { KeyboardAware } from "@/components/KeyboardAware";
 import { Portrait } from "@/components/Portrait";
+import { RenkliAd } from "@/components/RenkliAd";
 import { Txt } from "@/components/Txt";
-import { getMyProfile, isUsernameAvailable, updateMyProfile } from "@/data/remote/profileRepo";
+import { avatarYukle, getMyProfile, isUsernameAvailable, setOzelId, updateMyProfile } from "@/data/remote/profileRepo";
+import { AMBLEM_ADI, AMBLEM_RENK, OZEL_ID_AMBLEMLERI, type OzelIdAmblemi } from "@/data/specialId";
 import { Icon } from "@/icons/Icon";
 import { useCeviri } from "@/lib/ceviri";
+import { adKilidiKalan, adKilidiKur, AD_KILIT_SURESI } from "@/lib/adKilidi";
 import { geriDon } from "@/lib/gezinme";
 import { haptic } from "@/lib/haptics";
 import { isSupabaseConfigured } from "@/lib/supabase";
@@ -19,8 +24,15 @@ const AD_ASGARI = 3;
 const AD_AZAMI = 32;
 const BIYOGRAFI_AZAMI = 160;
 const BAKMA_GECIKMESI = 550;
+const GOKKUSAGI_ANAHTARI = "gokkusagi";
 
 type AdDurumu = "bos" | "kisa" | "gecersiz" | "bakiliyor" | "musait" | "dolu";
+
+function kalanYaz(kalan: number, t: (a: string, ...d: (string | number)[]) => string): string {
+  const saat = Math.ceil(kalan / (60 * 60 * 1000));
+  if (saat >= 24) return t("duzenle.adKilitGun", Math.ceil(saat / 24));
+  return t("duzenle.adKilitSaat", saat);
+}
 
 function Alan({ etiket, ipucu, children, sagUst }: {
   etiket: string;
@@ -48,6 +60,12 @@ export default function ProfilDuzenle() {
   const userName = useApp((s) => s.userName);
   const userPhoto = useApp((s) => s.userPhoto);
   const setUserName = useApp((s) => s.setUserName);
+  const setUserPhoto = useApp((s) => s.setUserPhoto);
+  const ozelId = useApp((s) => s.ozelId);
+  const ozelIdTip = useApp((s) => s.ozelIdTip);
+  const ozelIdTema = useApp((s) => s.ozelIdTema);
+  const setOzelIdKimlik = useApp((s) => s.setOzelIdKimlik);
+  const premiumMi = ozelIdTip === "premium";
 
   const [yukleniyor, setYukleniyor] = useState(true);
   const [ad, setAd] = useState(userName);
@@ -60,6 +78,9 @@ export default function ProfilDuzenle() {
   const [bildirim, setBildirim] = useState("");
   const [hata, setHata] = useState("");
   const bakmaRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [kilitKalan, setKilitKalan] = useState(0);
+  const [avatarMesgul, setAvatarMesgul] = useState(false);
+  const [renk, setRenk] = useState<string>(ozelIdTema ?? GOKKUSAGI_ANAHTARI);
 
   useEffect(() => {
     let acik = true;
@@ -84,6 +105,52 @@ export default function ProfilDuzenle() {
       .finally(() => { if (acik) setYukleniyor(false); });
     return () => { acik = false; };
   }, [t]);
+
+  useEffect(() => {
+    let acik = true;
+    adKilidiKalan().then((k) => { if (acik) setKilitKalan(k); }).catch(() => {});
+    return () => { acik = false; };
+  }, []);
+
+  const avatarSec = useCallback(async () => {
+    if (avatarMesgul) return;
+    haptic.select();
+    setHata("");
+    const izin = await GorselSecici.requestMediaLibraryPermissionsAsync();
+    if (!izin.granted) { setHata(t("duzenle.avatarIzni")); return; }
+    const secim = await GorselSecici.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.85,
+    });
+    if (secim.canceled || !secim.assets?.[0]?.uri) return;
+    setAvatarMesgul(true);
+    try {
+      const adres = await avatarYukle(secim.assets[0].uri);
+      await updateMyProfile({ profil_resmi: adres });
+      setUserPhoto(adres);
+      setBildirim(t("duzenle.kaydedildi"));
+    } catch {
+      setHata(t("duzenle.avatarHatasi"));
+    } finally {
+      setAvatarMesgul(false);
+    }
+  }, [avatarMesgul, setUserPhoto, t]);
+
+  const renkSec = useCallback(async (yeni: string) => {
+    if (!premiumMi || !ozelId) return;
+    haptic.select();
+    const onceki = renk;
+    setRenk(yeni);
+    try {
+      await setOzelId(ozelId, "premium", yeni);
+      setOzelIdKimlik(ozelId, "premium", yeni);
+    } catch {
+      setRenk(onceki);
+      setHata(t("duzenle.hata"));
+    }
+  }, [premiumMi, ozelId, renk, setOzelIdKimlik, t]);
 
   const adYaz = useCallback((deger: string) => {
     const temiz = deger.trim().slice(0, AD_AZAMI);
@@ -115,7 +182,8 @@ export default function ProfilDuzenle() {
     && adDurumu !== "kisa"
     && adDurumu !== "gecersiz"
     && adDurumu !== "dolu"
-    && adDurumu !== "bakiliyor";
+    && adDurumu !== "bakiliyor"
+    && !(kilitKalan > 0 && ad !== ilkAd);
 
   const kaydet = useCallback(async () => {
     if (!kaydedilebilir) return;
@@ -128,8 +196,13 @@ export default function ProfilDuzenle() {
         ulke: ulke.trim() || null,
         sehir: sehir.trim() || null,
       };
-      if (ad !== ilkAd) yama.kullanici_adi = ad;
+      const adDegisti = ad !== ilkAd;
+      if (adDegisti) yama.kullanici_adi = ad;
       const p = await updateMyProfile(yama);
+      if (adDegisti) {
+        await adKilidiKur();
+        setKilitKalan(AD_KILIT_SURESI);
+      }
       setUserName(p.kullanici_adi);
       setIlkAd(p.kullanici_adi);
       setAdDurumu("bos");
@@ -167,12 +240,22 @@ export default function ProfilDuzenle() {
           <KeyboardAware>
             <ScrollView contentContainerStyle={styles.govde} showsVerticalScrollIndicator={false}>
               <View style={styles.yuz}>
-                <Portrait name={ad || userName} size={86} photo={userPhoto ?? undefined} halkasiz />
+                <Pressable onPress={avatarSec} disabled={avatarMesgul}>
+                  <Portrait name={ad || userName} size={96} photo={userPhoto ?? undefined} halkasiz />
+                  <View style={styles.yuzRozet}>
+                    {avatarMesgul
+                      ? <ActivityIndicator size="small" color="#241A05" />
+                      : <Icon name="camera" size={16} sw={2.2} color="#241A05" />}
+                  </View>
+                </Pressable>
+                <Txt size={12} color={C.gold2} weight="bold" style={{ marginTop: 10 }}>
+                  {avatarMesgul ? t("duzenle.avatarYukleniyor") : t("duzenle.avatarDegistir")}
+                </Txt>
               </View>
 
               <Alan
                 etiket={t("duzenle.kullaniciAdi")}
-                ipucu={t("duzenle.kullaniciAdiIpucu")}
+                ipucu={t("duzenle.adKural")}
                 sagUst={<Txt size={11} color={C.dim2}>{ad.length}/{AD_AZAMI}</Txt>}
               >
                 <TextInput
@@ -183,9 +266,63 @@ export default function ProfilDuzenle() {
                   autoCapitalize="none"
                   autoCorrect={false}
                   maxLength={AD_AZAMI}
+                  editable={kilitKalan === 0}
                 />
                 {!!adNotu && (
                   <Txt size={11.5} color={adNotu.renk} style={{ marginTop: 7 }}>{adNotu.metin}</Txt>
+                )}
+                {kilitKalan > 0 && (
+                  <Txt size={11.5} color={C.red} lh={1.45} style={{ marginTop: 7 }}>
+                    {t("duzenle.adKilit", kalanYaz(kilitKalan, t))}
+                  </Txt>
+                )}
+              </Alan>
+
+              <Alan etiket={t("duzenle.adRengi")} ipucu={premiumMi ? t("duzenle.adRengiIpucu") : undefined}>
+                {premiumMi ? (
+                  <>
+                    <View style={styles.renkOnizleme}>
+                      <RenkliAd
+                        ad={ad || userName}
+                        tip="premium"
+                        tema={renk}
+                        size={19}
+                        weight="displayBold"
+                        renk="#fff"
+                      />
+                    </View>
+                    <View style={styles.renkler}>
+                      <Pressable
+                        style={[styles.renkKutu, renk === GOKKUSAGI_ANAHTARI && styles.renkSecili]}
+                        onPress={() => renkSec(GOKKUSAGI_ANAHTARI)}
+                      >
+                        <View style={styles.gokkusagi}>
+                          {["#FF4D4D", "#FF9F1C", "#FFE14D", "#3DDC84", "#3D9BFF", "#A855F7"].map((r) => (
+                            <View key={r} style={{ flex: 1, backgroundColor: r }} />
+                          ))}
+                        </View>
+                        <Txt size={10.5} color={C.dim} style={{ marginTop: 6 }}>{t("duzenle.gokkusagi")}</Txt>
+                      </Pressable>
+
+                      {OZEL_ID_AMBLEMLERI.map((a: OzelIdAmblemi) => (
+                        <Pressable
+                          key={a}
+                          style={[styles.renkKutu, renk === a && styles.renkSecili]}
+                          onPress={() => renkSec(a)}
+                        >
+                          <View style={[styles.renkYuvarlak, { backgroundColor: AMBLEM_RENK[a].g[0], borderColor: AMBLEM_RENK[a].accent }]} />
+                          <Txt size={10.5} color={C.dim} style={{ marginTop: 6 }}>{AMBLEM_ADI[a]}</Txt>
+                        </Pressable>
+                      ))}
+                    </View>
+                  </>
+                ) : (
+                  <View style={styles.kilitliKutu}>
+                    <Icon name="lock" size={16} sw={2} color={C.dim2} />
+                    <Txt size={12.5} color={C.dim} lh={1.45} style={{ flex: 1 }}>
+                      {t("duzenle.adRengiKilit")}
+                    </Txt>
+                  </View>
                 )}
               </Alan>
 
@@ -266,7 +403,32 @@ const styles = StyleSheet.create({
   ortala: { flex: 1, alignItems: "center", justifyContent: "center" },
   govde: { paddingHorizontal: 18, paddingBottom: 40 },
   yuz: { alignItems: "center", marginTop: 2, marginBottom: 22 },
+  yuzRozet: {
+    position: "absolute", right: -2, bottom: -2,
+    width: 32, height: 32, borderRadius: 16,
+    alignItems: "center", justifyContent: "center",
+    backgroundColor: C.gold2, borderWidth: 3, borderColor: C.bg,
+  },
   alan: { marginBottom: 18 },
+  renkOnizleme: {
+    alignSelf: "flex-start", borderRadius: 12,
+    paddingHorizontal: 12, paddingVertical: 8, marginBottom: 12,
+    backgroundColor: C.kart, borderWidth: 1, borderColor: C.line,
+  },
+  renkler: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  renkKutu: {
+    width: 72, alignItems: "center",
+    borderRadius: 14, paddingVertical: 11, paddingHorizontal: 6,
+    backgroundColor: C.kart, borderWidth: 1.5, borderColor: C.line,
+  },
+  renkSecili: { borderColor: C.gold2, backgroundColor: "rgba(232,179,65,.1)" },
+  renkYuvarlak: { width: 26, height: 26, borderRadius: 13, borderWidth: 2 },
+  gokkusagi: { width: 26, height: 26, borderRadius: 13, overflow: "hidden", flexDirection: "row" },
+  kilitliKutu: {
+    flexDirection: "row", alignItems: "center", gap: 10,
+    borderRadius: 14, paddingVertical: 13, paddingHorizontal: 13,
+    backgroundColor: C.kart, borderWidth: 1, borderColor: C.line,
+  },
   alanBaslik: { flexDirection: "row", alignItems: "center", marginBottom: 8, marginLeft: 2 },
   girdi: {
     backgroundColor: C.kart, borderRadius: 14, borderWidth: 1, borderColor: C.line,

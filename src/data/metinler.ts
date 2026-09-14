@@ -132,6 +132,34 @@ export const METINLER = {
   "duzenle.baslik": { tr: "Profili düzenle", en: "Edit profile" },
   "duzenle.kullaniciAdi": { tr: "Kullanıcı adı", en: "Username" },
   "duzenle.kullaniciAdiIpucu": { tr: "Odalarda seni bu ad temsil eder", en: "This name represents you in rooms" },
+  "duzenle.avatarDegistir": { tr: "Fotoğrafı değiştir", en: "Change photo" },
+  "duzenle.avatarYukleniyor": { tr: "Yükleniyor…", en: "Uploading…" },
+  "duzenle.avatarHatasi": { tr: "Fotoğraf yüklenemedi.", en: "The photo could not be uploaded." },
+  "duzenle.avatarIzni": {
+    tr: "Fotoğraf seçebilmek için galeri izni gerekiyor.",
+    en: "Gallery permission is needed to pick a photo.",
+  },
+  "duzenle.adRengi": { tr: "Ad rengin", en: "Your name colour" },
+  "duzenle.adRengiIpucu": {
+    tr: "Sohbette ve odalarda adın bu renkte akar",
+    en: "Your name flows in this colour in chat and rooms",
+  },
+  "duzenle.adRengiKilit": {
+    tr: "Ad rengi Premium'a özel. Premium'a geçince buradan seçersin.",
+    en: "Name colour is Premium only. Once you have Premium you pick it here.",
+  },
+  "duzenle.gokkusagi": { tr: "Gökkuşağı", en: "Rainbow" },
+  "duzenle.adKilit": {
+    tr: "Kullanıcı adını 7 günde bir değiştirebilirsin. Kalan: {0}",
+    en: "You can change your username once every 7 days. Remaining: {0}",
+  },
+  "duzenle.adKilitGun": { tr: "{0} gün", en: "{0} days" },
+  "duzenle.adKilitSaat": { tr: "{0} saat", en: "{0} hours" },
+  "duzenle.adKural": {
+    tr: "Benzersizdir, başkasında olan adı alamazsın. Değiştirince 7 gün kilitlenir.",
+    en: "It is unique, you cannot take a name someone else has. Changing it locks it for 7 days.",
+  },
+
   "duzenle.biyografi": { tr: "Hakkında", en: "About" },
   "duzenle.biyografiIpucu": { tr: "Birkaç satırda kendini anlat", en: "Tell people about yourself in a few lines" },
   "duzenle.ulke": { tr: "Ülke", en: "Country" },

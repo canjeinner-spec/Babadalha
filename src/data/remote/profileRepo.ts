@@ -78,6 +78,27 @@ export async function ensureMyProfile(): Promise<void> {
   invalidateProfileMemo();
 }
 
+const AVATAR_KOVASI = "avatars";
+
+export async function avatarYukle(yerelAdres: string): Promise<string> {
+  const sb = requireSupabase();
+  const uid = await currentAuthUid();
+  if (!uid) throw new Error("Oturum yok.");
+  const yanit = await fetch(yerelAdres);
+  if (!yanit.ok) throw new Error("Görsel okunamadı.");
+  const veri = await yanit.arrayBuffer();
+  const uzanti = (yerelAdres.split("?")[0].split(".").pop() ?? "jpg").toLowerCase();
+  const tur = uzanti === "png" ? "image/png" : uzanti === "webp" ? "image/webp" : "image/jpeg";
+  const yol = `${uid}/${Date.now()}.${uzanti === "png" ? "png" : uzanti === "webp" ? "webp" : "jpg"}`;
+  const { error } = await sb.storage.from(AVATAR_KOVASI).upload(yol, veri, {
+    contentType: tur,
+    upsert: true,
+  });
+  if (error) throw error;
+  const { data } = sb.storage.from(AVATAR_KOVASI).getPublicUrl(yol);
+  return data.publicUrl;
+}
+
 export async function isUsernameAvailable(name: string): Promise<boolean> {
   const sb = requireSupabase();
   const { data, error } = await sb.rpc("kullanici_adi_musait", { p_ad: name });
