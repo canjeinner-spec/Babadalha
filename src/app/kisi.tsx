@@ -85,7 +85,11 @@ export default function Kisi() {
 
   const kullaniciAdiParam = (p.kullaniciAdi ?? "").trim();
   const benimProfilim = benimDbId != null && dbId === benimDbId;
-  const mockKisi = useMemo(() => mockKisiBul(gelenId, kullaniciAdiParam), [gelenId, kullaniciAdiParam]);
+  const adParam = (p.ad ?? "").trim();
+  const mockKisi = useMemo(
+    () => mockKisiBul(gelenId, kullaniciAdiParam, adParam),
+    [gelenId, kullaniciAdiParam, adParam],
+  );
 
   useEffect(() => {
     let acik = true;
@@ -319,6 +323,24 @@ export default function Kisi() {
               <Txt weight="displayBold" size={15} color="#fff" align="center">{t("kisi.seniEngelledi")}</Txt>
               <Txt size={13} color={C.dim} align="center" lh={1.5} style={{ marginTop: 8 }}>
                 {t("kisi.seniEngelledMetin")}
+              </Txt>
+              <Txt size={12.5} color={C.dim2} align="center" lh={1.5} style={{ marginTop: 10 }}>
+                {t("kisi.engelOdaNotu")}
+              </Txt>
+            </View>
+          )}
+
+          {engelli && !beniEngelledimi && !benimProfilim && (
+            <View style={styles.engelKutusu}>
+              <View style={styles.engelSimge}>
+                <Icon name="blockuser" size={22} sw={2} color={C.red} />
+              </View>
+              <Txt weight="displayBold" size={15} color="#fff" align="center">{t("kisi.engelledinBaslik")}</Txt>
+              <Txt size={13} color={C.dim} align="center" lh={1.5} style={{ marginTop: 8 }}>
+                {t("kisi.engelledinMetin")}
+              </Txt>
+              <Txt size={12.5} color={C.dim2} align="center" lh={1.5} style={{ marginTop: 10 }}>
+                {t("kisi.engelOdaNotu")}
               </Txt>
             </View>
           )}

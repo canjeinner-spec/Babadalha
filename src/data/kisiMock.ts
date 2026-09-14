@@ -114,12 +114,32 @@ export const MOCK_KISILER: MockKisi[] = [
   },
 ];
 
-export function mockKisiBul(id?: number | null, kullaniciAdi?: string | null): MockKisi | null {
+const HARF_ESI: Record<string, string> = {
+  ı: "i", İ: "i", ş: "s", Ş: "s", ğ: "g", Ğ: "g",
+  ü: "u", Ü: "u", ö: "o", Ö: "o", ç: "c", Ç: "c",
+};
+
+function sadelestir(metin: string): string {
+  return metin.replace(/[ıİşŞğĞüÜöÖçÇ]/g, (h) => HARF_ESI[h] ?? h).toLowerCase().trim();
+}
+
+export function mockKisiBul(
+  id?: number | null,
+  kullaniciAdi?: string | null,
+  ad?: string | null,
+): MockKisi | null {
   if (!MOCK_ARKADAS_ACIK) return null;
   if (id != null && id < 0) {
-    return MOCK_KISILER.find((k) => k.profil.id === id) ?? null;
+    const kimlikle = MOCK_KISILER.find((k) => k.profil.id === id);
+    if (kimlikle) return kimlikle;
   }
-  const ad = (kullaniciAdi ?? "").trim().toLowerCase();
-  if (!ad) return null;
-  return MOCK_KISILER.find((k) => k.profil.public_id === ad) ?? null;
+  for (const aday of [kullaniciAdi, ad]) {
+    const a = sadelestir(aday ?? "");
+    if (!a) continue;
+    const bulunan = MOCK_KISILER.find(
+      (k) => sadelestir(k.profil.public_id) === a || sadelestir(k.profil.kullanici_adi) === a,
+    );
+    if (bulunan) return bulunan;
+  }
+  return null;
 }

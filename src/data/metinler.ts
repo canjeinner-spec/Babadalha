@@ -479,6 +479,15 @@ export const METINLER = {
     tr: "Onunla etkileşime geçemezsin. Profilini göremez, arkadaş ekleyemez, takip edemezsin.",
     en: "You cannot interact with them. You cannot see their profile, add them as a friend or follow them.",
   },
+  "kisi.engelOdaNotu": {
+    tr: "Aynı odada birbirinizi görebilirsiniz ama mesajlarınız birbirinize görünmez.",
+    en: "You can still see each other in the same room, but your messages stay hidden from each other.",
+  },
+  "kisi.engelledinBaslik": { tr: "Bu kişiyi engelledin.", en: "You blocked this person." },
+  "kisi.engelledinMetin": {
+    tr: "Mesajlarını görmüyorsun, o da seninkileri görmüyor. Engeli sağ üstteki menüden kaldırabilirsin.",
+    en: "You do not see their messages and they do not see yours. You can unblock them from the menu at the top right.",
+  },
   "kisi.kimlikYok": { tr: "Bu kişinin hesabı bulunamadı.", en: "This person's account could not be found." },
   "kisi.girisGerek": { tr: "Bunun için giriş yapman gerekiyor.", en: "You need to sign in for this." },
   "kisi.baglanmadi": {

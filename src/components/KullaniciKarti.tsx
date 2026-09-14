@@ -189,6 +189,13 @@ export function KullaniciKarti({ kisi, onKapat, onProfil, onEngelle, onRaporla, 
                 </Txt>
               )}
 
+              {engelli && (
+                <View style={styles.engelNotu}>
+                  <Icon name="blockuser" size={15} sw={2} color={C.red} />
+                  <Txt size={12} color={C.dim} lh={1.45} style={{ flex: 1 }}>{t("kisi.engelOdaNotu")}</Txt>
+                </View>
+              )}
+
               <View style={styles.eylemler}>
                 <Eylem
                   simge="user"
@@ -267,6 +274,11 @@ const styles = StyleSheet.create({
   ayirac: { width: 1, height: 30, backgroundColor: "rgba(255,255,255,.09)" },
   konum: { flexDirection: "row", alignItems: "center", gap: 6, justifyContent: "center", marginTop: 14 },
   biyografi: { marginTop: 12, paddingHorizontal: 6 },
+  engelNotu: {
+    flexDirection: "row", alignItems: "center", gap: 9,
+    marginTop: 14, paddingHorizontal: 13, paddingVertical: 11, borderRadius: 14,
+    backgroundColor: "rgba(248,113,113,.07)", borderWidth: 1, borderColor: "rgba(248,113,113,.2)",
+  },
   eylemler: { marginTop: 20, gap: 9 },
   eylem: {
     flexDirection: "row", alignItems: "center", gap: 12,
