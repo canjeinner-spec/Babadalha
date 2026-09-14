@@ -482,6 +482,8 @@ export const METINLER = {
   "kisi.rozet": { tr: "Rozet", en: "Badge" },
   "kisi.bulunamadi": { tr: "Bu kişinin profili açılamadı.", en: "This person's profile could not be opened." },
 
+  "profil.bioYok": { tr: "Hakkında bir şey yazmamışsın.", en: "You haven't written a bio yet." },
+
   "arkadas.baslik": { tr: "Arkadaşlar", en: "Friends" },
   "arkadas.kart": { tr: "Arkadaşlar", en: "Friends" },
   "arkadas.kartAlt": { tr: "İsteklerin ve arkadaş listen", en: "Your requests and friend list" },

@@ -6,7 +6,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { AltCubuk, CUBUK_YUKSEKLIGI } from "@/components/AltCubuk";
 import { CenterModal } from "@/components/CenterModal";
 import { DilSecici } from "@/components/DilSecici";
-import { OzelIdGosterim } from "@/components/OzelId";
 import { Portrait } from "@/components/Portrait";
 import { RenkliAd } from "@/components/RenkliAd";
 import { Txt } from "@/components/Txt";
@@ -58,7 +57,7 @@ export default function PartiProfil() {
   const gorunenAd = useGorunenAd((s) => s.ad);
   const userPhoto = useApp((s) => s.userPhoto);
   const session = useApp((s) => s.session);
-  const ozelId = useApp((s) => s.ozelId);
+  const userBio = useApp((s) => s.userBio);
   const ozelIdTip = useApp((s) => s.ozelIdTip);
   const ozelIdTema = useApp((s) => s.ozelIdTema);
   const signOutApp = useApp((s) => s.signOutApp);
@@ -101,11 +100,9 @@ export default function PartiProfil() {
                 renk="#fff"
               />
               <Txt size={12.5} color={C.dim}>@{userName}</Txt>
-              {ozelId ? (
-                <View style={{ alignSelf: "flex-start" }}>
-                  <OzelIdGosterim id={ozelId} tip={ozelIdTip} tema={ozelIdTema} punto={17} kapsulSize={13} />
-                </View>
-              ) : null}
+              <Txt size={12.5} color={userBio ? C.dim : C.dim2} numberOfLines={2} lh={1.35}>
+                {userBio || t("profil.bioYok")}
+              </Txt>
             </View>
 
             <Icon name="chev" size={20} sw={2.2} color={C.dim2} />
