@@ -1,6 +1,9 @@
 {
-  "platforms": ["android"],
+  "platforms": ["android", "ios"],
   "android": {
     "modules": ["expo.modules.aronplayer.AronPlayerModule"]
+  },
+  "ios": {
+    "modules": ["AronPlayerModule"]
   }
 }

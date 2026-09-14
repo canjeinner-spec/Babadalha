@@ -4,7 +4,7 @@ import { type ComponentType, type Ref } from "react";
 import { Platform, type ViewProps } from "react-native";
 
 export type DrmDestek = {
-  sema: "widevine";
+  sema: "widevine" | "clearkey";
   var: boolean;
   androidSurum: number;
   seviye?: string;
@@ -98,7 +98,7 @@ export type NativeOynaticiRef = {
 const modul = requireOptionalNativeModule<AronPlayerModulu>("AronPlayer");
 
 export function nativeOynaticiVar(): boolean {
-  return Platform.OS === "android" && !!modul;
+  return (Platform.OS === "android" || Platform.OS === "ios") && !!modul;
 }
 
 export async function drmDestegi(): Promise<DrmDestek | null> {

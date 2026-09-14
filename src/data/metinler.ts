@@ -458,8 +458,8 @@ export const METINLER = {
   "oynatici.altyaziSayisi": { tr: "Altyazı sayısı", en: "Subtitles available" },
   "oynatici.secenekYok": { tr: "Bu içerik için seçenek yok.", en: "No options for this content." },
   "oynatici.yalnizAndroid": {
-    tr: "Doğrudan bağlantı oynatıcısı yalnız Android geliştirme derlemesinde çalışıyor.",
-    en: "The direct-link player only works on an Android development build.",
+    tr: "Doğrudan bağlantı oynatıcısı yalnız geliştirme derlemesinde çalışıyor.",
+    en: "The direct-link player only works on a development build.",
   },
   "oynatici.baglantiHatasi": { tr: "Bağlantı yüklenemedi.", en: "The link could not be loaded." },
 
