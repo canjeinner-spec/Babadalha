@@ -480,6 +480,7 @@ export const METINLER = {
     en: "The social tables have not been created yet.",
   },
   "kisi.rozet": { tr: "Rozet", en: "Badge" },
+  "kisi.bioYok": { tr: "Hakkında bir şey yazmamış.", en: "No bio yet." },
   "kisi.bulunamadi": { tr: "Bu kişinin profili açılamadı.", en: "This person's profile could not be opened." },
 
   "profil.bioYok": { tr: "Hakkında bir şey yazmamışsın.", en: "You haven't written a bio yet." },

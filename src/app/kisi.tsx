@@ -1,10 +1,9 @@
 import { useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { CenterModal } from "@/components/CenterModal";
-import { OzelIdGosterim } from "@/components/OzelId";
 import { Portrait } from "@/components/Portrait";
 import { RenkliAd } from "@/components/RenkliAd";
 import { Txt } from "@/components/Txt";
@@ -110,20 +109,34 @@ export default function Kisi() {
     return () => clearTimeout(z);
   }, [bildirim]);
 
+  const tazele = useCallback(async () => {
+    if (!dbId || Number.isNaN(dbId)) return;
+    const [e, a, tk, sy] = await Promise.all([
+      oturum ? engellilerim().then((l) => l.includes(dbId)).catch(() => null) : Promise.resolve(null),
+      oturum ? arkadaslikDurumu(dbId).catch(() => "yok" as ArkadaslikDurumu) : Promise.resolve("yok" as ArkadaslikDurumu),
+      oturum ? takipEdiyorMuyum(dbId).catch(() => false) : Promise.resolve(false),
+      takipSayilari(dbId).catch(() => null),
+    ]);
+    if (e !== null) setSunucuEngelli(e);
+    setArkadaslik(a);
+    setTakipte(tk);
+    setSayilar(sy ?? { takipci: 0, takip: 0 });
+  }, [dbId, oturum]);
+
   useEffect(() => {
-    if (!dbId || Number.isNaN(dbId) || !oturum) return;
+    if (!dbId || Number.isNaN(dbId)) return;
     let acik = true;
     Promise.all([
-      engellilerim().then((l) => l.includes(dbId)).catch(() => null),
-      arkadaslikDurumu(dbId).catch(() => "yok" as ArkadaslikDurumu),
-      takipEdiyorMuyum(dbId).catch(() => false),
+      oturum ? engellilerim().then((l) => l.includes(dbId)).catch(() => null) : Promise.resolve(null),
+      oturum ? arkadaslikDurumu(dbId).catch(() => "yok" as ArkadaslikDurumu) : Promise.resolve("yok" as ArkadaslikDurumu),
+      oturum ? takipEdiyorMuyum(dbId).catch(() => false) : Promise.resolve(false),
       takipSayilari(dbId).catch(() => null),
     ]).then(([e, a, tk, sy]) => {
       if (!acik) return;
       if (e !== null) setSunucuEngelli(e);
       setArkadaslik(a);
       setTakipte(tk);
-      if (sy) setSayilar(sy);
+      setSayilar(sy ?? { takipci: 0, takip: 0 });
     });
     return () => { acik = false; };
   }, [dbId, oturum]);
@@ -166,14 +179,14 @@ export default function Kisi() {
     haptic.select();
     if (!dbId) { setBildirim(t("kisi.girisGerek")); return; }
     if (arkadaslik === "gelen") {
-      if (await sunucuIsi(() => arkadasligiKabulEt(dbId))) setArkadaslik("arkadas");
+      if (await sunucuIsi(() => arkadasligiKabulEt(dbId))) await tazele();
       return;
     }
     if (arkadaslik === "yok") {
-      if (await sunucuIsi(() => arkadaslikIste(dbId))) setArkadaslik("bekliyor");
+      if (await sunucuIsi(() => arkadaslikIste(dbId))) await tazele();
       return;
     }
-    if (await sunucuIsi(() => arkadasligiSil(dbId))) setArkadaslik("yok");
+    if (await sunucuIsi(() => arkadasligiSil(dbId))) await tazele();
   };
 
   const takipBas = async () => {
@@ -183,6 +196,7 @@ export default function Kisi() {
     if (await sunucuIsi(() => (yeni ? takipEt(dbId) : takibiBirak(dbId)))) {
       setTakipte(yeni);
       setSayilar((s) => (s ? { ...s, takipci: Math.max(0, s.takipci + (yeni ? 1 : -1)) } : s));
+      await tazele();
     }
   };
 
@@ -203,7 +217,6 @@ export default function Kisi() {
   const foto = profil?.profil_resmi ?? (p.foto || undefined);
   const tip = (profil?.ozel_id_tip ?? (p.tip || null)) as "premium" | "kapsul" | null;
   const tema = profil?.ozel_id_tema ?? (p.tema || null);
-  const konum = [profil?.sehir, profil?.ulke].filter(Boolean).join(", ");
 
   return (
     <View style={styles.kok}>
@@ -230,15 +243,16 @@ export default function Kisi() {
             <View style={{ alignItems: "center", marginTop: 14, gap: 6 }}>
               <RenkliAd ad={ad} tip={tip} tema={tema} size={22} weight="displayBold" renk="#fff" />
               {!!kullaniciAdi && <Txt size={13} color={C.dim}>@{kullaniciAdi}</Txt>}
-              {!!profil?.ozel_id && (
-                <View style={{ marginTop: 4 }}>
-                  <OzelIdGosterim id={profil.ozel_id} tip={tip} tema={tema} punto={17} kapsulSize={13} />
-                </View>
-              )}
             </View>
-            {!!profil?.biyografi && (
-              <Txt size={13.5} color={C.dim} align="center" lh={1.55} style={styles.biyografi}>
-                {profil.biyografi}
+            {!yukleniyor && (
+              <Txt
+                size={13.5}
+                color={profil?.biyografi ? C.dim : C.dim2}
+                align="center"
+                lh={1.55}
+                style={styles.biyografi}
+              >
+                {profil?.biyografi?.trim() || t("kisi.bioYok")}
               </Txt>
             )}
           </View>
@@ -275,10 +289,8 @@ export default function Kisi() {
                 etiket={t("kisi.favoriPlatform")}
                 deger={platformBul(istatistik?.favoriPlatform)?.ad ?? "—"}
               />
-              {!!konum && <Kart simge="pin" etiket={t("duzenle.sehir")} deger={konum} />}
-              {!!profil.kusanilan_rozet && (
-                <Kart simge="evDiamond" etiket={t("kisi.rozet")} deger={profil.kusanilan_rozet} />
-              )}
+              {!!profil.sehir && <Kart simge="pin" etiket={t("duzenle.sehir")} deger={profil.sehir} />}
+              {!!profil.ulke && <Kart simge="globe2" etiket={t("duzenle.ulke")} deger={profil.ulke} />}
             </View>
           ) : (
             <Txt size={13} color={C.dim2} align="center" lh={1.5} style={{ marginTop: 26 }}>

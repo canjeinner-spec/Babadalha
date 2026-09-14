@@ -8,11 +8,17 @@ export const ARKADASLIK_KABUL = "kabul";
 export const ARKADASLIK_RED = "reddedildi";
 
 const YOK_KODLARI = new Set(["42P01", "42501", "PGRST205", "PGRST301"]);
+const CAKISMA = "23505";
 
 function hataCevir(hata: unknown): never {
-  const kod = (hata as { code?: string })?.code;
-  if (kod && YOK_KODLARI.has(kod)) throw new TabloYok("Sosyal tablolar kurulmamış.");
+  const h = hata as { code?: string; message?: string };
+  console.warn("[sosyal]", h?.code ?? "?", h?.message ?? hata);
+  if (h?.code && YOK_KODLARI.has(h.code)) throw new TabloYok("Sosyal tablolar kurulmamış.");
   throw hata;
+}
+
+function cakismaMi(hata: unknown): boolean {
+  return (hata as { code?: string })?.code === CAKISMA;
 }
 
 async function benimId(): Promise<number> {
@@ -35,7 +41,7 @@ export async function engelle(hedefId: number): Promise<void> {
   const sb = requireSupabase();
   const ben = await benimId();
   const { error } = await sb.from("engellemeler").insert({ engelleyen_id: ben, engellenen_id: hedefId });
-  if (error) hataCevir(error);
+  if (error && !cakismaMi(error)) hataCevir(error);
 }
 
 export async function engeliKaldir(hedefId: number): Promise<void> {
@@ -65,6 +71,32 @@ export async function arkadaslikDurumu(hedefId: number): Promise<ArkadaslikDurum
 export async function arkadaslikIste(hedefId: number): Promise<void> {
   const sb = requireSupabase();
   const ben = await benimId();
+  const { data, error: okumaHatasi } = await sb
+    .from("arkadasliklar")
+    .select("id, isteyen_id, durum")
+    .or(`and(isteyen_id.eq.${ben},istenen_id.eq.${hedefId}),and(isteyen_id.eq.${hedefId},istenen_id.eq.${ben})`)
+    .maybeSingle();
+  if (okumaHatasi) hataCevir(okumaHatasi);
+
+  const eski = data as { id: number; isteyen_id: number; durum: string } | null;
+  if (eski) {
+    if (eski.durum === ARKADASLIK_KABUL) return;
+    if (eski.durum === ARKADASLIK_BEKLIYOR && eski.isteyen_id === ben) return;
+    const yeniDurum = eski.durum === ARKADASLIK_BEKLIYOR ? ARKADASLIK_KABUL : ARKADASLIK_BEKLIYOR;
+    const { error } = await sb
+      .from("arkadasliklar")
+      .update({
+        isteyen_id: yeniDurum === ARKADASLIK_BEKLIYOR ? ben : eski.isteyen_id,
+        istenen_id: yeniDurum === ARKADASLIK_BEKLIYOR ? hedefId : ben,
+        durum: yeniDurum,
+        istek_tarihi: new Date().toISOString(),
+        yanit_tarihi: yeniDurum === ARKADASLIK_KABUL ? new Date().toISOString() : null,
+      })
+      .eq("id", eski.id);
+    if (error) hataCevir(error);
+    return;
+  }
+
   const { error } = await sb
     .from("arkadasliklar")
     .insert({ isteyen_id: ben, istenen_id: hedefId, durum: ARKADASLIK_BEKLIYOR });
@@ -252,7 +284,7 @@ export async function takipEt(hedefId: number): Promise<void> {
   const sb = requireSupabase();
   const ben = await benimId();
   const { error } = await sb.from("takipler").insert({ takipci_id: ben, takip_edilen_id: hedefId });
-  if (error) hataCevir(error);
+  if (error && !cakismaMi(error)) hataCevir(error);
 }
 
 export async function takibiBirak(hedefId: number): Promise<void> {

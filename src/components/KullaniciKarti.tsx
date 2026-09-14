@@ -4,7 +4,6 @@ import Animated, { Easing, runOnJS, useAnimatedStyle, useSharedValue, withTiming
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ModalKok } from "@/components/ModalKok";
-import { OzelIdGosterim } from "@/components/OzelId";
 import { Portrait } from "@/components/Portrait";
 import { RenkliAd } from "@/components/RenkliAd";
 import { Txt } from "@/components/Txt";
@@ -124,7 +123,6 @@ export function KullaniciKarti({ kisi, onKapat, onProfil, onEngelle, onRaporla, 
 
   const g = gorunen;
   const rol: PartiRol = g.rol ?? (g.sahip ? "sahip" : "uye");
-  const ozelId = g.ozelId ?? profil?.ozel_id ?? null;
   const tip = g.ozelIdTip ?? profil?.ozel_id_tip ?? null;
   const tema = g.ozelIdTema ?? profil?.ozel_id_tema ?? null;
   const kullaniciAdi = (g.kullaniciAdi ?? profil?.kullanici_adi ?? "").trim();
@@ -168,11 +166,6 @@ export function KullaniciKarti({ kisi, onKapat, onProfil, onEngelle, onRaporla, 
               <View style={{ alignItems: "center", marginTop: 14, gap: 6 }}>
                 <RenkliAd ad={g.ad} tip={tip} tema={tema} size={21} weight="displayBold" renk="#fff" />
                 {!!kullaniciAdi && <Txt size={13} color={C.dim}>@{kullaniciAdi}</Txt>}
-                {!!ozelId && (
-                  <View style={{ marginTop: 4 }}>
-                    <OzelIdGosterim id={ozelId} tip={tip} tema={tema} punto={17} kapsulSize={13} />
-                  </View>
-                )}
               </View>
 
               <View style={styles.serit}>
