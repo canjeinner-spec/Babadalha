@@ -486,7 +486,7 @@ export const METINLER = {
   "arkadas.kart": { tr: "Arkadaşlar", en: "Friends" },
   "arkadas.kartAlt": { tr: "İsteklerin ve arkadaş listen", en: "Your requests and friend list" },
   "arkadas.sekmeIstek": { tr: "İstekler", en: "Requests" },
-  "arkadas.ara": { tr: "Kullanıcı adı veya ID ara", en: "Search by username or ID" },
+  "arkadas.ara": { tr: "Kullanıcı adı veya ad gir", en: "Enter a username or name" },
   "arkadas.sayac": { tr: "Arkadaşlar: {0}", en: "Friends: {0}" },
   "arkadas.istekSayac": { tr: "İstekler: {0}", en: "Requests: {0}" },
   "arkadas.aciklamaYok": { tr: "Açıklama kısmı boş.", en: "No bio yet." },

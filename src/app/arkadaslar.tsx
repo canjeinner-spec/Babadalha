@@ -5,7 +5,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AltinAmblem } from "@/components/AltinAmblem";
 import { CenterModal } from "@/components/CenterModal";
-import { OzelIdGosterim } from "@/components/OzelId";
 import { Portrait } from "@/components/Portrait";
 import { RenkliAd } from "@/components/RenkliAd";
 import { Txt } from "@/components/Txt";
@@ -25,13 +24,23 @@ import { C } from "@/theme/colors";
 
 type Sekme = "istek" | "arkadas";
 
+const HARF_ESI: Record<string, string> = {
+  ı: "i", İ: "i", ş: "s", Ş: "s", ğ: "g", Ğ: "g",
+  ü: "u", Ü: "u", ö: "o", Ö: "o", ç: "c", Ç: "c",
+  â: "a", î: "i", û: "u",
+};
+
+function sadelestir(metin: string): string {
+  return metin
+    .replace(/[ıİşŞğĞüÜöÖçÇâîû]/g, (h) => HARF_ESI[h] ?? h)
+    .toLowerCase()
+    .trim();
+}
+
 function suz(liste: ArkadasKisi[], arama: string): ArkadasKisi[] {
-  const a = arama.trim().toLocaleLowerCase("tr");
+  const a = sadelestir(arama);
   if (!a) return liste;
-  return liste.filter((k) =>
-    k.ad.toLocaleLowerCase("tr").includes(a)
-    || k.publicId.toLocaleLowerCase("tr").includes(a)
-    || (k.ozelId ?? "").toLocaleLowerCase("tr").includes(a));
+  return liste.filter((k) => sadelestir(k.ad).includes(a) || sadelestir(k.publicId).includes(a));
 }
 
 function Satir({ kisi, onAc, onParti, sag }: {
@@ -45,9 +54,6 @@ function Satir({ kisi, onAc, onParti, sag }: {
         <View style={{ flex: 1, minWidth: 0, gap: 5 }}>
           <View style={styles.adSatiri}>
             <RenkliAd ad={kisi.ad} tip={kisi.ozelIdTip} tema={kisi.ozelIdTema} size={15.5} />
-            {!!kisi.ozelId && (
-              <OzelIdGosterim id={kisi.ozelId} tip={kisi.ozelIdTip} tema={kisi.ozelIdTema} punto={11} kapsulSize={9} />
-            )}
           </View>
           <Txt size={12.5} color={kisi.biyografi ? C.dim : C.dim2} numberOfLines={1}>
             {kisi.biyografi ?? t("arkadas.aciklamaYok")}
