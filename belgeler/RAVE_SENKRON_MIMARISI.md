@@ -204,11 +204,64 @@ yayınlanmalı.
 
 ---
 
-## 8. IPA durumu — BLOKE
+## 8. iOS binary kazısı (IPA 8.1.1, decrypted)
 
-Verilen Drive IPA bağlantısı **herkese açık paylaşımlı değil**; indirmeye çalışınca dosya
-yerine "Google Drive: Sign-in" sayfası dönüyor. APK sorunsuz indi (o "bağlantıya sahip
-herkes"). IPA'yı kazabilmek için dosya **"Bağlantıya sahip herkes"** olarak yeniden
-paylaşılmalı. Ayrıca App Store IPA'sının ikili dosyası şifreli gelir; sınıf/metot çıkarımı
-için jailbreak'li cihazdan alınmış **decrypted** bir sürüm gerekir — App Store kopyası
-yeterli olmayabilir.
+IPA indirildi: **Rave 8.1.1 (build 2697), iOS 15+, arm64.** Mach-O `cryptid=0` — yani
+**şifresiz**, semboller/stringler doğrudan okunabildi. **Sürüm notu:** IPA (8.1.1,
+Temmuz 2025) APK'dan (9.0.28) ~13 ay eski; platform seti aynı ama yeni özellikler
+Android'de daha ileri olabilir.
+
+### iOS oynatım mimarisi (frameworks + binary sembolleri)
+
+iOS'te oynatım **WebView değil**, Android'deki gibi **yerel oynatıcı**. Kanıtlar:
+
+| Bileşen | Framework / sembol | İş |
+| --- | --- | --- |
+| Yerel oynatıcı | `AVPlayer`, `avPlayerLayer`, `CustomAVPlayer` | Video oynatma |
+| DRM | `AVAssetResourceLoadingRequest`, `FairPlayLicense`, `fairPlayCertificateBytes`, `fetchCert…withFairPlayKeyId`, `drmKeySystem: fairplay` | FairPlay SPC/CKC anahtar değişimi |
+| HLS ayrıştırma | `mamba.framework` | m3u8 manifest çözümleme |
+| Yerel sunucu | `GCDWebServer`, `Criollo`, `Swifter` | Yeniden yazılmış manifesti AVPlayer'a yerelden servis |
+| Manifest/DRM köprü | `ManifestoClient.framework` | (Android'deki `libmanifesto_client.so` karşılığı) |
+| Altyazı | `SwiftWebVTT.framework` | WebVTT altyazı |
+| Senkron | `SwitchboardClient.framework` | Android ile **aynı** sync katmanı |
+| Sesli sohbet | `Mediasoup.framework` + `WebRTC.framework` | VOIP |
+| Kısmi UI | `Flutter.framework` + `App.framework` | Bazı ekranlar Flutter |
+
+### iOS Netflix akışı (kaz: `getMslData`, `mslKey`, `hlsManifestURL`)
+
+iOS'te Netflix de **MSL** kullanıyor (Swift sembolleri `%MslData`, `getMslData`, `mslKey`):
+
+1. WKWebView netflix.com'u açar, kullanıcı giriş yapar; `netflix.js` yalnız **kozmetik**
+   (e-posta formu/reklam gizler) — Android'deki gibi ağır iş JS'te değil.
+2. Yerel Swift MSL ile manifest ister: `…&deviceType=ios&drmCapabilities=fairplay`.
+   Yanıt `serializedHouseBrandPlayerResponse` içinde **`hlsManifestURL`** + FairPlay anahtar
+   bilgisi taşır.
+3. `mamba` HLS'i ayrıştırır, `GCDWebServer` yeniden yazılmış manifesti yerelden servis eder.
+4. `AVPlayer` oynatır; `AVAssetResourceLoaderDelegate` anahtar isteklerini yakalar →
+   FairPlay SPC/CKC → şifre çözülür. Altyazı `SwiftWebVTT` ile.
+5. **`hlsManifestURL` yoksa** binary'deki mesaj: *"No hlsManifestUrl found, falling back to
+   web client"* — yani WebView oynatımına düşer. WebView yalnız **yedek**.
+
+Diğer platformlar (Prime `amazon.js`, Disney `disney.js`, Max `max.js`, YouTube
+`po_token.js`+`sighelper.js`+`acorn.js`, Pluto/Tubi/Twitch/VK/Rutube/Drive/Photos) aynı
+kalıpta: WKWebView + kozmetik/çıkarım JS, sonra mümkünse yerel AVPlayer, değilse WebView.
+
+### iOS platform seti (`videos/{platform}`, 8.1.1)
+
+gdrive, gphotos, youtube, web, twitter, twitch, tubi, pluto, netflix, hbomax, discomax(Max),
+disney, crunchy, amazon (+ dizelerde vimeo, vk, dailymotion, soundcloud, kick). **Android
+9.0.28 ile esas aynı** — fark platform listesi değil, oynatım yolunun olgunluğu.
+
+### Bizim iOS için sonuç
+
+Rave iOS'te DRM'li içeriği **WebView EME/FairPlay ile değil**, yerel **AVPlayer +
+AVAssetResourceLoaderDelegate + FairPlay ContentKey + yerel HLS sunucu (mamba/GCDWebServer)
++ ManifestoClient** ile oynatıyor; WebView yalnızca manifest bulunamazsa yedek. Bizim
+`aron-player` yerel modülümüz yalnız Android (ExoPlayer). **iOS paritesi için Swift tarafında
+eş bir yerel oynatıcı gerekiyor:** MSL/manifest çıkar → HLS'i AVPlayer'a yerel sunucudan besle
+→ AVAssetResourceLoaderDelegate ile FairPlay anahtarını çöz. KURAL 1'deki "iOS WebView + EME +
+FairPlay çalışıyor" ifadesi eksik/yanıltıcı: Rave'de iOS asıl yol yerel, WebView yedek.
+
+> Not: IPA 8.1.1 decrypted geldi (jailbreak/sideload kaynağı). Kod birebir kopya için
+> değil, mimari/akış çıkarımı için kullanıldı — FairPlay ve MSL'in kendisi bizim
+> hesabımızla, kendi sunucumuzla kurulacak.
