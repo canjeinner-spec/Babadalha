@@ -60,6 +60,7 @@ export default function PartiProfil() {
   const dbId = useApp((s) => s.dbId);
   const signOutApp = useApp((s) => s.signOutApp);
   const [cikisOnayi, setCikisOnayi] = useState(false);
+  const [misafirUyarisi, setMisafirUyarisi] = useState(false);
   const [cikiliyor, setCikiliyor] = useState(false);
   const [hata, setHata] = useState("");
 
@@ -86,7 +87,14 @@ export default function PartiProfil() {
         </View>
 
         <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: CUBUK_YUKSEKLIGI + 20 }} showsVerticalScrollIndicator={false}>
-          <View style={styles.kart}>
+          <Pressable
+            style={styles.kart}
+            onPress={() => {
+              haptic.select();
+              if (session) router.push("/profil-duzenle");
+              else setMisafirUyarisi(true);
+            }}
+          >
             <Portrait name={userName} size={72} photo={userPhoto ?? undefined} halkasiz />
 
             <View style={{ flex: 1, minWidth: 0, gap: 7 }}>
@@ -106,7 +114,9 @@ export default function PartiProfil() {
                 <Txt size={12} color={C.dim}>{t("profil.kimlik", publicId)}</Txt>
               ) : null}
             </View>
-          </View>
+
+            <Icon name="chev" size={20} sw={2.2} color={C.dim2} />
+          </Pressable>
 
           <View style={styles.kutu}>
             <Satir etiket={t("profil.seviye")} deger={`Lv ${userLevel}`} />
@@ -188,6 +198,26 @@ export default function PartiProfil() {
 
       <AltCubuk />
 
+      <CenterModal visible={misafirUyarisi} onClose={() => setMisafirUyarisi(false)}>
+        <View style={styles.uyariKart}>
+          <Txt weight="displayBold" size={16} color="#fff" align="center">{t("profil.misafirBaslik")}</Txt>
+          <Txt size={13} color={C.dim} align="center" lh={1.45} style={{ marginTop: 8 }}>
+            {t("profil.misafirMetin")}
+          </Txt>
+          <View style={styles.uyariDugmeler}>
+            <Pressable style={styles.uyariIkincil} onPress={() => setMisafirUyarisi(false)}>
+              <Txt weight="extrabold" size={13} color="#fff">{t("genel.vazgec")}</Txt>
+            </Pressable>
+            <Pressable
+              style={[styles.uyariBirincil, { backgroundColor: C.gold2 }]}
+              onPress={() => { haptic.select(); setMisafirUyarisi(false); router.push("/giris"); }}
+            >
+              <Txt weight="extrabold" size={13} color="#241A05">{t("giris.yap")}</Txt>
+            </Pressable>
+          </View>
+        </View>
+      </CenterModal>
+
       <CenterModal visible={cikisOnayi} onClose={() => setCikisOnayi(false)}>
         <View style={styles.uyariKart}>
           <Txt weight="displayBold" size={16} color="#fff" align="center">{t("profil.cikisYap")}</Txt>
@@ -257,7 +287,7 @@ const styles = StyleSheet.create({
   kart: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 15,
+    gap: 13,
     marginTop: 4,
     marginBottom: 20,
     paddingVertical: 18,

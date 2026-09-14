@@ -120,6 +120,37 @@ export const METINLER = {
   "odaEkran.rolHatasi": { tr: "Rol kaydedilemedi", en: "Could not save the role" },
   "odaEkran.yasakHatasi": { tr: "Yasaklama kaydedilemedi", en: "Could not save the ban" },
 
+  "profil.duzenle": { tr: "Profili düzenle", en: "Edit profile" },
+  "profil.misafirBaslik": { tr: "Şu anda misafirsin", en: "You are browsing as a guest" },
+  "profil.misafirMetin": {
+    tr: "Bilgilerini düzenleyebilmek için hesabına giriş yapman gerekiyor.",
+    en: "To edit your details you need to sign in to your account.",
+  },
+
+  "duzenle.baslik": { tr: "Profili düzenle", en: "Edit profile" },
+  "duzenle.kullaniciAdi": { tr: "Kullanıcı adı", en: "Username" },
+  "duzenle.kullaniciAdiIpucu": { tr: "Odalarda seni bu ad temsil eder", en: "This name represents you in rooms" },
+  "duzenle.biyografi": { tr: "Hakkında", en: "About" },
+  "duzenle.biyografiIpucu": { tr: "Birkaç satırda kendini anlat", en: "Tell people about yourself in a few lines" },
+  "duzenle.ulke": { tr: "Ülke", en: "Country" },
+  "duzenle.sehir": { tr: "Şehir", en: "City" },
+  "duzenle.kaydet": { tr: "Kaydet", en: "Save" },
+  "duzenle.kaydediliyor": { tr: "Kaydediliyor…", en: "Saving…" },
+  "duzenle.kaydedildi": { tr: "Profilin güncellendi", en: "Your profile is updated" },
+  "duzenle.adKisa": { tr: "Kullanıcı adı en az 3 karakter olmalı.", en: "A username must be at least 3 characters." },
+  "duzenle.adGecersiz": {
+    tr: "Kullanıcı adında yalnız harf, rakam, alt çizgi ve nokta olabilir.",
+    en: "A username can contain only letters, numbers, underscores and dots.",
+  },
+  "duzenle.adDolu": { tr: "Bu kullanıcı adı alınmış.", en: "That username is taken." },
+  "duzenle.adMusait": { tr: "Bu ad müsait.", en: "That name is available." },
+  "duzenle.adBakiliyor": { tr: "Bakılıyor…", en: "Checking…" },
+  "duzenle.hata": { tr: "Kaydedilemedi. İnternetini kontrol edip tekrar dene.", en: "Could not save. Check your connection and try again." },
+  "duzenle.sunucuYok": {
+    tr: "Sunucu ayarları eksik, profil düzenlenemiyor.",
+    en: "Server settings are missing, the profile cannot be edited.",
+  },
+
   "profil.belgeler": { tr: "YASAL", en: "LEGAL" },
   "profil.partiModu": { tr: "PARTİ MODU", en: "PARTY MODE" },
   "profil.misafirNotu": {
