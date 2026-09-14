@@ -474,6 +474,11 @@ export const METINLER = {
   "kisi.sebepSpam": { tr: "Spam veya dolandırıcılık", en: "Spam or fraud" },
   "kisi.sebepSiddet": { tr: "Şiddet veya tehdit", en: "Violence or threats" },
   "kisi.sebepDiger": { tr: "Başka bir sebep", en: "Another reason" },
+  "kisi.seniEngelledi": { tr: "Bu kişi seni engellemiş.", en: "This person has blocked you." },
+  "kisi.seniEngelledMetin": {
+    tr: "Onunla etkileşime geçemezsin. Profilini göremez, arkadaş ekleyemez, takip edemezsin.",
+    en: "You cannot interact with them. You cannot see their profile, add them as a friend or follow them.",
+  },
   "kisi.kimlikYok": { tr: "Bu kişinin hesabı bulunamadı.", en: "This person's account could not be found." },
   "kisi.girisGerek": { tr: "Bunun için giriş yapman gerekiyor.", en: "You need to sign in for this." },
   "kisi.baglanmadi": {

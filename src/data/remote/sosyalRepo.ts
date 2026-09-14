@@ -52,6 +52,13 @@ export async function engeliKaldir(hedefId: number): Promise<void> {
   if (error) hataCevir(error);
 }
 
+export async function beniEngelledi(hedefId: number): Promise<boolean> {
+  const sb = requireSupabase();
+  const { data, error } = await sb.rpc("beni_engelledi_mi", { p_id: hedefId });
+  if (error) return false;
+  return Boolean(data);
+}
+
 export async function arkadaslikDurumu(hedefId: number): Promise<ArkadaslikDurumu> {
   const sb = requireSupabase();
   const ben = await benimId();

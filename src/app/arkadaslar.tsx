@@ -170,11 +170,10 @@ export default function Arkadaslar() {
 
   const profilAc = (kisi: ArkadasKisi) => {
     haptic.select();
-    if (kisi.id < 0) return;
     router.push({
       pathname: "/kisi",
       params: {
-        id: String(kisi.id),
+        id: kisi.id < 0 ? "" : String(kisi.id),
         ad: kisi.ad,
         kullaniciAdi: kisi.publicId,
         foto: kisi.foto ?? "",

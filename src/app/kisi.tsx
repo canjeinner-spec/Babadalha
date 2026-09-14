@@ -1,5 +1,5 @@
 import { useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -8,9 +8,10 @@ import { Portrait } from "@/components/Portrait";
 import { RenkliAd } from "@/components/RenkliAd";
 import { Txt } from "@/components/Txt";
 import { partiIstatistiklerim, sureYaz, type PartiIstatistik } from "@/data/remote/partiRepo";
+import { mockKisiBul } from "@/data/kisiMock";
 import { getPublicProfile, getPublicProfileById, type PublicProfile } from "@/data/remote/profileRepo";
 import {
-  arkadaslikDurumu, arkadaslikIste, arkadasligiKabulEt, arkadasligiSil,
+  arkadaslikDurumu, arkadaslikIste, arkadasligiKabulEt, arkadasligiSil, beniEngelledi,
   BILDIRIM_SEBEPLERI, engelle as sunucuEngelle, engeliKaldir as sunucuEngeliKaldir,
   engellilerim, kullaniciyiBildir, takibiBirak, takipEdiyorMuyum, takipEt, takipSayilari,
   TabloYok, type ArkadaslikDurumu, type BildirimSebebi,
@@ -78,11 +79,13 @@ export default function Kisi() {
   const [takipte, setTakipte] = useState(false);
   const [sayilar, setSayilar] = useState<{ takipci: number; takip: number } | null>(null);
   const [bildirAcik, setBildirAcik] = useState(false);
+  const [beniEngelledimi, setBeniEngelledimi] = useState(false);
   const [mesgul, setMesgul] = useState(false);
   const engelli = sunucuEngelli ?? engelliMi(engelListesi, dbId ? `u${dbId}` : null, p.kullaniciAdi || null);
 
   const kullaniciAdiParam = (p.kullaniciAdi ?? "").trim();
   const benimProfilim = benimDbId != null && dbId === benimDbId;
+  const mockKisi = useMemo(() => mockKisiBul(gelenId, kullaniciAdiParam), [gelenId, kullaniciAdiParam]);
 
   useEffect(() => {
     let acik = true;
@@ -92,22 +95,36 @@ export default function Kisi() {
       if (r) setCozulenId(r.id);
       setYukleniyor(false);
     };
+    if (mockKisi) {
+      queueMicrotask(() => {
+        if (!acik) return;
+        setProfil(mockKisi.profil);
+        setCozulenId(mockKisi.profil.id);
+        setIstatistik(mockKisi.istatistik);
+        setSayilar({ takipci: mockKisi.takipci, takip: mockKisi.takip });
+        setArkadaslik(mockKisi.arkadaslik);
+        setTakipte(mockKisi.takipte);
+        setBeniEngelledimi(mockKisi.beniEngelledi);
+        setYukleniyor(false);
+      });
+      return () => { acik = false; };
+    }
     if (gelenId) {
       getPublicProfileById(gelenId).then(yakala).catch(() => { if (acik) setYukleniyor(false); });
     } else if (kullaniciAdiParam) {
       getPublicProfile(kullaniciAdiParam).then(yakala).catch(() => { if (acik) setYukleniyor(false); });
     }
     return () => { acik = false; };
-  }, [gelenId, kullaniciAdiParam]);
+  }, [gelenId, kullaniciAdiParam, mockKisi]);
 
   useEffect(() => {
-    if (!dbId) return;
+    if (!dbId || mockKisi) return;
     let acik = true;
     partiIstatistiklerim(dbId)
       .then((r) => { if (acik) setIstatistik(r); })
       .catch(() => {});
     return () => { acik = false; };
-  }, [dbId]);
+  }, [dbId, mockKisi]);
 
   useEffect(() => {
     if (p.bildir !== "1") return;
@@ -116,7 +133,7 @@ export default function Kisi() {
   }, [p.bildir]);
 
   const tazele = useCallback(async () => {
-    if (!dbId) return;
+    if (!dbId || mockKisi) return;
     const [e, a, tk, sy] = await Promise.all([
       oturum && !benimProfilim ? engellilerim().then((l) => l.includes(dbId)).catch(() => null) : Promise.resolve(null),
       oturum && !benimProfilim
@@ -129,30 +146,36 @@ export default function Kisi() {
     setArkadaslik(a);
     setTakipte(tk);
     setSayilar(sy ?? { takipci: 0, takip: 0 });
-  }, [dbId, oturum, benimProfilim]);
+  }, [dbId, oturum, benimProfilim, mockKisi]);
 
   useEffect(() => {
-    if (!dbId) return;
+    if (!dbId || mockKisi) return;
     let acik = true;
     Promise.all([
+      oturum && !benimProfilim ? beniEngelledi(dbId).catch(() => false) : Promise.resolve(false),
       oturum && !benimProfilim ? engellilerim().then((l) => l.includes(dbId)).catch(() => null) : Promise.resolve(null),
       oturum && !benimProfilim
         ? arkadaslikDurumu(dbId).catch(() => "yok" as ArkadaslikDurumu)
         : Promise.resolve("yok" as ArkadaslikDurumu),
       oturum && !benimProfilim ? takipEdiyorMuyum(dbId).catch(() => false) : Promise.resolve(false),
       takipSayilari(dbId).catch(() => null),
-    ]).then(([e, a, tk, sy]) => {
+    ]).then(([be, e, a, tk, sy]) => {
       if (!acik) return;
+      setBeniEngelledimi(be);
       if (e !== null) setSunucuEngelli(e);
       setArkadaslik(a);
       setTakipte(tk);
       setSayilar(sy ?? { takipci: 0, takip: 0 });
     });
     return () => { acik = false; };
-  }, [dbId, oturum, benimProfilim]);
+  }, [dbId, oturum, benimProfilim, mockKisi]);
 
   const sunucuIsi = async (isi: () => Promise<void>, basari?: string) => {
     if (mesgul) return false;
+    if (mockKisi) {
+      if (basari) basariUyar(basari);
+      return true;
+    }
     if (!oturum) { hataUyar(t("kisi.girisGerek")); return false; }
     if (!dbId) { hataUyar(t("kisi.kimlikYok")); return false; }
     setMesgul(true);
@@ -171,6 +194,12 @@ export default function Kisi() {
   const engelBas = async () => {
     haptic.select();
     setMenu(false);
+    if (mockKisi) {
+      const yeni = !engelli;
+      setSunucuEngelli(yeni);
+      uyar(t(yeni ? "kisi.engellendi" : "kisi.engelKalkti", ad));
+      return;
+    }
     if (dbId && oturum) {
       const yeni = !engelli;
       const oldu = await sunucuIsi(() => (yeni ? sunucuEngelle(dbId) : sunucuEngeliKaldir(dbId)));
@@ -188,6 +217,10 @@ export default function Kisi() {
 
   const arkadasBas = async () => {
     haptic.select();
+    if (mockKisi) {
+      setArkadaslik(arkadaslik === "gelen" ? "arkadas" : arkadaslik === "yok" ? "bekliyor" : "yok");
+      return;
+    }
     if (!dbId) { hataUyar(t(oturum ? "kisi.kimlikYok" : "kisi.girisGerek")); return; }
     if (arkadaslik === "gelen") {
       if (await sunucuIsi(() => arkadasligiKabulEt(dbId))) await tazele();
@@ -202,6 +235,12 @@ export default function Kisi() {
 
   const takipBas = async () => {
     haptic.select();
+    if (mockKisi) {
+      const mockYeni = !takipte;
+      setTakipte(mockYeni);
+      setSayilar((s) => (s ? { ...s, takipci: Math.max(0, s.takipci + (mockYeni ? 1 : -1)) } : s));
+      return;
+    }
     if (!dbId) { hataUyar(t(oturum ? "kisi.kimlikYok" : "kisi.girisGerek")); return; }
     const yeni = !takipte;
     if (await sunucuIsi(() => (yeni ? takipEt(dbId) : takibiBirak(dbId)))) {
@@ -243,7 +282,7 @@ export default function Kisi() {
             <Icon name="back" size={22} color="#fff" />
           </Pressable>
           <Txt weight="displayBold" size={17} color="#fff">{t("kisi.baslik")}</Txt>
-          {benimProfilim ? (
+          {benimProfilim || beniEngelledimi ? (
             <View style={{ width: 30 }} />
           ) : (
             <Pressable onPress={() => { haptic.select(); setMenu(true); }} hitSlop={10} style={styles.geri}>
@@ -259,7 +298,7 @@ export default function Kisi() {
               <RenkliAd ad={ad} tip={tip} tema={tema} size={22} weight="displayBold" renk="#fff" />
               {!!kullaniciAdi && <Txt size={13} color={C.dim}>@{kullaniciAdi}</Txt>}
             </View>
-            {!yukleniyor && (
+            {!yukleniyor && !beniEngelledimi && (
               <Txt
                 size={13.5}
                 color={profil?.biyografi ? C.dim : C.dim2}
@@ -272,7 +311,19 @@ export default function Kisi() {
             )}
           </View>
 
-          {!!sayilar && (
+          {beniEngelledimi && (
+            <View style={styles.engelKutusu}>
+              <View style={styles.engelSimge}>
+                <Icon name="blockuser" size={22} sw={2} color={C.red} />
+              </View>
+              <Txt weight="displayBold" size={15} color="#fff" align="center">{t("kisi.seniEngelledi")}</Txt>
+              <Txt size={13} color={C.dim} align="center" lh={1.5} style={{ marginTop: 8 }}>
+                {t("kisi.seniEngelledMetin")}
+              </Txt>
+            </View>
+          )}
+
+          {!!sayilar && !beniEngelledimi && (
             <View style={styles.serit}>
               <View style={styles.kutucuk}>
                 <Txt weight="displayBold" size={18} color="#fff">{sayilar.takipci}</Txt>
@@ -290,7 +341,7 @@ export default function Kisi() {
             </View>
           )}
 
-          {yukleniyor ? (
+          {beniEngelledimi ? null : yukleniyor ? (
             <View style={styles.ortala}><ActivityIndicator color={C.gold2} /></View>
           ) : profil ? (
             <View style={styles.kume}>
@@ -313,24 +364,25 @@ export default function Kisi() {
             </Txt>
           )}
 
-          {!benimProfilim && (
-            <View style={styles.dipEylemler}>
-              <Pressable
-                style={[styles.dipDugme, arkadaslik !== "yok" && styles.dipSecili]}
-                onPress={arkadasBas}
-              >
-                <Icon name={arkadaslik === "arkadas" ? "check" : "userAdd"} size={18} sw={2} color={C.gold2} />
-                <Txt weight="extrabold" size={13} color="#fff" numberOfLines={1}>{arkadasEtiketi}</Txt>
-              </Pressable>
-              <Pressable style={[styles.dipDugme, takipte && styles.dipSecili]} onPress={takipBas}>
-                <Icon name="heart" size={18} sw={2} color={C.gold2} fill={takipte ? C.gold2 : "none"} />
-                <Txt weight="extrabold" size={13} color="#fff">
-                  {takipte ? t("kisi.takiptesin") : t("kisi.takipEt")}
-                </Txt>
-              </Pressable>
-            </View>
-          )}
         </ScrollView>
+
+        {!benimProfilim && !beniEngelledimi && (
+          <View style={styles.dipEylemler}>
+            <Pressable
+              style={[styles.dipDugme, arkadaslik !== "yok" && styles.dipSecili]}
+              onPress={arkadasBas}
+            >
+              <Icon name={arkadaslik === "arkadas" ? "check" : "userAdd"} size={18} sw={2} color={C.gold2} />
+              <Txt weight="extrabold" size={13} color="#fff" numberOfLines={1}>{arkadasEtiketi}</Txt>
+            </Pressable>
+            <Pressable style={[styles.dipDugme, takipte && styles.dipSecili]} onPress={takipBas}>
+              <Icon name="heart" size={18} sw={2} color={C.gold2} fill={takipte ? C.gold2 : "none"} />
+              <Txt weight="extrabold" size={13} color="#fff">
+                {takipte ? t("kisi.takiptesin") : t("kisi.takipEt")}
+              </Txt>
+            </Pressable>
+          </View>
+        )}
       </SafeAreaView>
 
       <CenterModal visible={menu} onClose={() => setMenu(false)}>
@@ -384,8 +436,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, paddingTop: 6, paddingBottom: 10,
   },
   geri: { width: 30, height: 30, alignItems: "center", justifyContent: "center" },
-  govde: { paddingHorizontal: 16, paddingBottom: 40 },
+  govde: { paddingHorizontal: 16, paddingBottom: 28 },
   tanit: { alignItems: "center", paddingTop: 10, paddingBottom: 24 },
+  engelKutusu: {
+    marginTop: 20, marginHorizontal: 4, alignItems: "center",
+    paddingHorizontal: 22, paddingVertical: 24, borderRadius: 20,
+    backgroundColor: "rgba(248,113,113,.06)", borderWidth: 1, borderColor: "rgba(248,113,113,.22)",
+  },
+  engelSimge: {
+    width: 48, height: 48, borderRadius: 16, alignItems: "center", justifyContent: "center",
+    backgroundColor: "rgba(248,113,113,.1)", borderWidth: 1, borderColor: "rgba(248,113,113,.24)",
+    marginBottom: 14,
+  },
   biyografi: { marginTop: 16, paddingHorizontal: 18 },
   ortala: { paddingVertical: 30, alignItems: "center" },
   serit: {
@@ -401,7 +463,12 @@ const styles = StyleSheet.create({
     borderRadius: 16, paddingVertical: 13, paddingHorizontal: 13,
     backgroundColor: C.kart, borderWidth: 1, borderColor: C.line,
   },
-  dipEylemler: { flexDirection: "row", gap: 10, marginTop: 22 },
+  dipEylemler: {
+    flexDirection: "row", gap: 10,
+    paddingHorizontal: 16, paddingTop: 12, paddingBottom: 6,
+    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: C.line,
+    backgroundColor: C.bg,
+  },
   dipDugme: {
     flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
     borderRadius: 16, paddingVertical: 14,

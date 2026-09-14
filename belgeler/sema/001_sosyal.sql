@@ -107,3 +107,16 @@ create policy parti_sikayetleri_kendi_ekler on public.parti_sikayetleri
 
 grant select, insert on public.parti_sikayetleri to authenticated;
 grant usage on sequence public.parti_sikayetleri_id_seq to authenticated;
+
+-- ------------------------------------------------------ beni engelledi mi
+
+create or replace function public.beni_engelledi_mi(p_id bigint)
+returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (
+    select 1 from public.engellemeler
+    where engelleyen_id = p_id and engellenen_id = public.benim_kullanici_id()
+  )
+$$;
+
+grant execute on function public.beni_engelledi_mi(bigint) to authenticated;
