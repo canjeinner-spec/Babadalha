@@ -89,55 +89,43 @@ adı çizen yerler (sohbet mesajı, sistem mesajı, oda listesi, kişi paneli)
 `gorunen_ad ?? kullanici_adi` okuyacak biçimde bağlanır. `useGorunenAd`
 o zaman kaldırılır.
 
-## Arkadaşlık, takip ve bildirme sunucuda yok
+## Sosyal tablolar
 
-Kişi profilinde "Arkadaş ekle" ve "Takip et" düğmeleri, kartta ve profilde
-"Kullanıcıyı bildir" var; üçünün de arkasında tablo yok. Basınca çalışmıyormuş
-gibi yapmıyorlar, "bu özellik henüz sunucuya bağlanmadı" diyorlar.
+Şema `belgeler/sema/001_sosyal.sql`. Supabase SQL düzenleyicisine olduğu gibi
+yapıştırılıp çalıştırılır, tekrar çalıştırmak güvenli.
 
-Engelleme çalışıyor ama **yalnız cihazda**: `src/lib/engellenenler.ts`
-AsyncStorage'a yazıyor, engellenen kişinin sohbet ve sistem mesajları odada
-gizleniyor. Karşı taraf engellendiğini bilmiyor ve başka cihazına taşınmıyor.
+Kurduğu tablolar: `engellemeler`, `arkadasliklar`, `takipler`, `bildirimler`.
+Hepsinde satır düzeyinde güvenlik açık ve kural `public.benim_id()` ile
+oturumdaki kullanıcıya bağlı: kendi engellemeni görürsün, arkadaşlık satırını
+iki taraf da görür ama isteği yalnız isteyen açar ve yalnız istenen kabul
+eder, takip sayıları herkese açık ama satırı yalnız sahibi ekler ve siler,
+bildirimini yalnız bildiren görür. `takip_sayilari(id)` iki sayıyı tek
+çağrıda döndürüyor.
 
-Gerekli şema:
+Bildirim sebepleri veritabanında kısıtlı: taciz, nefret, cinsel, cocuk,
+spam, siddet, diger. Arayüzdeki listeyle aynı.
 
-```sql
-create table if not exists public.engellemeler (
-  engelleyen_id bigint not null references public.kullanicilar(id) on delete cascade,
-  engellenen_id bigint not null references public.kullanicilar(id) on delete cascade,
-  tarih timestamptz not null default now(),
-  primary key (engelleyen_id, engellenen_id)
-);
+İstemci tarafı `src/data/remote/sosyalRepo.ts`. Tablolar henüz kurulmamışsa
+Postgres'in "tablo yok" ve "yetki yok" kodları yakalanıp `TabloYok` hatasına
+çevriliyor, arayüz de "sosyal tablolar henüz kurulmadı" diyor. SQL
+çalıştırıldığı anda uygulamayı yeniden derlemeye gerek kalmadan açılıyor.
 
-create table if not exists public.arkadasliklar (
-  isteyen_id bigint not null references public.kullanicilar(id) on delete cascade,
-  istenen_id bigint not null references public.kullanicilar(id) on delete cascade,
-  durum text not null default 'bekliyor',
-  tarih timestamptz not null default now(),
-  primary key (isteyen_id, istenen_id)
-);
+Odadan atma bu dosyaya dahil değil; `oda_yasaklari` tablosu zaten vardı ve
+`roomsRepo` üzerinden çalışıyor.
 
-create table if not exists public.takipler (
-  takipci_id bigint not null references public.kullanicilar(id) on delete cascade,
-  takip_edilen_id bigint not null references public.kullanicilar(id) on delete cascade,
-  tarih timestamptz not null default now(),
-  primary key (takipci_id, takip_edilen_id)
-);
+## Engelleme cihazda da tutuluyor
 
-create table if not exists public.bildirimler (
-  id bigserial primary key,
-  bildiren_id bigint not null references public.kullanicilar(id) on delete cascade,
-  bildirilen_id bigint not null references public.kullanicilar(id) on delete cascade,
-  oda_id bigint,
-  mesaj_id bigint,
-  sebep text not null,
-  aciklama text,
-  durum text not null default 'yeni',
-  tarih timestamptz not null default now()
-);
-```
+Oturum açıkken engelleme sunucuya yazılıyor. Oturum yoksa ya da kişinin
+veritabanı kaydı yoksa (mock kişiler) `src/lib/engellenenler.ts` devreye
+girip kararı cihazda saklıyor; odada o kişinin sohbet ve sistem mesajları
+yine gizleniyor.
 
-Her birine satır sahibini sınırlayan RLS kuralı gerekiyor. `bildirimler`
-Apple 1.2 için şart: kullanıcı içeriği barındıran uygulamada bildirme yolu
-olmadan mağazaya çıkılmıyor, Kullanım Koşullarımız da "her kullanıcıyı
-bildirebilirsin" diye yazıyor.
+## Şemanın tam hâli
+
+
+Tam şema `belgeler/sema/001_sosyal.sql` dosyasında; buraya kopyalanmıyor ki
+iki yerde ayrışmasın.
+
+`bildirimler` Apple 1.2 için şart: kullanıcı içeriği barındıran uygulamada
+bildirme yolu olmadan mağazaya çıkılmıyor, Kullanım Koşullarımız da "her
+kullanıcıyı bildirebilirsin" diye yazıyor.

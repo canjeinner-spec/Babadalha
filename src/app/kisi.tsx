@@ -10,8 +10,15 @@ import { RenkliAd } from "@/components/RenkliAd";
 import { Txt } from "@/components/Txt";
 import { partiIstatistiklerim, sureYaz, type PartiIstatistik } from "@/data/remote/partiRepo";
 import { getPublicProfileById, type PublicProfile } from "@/data/remote/profileRepo";
+import {
+  arkadaslikDurumu, arkadaslikIste, arkadasligiKabulEt, arkadasligiSil,
+  BILDIRIM_SEBEPLERI, engelle as sunucuEngelle, engeliKaldir as sunucuEngeliKaldir,
+  engellilerim, kullaniciyiBildir, takibiBirak, takipEdiyorMuyum, takipEt, takipSayilari,
+  TabloYok, type ArkadaslikDurumu, type BildirimSebebi,
+} from "@/data/remote/sosyalRepo";
 import { Icon } from "@/icons/Icon";
 import { type IconName } from "@/icons/paths";
+import { useApp } from "@/store/appStore";
 import { useCeviri } from "@/lib/ceviri";
 import { useDil } from "@/lib/dil";
 import { engelliMi, useEngellenenler } from "@/lib/engellenenler";
@@ -50,7 +57,7 @@ export default function Kisi() {
   const t = useCeviri();
   const dilKodu = useDil((s) => s.dil.kod);
   const p = useLocalSearchParams<{
-    id?: string; ad?: string; kullaniciAdi?: string; foto?: string; tip?: string; tema?: string;
+    id?: string; ad?: string; kullaniciAdi?: string; foto?: string; tip?: string; tema?: string; bildir?: string;
   }>();
   const dbId = p.id ? Number(p.id) : null;
 
@@ -61,7 +68,14 @@ export default function Kisi() {
   const [bildirim, setBildirim] = useState("");
   const engelListesi = useEngellenenler((s) => s.liste);
   const engelDegistir = useEngellenenler((s) => s.degistir);
-  const engelli = engelliMi(engelListesi, dbId ? `u${dbId}` : null, p.kullaniciAdi || null);
+  const oturum = useApp((s) => s.session);
+  const [sunucuEngelli, setSunucuEngelli] = useState<boolean | null>(null);
+  const [arkadaslik, setArkadaslik] = useState<ArkadaslikDurumu>("yok");
+  const [takipte, setTakipte] = useState(false);
+  const [sayilar, setSayilar] = useState<{ takipci: number; takip: number } | null>(null);
+  const [bildirAcik, setBildirAcik] = useState(false);
+  const [mesgul, setMesgul] = useState(false);
+  const engelli = sunucuEngelli ?? engelliMi(engelListesi, dbId ? `u${dbId}` : null, p.kullaniciAdi || null);
 
   useEffect(() => {
     if (!dbId || Number.isNaN(dbId)) return;
@@ -83,19 +97,104 @@ export default function Kisi() {
   }, [dbId]);
 
   useEffect(() => {
+    if (p.bildir !== "1") return;
+    const z = setTimeout(() => setBildirAcik(true), 360);
+    return () => clearTimeout(z);
+  }, [p.bildir]);
+
+  useEffect(() => {
     if (!bildirim) return;
     const z = setTimeout(() => setBildirim(""), 2000);
     return () => clearTimeout(z);
   }, [bildirim]);
 
+  useEffect(() => {
+    if (!dbId || Number.isNaN(dbId) || !oturum) return;
+    let acik = true;
+    Promise.all([
+      engellilerim().then((l) => l.includes(dbId)).catch(() => null),
+      arkadaslikDurumu(dbId).catch(() => "yok" as ArkadaslikDurumu),
+      takipEdiyorMuyum(dbId).catch(() => false),
+      takipSayilari(dbId).catch(() => null),
+    ]).then(([e, a, tk, sy]) => {
+      if (!acik) return;
+      if (e !== null) setSunucuEngelli(e);
+      setArkadaslik(a);
+      setTakipte(tk);
+      if (sy) setSayilar(sy);
+    });
+    return () => { acik = false; };
+  }, [dbId, oturum]);
+
+  const sunucuIsi = async (isi: () => Promise<void>, basari?: string) => {
+    if (mesgul) return false;
+    if (!dbId || !oturum) { setBildirim(t("kisi.girisGerek")); return false; }
+    setMesgul(true);
+    try {
+      await isi();
+      if (basari) setBildirim(basari);
+      return true;
+    } catch (e) {
+      setBildirim(t(e instanceof TabloYok ? "kisi.baglanmadi" : "duzenle.hata"));
+      return false;
+    } finally {
+      setMesgul(false);
+    }
+  };
+
   const engelBas = async () => {
     haptic.select();
     setMenu(false);
+    if (dbId && oturum) {
+      const yeni = !engelli;
+      const oldu = await sunucuIsi(() => (yeni ? sunucuEngelle(dbId) : sunucuEngeliKaldir(dbId)));
+      if (oldu) {
+        setSunucuEngelli(yeni);
+        setBildirim(t(yeni ? "kisi.engellendi" : "kisi.engelKalkti", ad));
+      }
+      return;
+    }
     const anahtar = dbId ? `u${dbId}` : (p.kullaniciAdi || p.ad || "");
     if (!anahtar) return;
     const acildi = await engelDegistir(anahtar);
     setBildirim(t(acildi ? "kisi.engellendi" : "kisi.engelKalkti", ad));
   };
+
+  const arkadasBas = async () => {
+    haptic.select();
+    if (!dbId) { setBildirim(t("kisi.girisGerek")); return; }
+    if (arkadaslik === "gelen") {
+      if (await sunucuIsi(() => arkadasligiKabulEt(dbId))) setArkadaslik("arkadas");
+      return;
+    }
+    if (arkadaslik === "yok") {
+      if (await sunucuIsi(() => arkadaslikIste(dbId))) setArkadaslik("bekliyor");
+      return;
+    }
+    if (await sunucuIsi(() => arkadasligiSil(dbId))) setArkadaslik("yok");
+  };
+
+  const takipBas = async () => {
+    haptic.select();
+    if (!dbId) { setBildirim(t("kisi.girisGerek")); return; }
+    const yeni = !takipte;
+    if (await sunucuIsi(() => (yeni ? takipEt(dbId) : takibiBirak(dbId)))) {
+      setTakipte(yeni);
+      setSayilar((s) => (s ? { ...s, takipci: Math.max(0, s.takipci + (yeni ? 1 : -1)) } : s));
+    }
+  };
+
+  const bildirBas = async (sebep: BildirimSebebi) => {
+    haptic.select();
+    setBildirAcik(false);
+    if (!dbId) { setBildirim(t("kisi.girisGerek")); return; }
+    await sunucuIsi(() => kullaniciyiBildir(dbId, sebep), t("kisi.bildirildi"));
+  };
+
+  const arkadasEtiketi = arkadaslik === "arkadas" ? t("kisi.arkadaslar")
+    : arkadaslik === "bekliyor" ? t("kisi.arkadasBekliyor")
+    : arkadaslik === "gelen" ? t("kisi.arkadasGelen")
+    : t("kisi.arkadasEkle");
 
   const ad = profil?.kullanici_adi ?? p.ad ?? "";
   const kullaniciAdi = (p.kullaniciAdi || profil?.kullanici_adi || "").trim();
@@ -142,6 +241,24 @@ export default function Kisi() {
             )}
           </View>
 
+          {!!sayilar && (
+            <View style={styles.serit}>
+              <View style={styles.kutucuk}>
+                <Txt weight="displayBold" size={18} color="#fff">{sayilar.takipci}</Txt>
+                <Txt weight="extrabold" size={10} color={C.dim2} style={{ letterSpacing: 0.9, marginTop: 4 }}>
+                  {t("kisi.takipci")}
+                </Txt>
+              </View>
+              <View style={styles.seritAyirac} />
+              <View style={styles.kutucuk}>
+                <Txt weight="displayBold" size={18} color="#fff">{sayilar.takip}</Txt>
+                <Txt weight="extrabold" size={10} color={C.dim2} style={{ letterSpacing: 0.9, marginTop: 4 }}>
+                  {t("kisi.takip")}
+                </Txt>
+              </View>
+            </View>
+          )}
+
           {yukleniyor ? (
             <View style={styles.ortala}><ActivityIndicator color={C.gold2} /></View>
           ) : profil ? (
@@ -168,13 +285,18 @@ export default function Kisi() {
           )}
 
           <View style={styles.dipEylemler}>
-            <Pressable style={styles.dipDugme} onPress={() => { haptic.select(); setBildirim(t("kisi.baglanmadi")); }}>
-              <Icon name="userAdd" size={18} sw={2} color={C.gold2} />
-              <Txt weight="extrabold" size={13.5} color="#fff">{t("kisi.arkadasEkle")}</Txt>
+            <Pressable
+              style={[styles.dipDugme, arkadaslik !== "yok" && styles.dipSecili]}
+              onPress={arkadasBas}
+            >
+              <Icon name={arkadaslik === "arkadas" ? "check" : "userAdd"} size={18} sw={2} color={C.gold2} />
+              <Txt weight="extrabold" size={13} color="#fff" numberOfLines={1}>{arkadasEtiketi}</Txt>
             </Pressable>
-            <Pressable style={styles.dipDugme} onPress={() => { haptic.select(); setBildirim(t("kisi.baglanmadi")); }}>
-              <Icon name="heart" size={18} sw={2} color={C.gold2} />
-              <Txt weight="extrabold" size={13.5} color="#fff">{t("kisi.takipEt")}</Txt>
+            <Pressable style={[styles.dipDugme, takipte && styles.dipSecili]} onPress={takipBas}>
+              <Icon name="heart" size={18} sw={2} color={C.gold2} fill={takipte ? C.gold2 : "none"} />
+              <Txt weight="extrabold" size={13} color="#fff">
+                {takipte ? t("kisi.takiptesin") : t("kisi.takipEt")}
+              </Txt>
             </Pressable>
           </View>
         </ScrollView>
@@ -190,13 +312,31 @@ export default function Kisi() {
           </Pressable>
           <Pressable
             style={styles.menuOge}
-            onPress={() => { haptic.select(); setMenu(false); setBildirim(t("kisi.baglanmadi")); }}
+            onPress={() => { haptic.select(); setMenu(false); setBildirAcik(true); }}
           >
             <Icon name="flag" size={19} sw={2} color={C.red} />
             <Txt weight="extrabold" size={14.5} color={C.red}>{t("kisi.raporla")}</Txt>
           </Pressable>
           <Pressable style={styles.menuKapat} onPress={() => setMenu(false)}>
             <Txt weight="extrabold" size={13.5} color="#fff">{t("kart.kapat")}</Txt>
+          </Pressable>
+        </View>
+      </CenterModal>
+
+      <CenterModal visible={bildirAcik} onClose={() => setBildirAcik(false)}>
+        <View style={styles.menu}>
+          <Txt weight="displayBold" size={15.5} color="#fff" align="center" style={{ marginBottom: 6 }}>
+            {t("kisi.bildirBaslik")}
+          </Txt>
+          {BILDIRIM_SEBEPLERI.map((sb) => (
+            <Pressable key={sb} style={styles.sebep} onPress={() => bildirBas(sb)}>
+              <Txt weight="bold" size={13.5} color="#fff">
+                {t(`kisi.sebep${sb.charAt(0).toLocaleUpperCase("tr")}${sb.slice(1)}`)}
+              </Txt>
+            </Pressable>
+          ))}
+          <Pressable style={styles.menuKapat} onPress={() => setBildirAcik(false)}>
+            <Txt weight="extrabold" size={13.5} color="#fff">{t("genel.vazgec")}</Txt>
           </Pressable>
         </View>
       </CenterModal>
@@ -222,6 +362,13 @@ const styles = StyleSheet.create({
   tanit: { alignItems: "center", paddingTop: 10, paddingBottom: 24 },
   biyografi: { marginTop: 16, paddingHorizontal: 18 },
   ortala: { paddingVertical: 30, alignItems: "center" },
+  serit: {
+    flexDirection: "row", alignItems: "center", marginBottom: 16,
+    borderRadius: 18, paddingVertical: 15,
+    backgroundColor: C.kart, borderWidth: 1, borderColor: C.line,
+  },
+  kutucuk: { flex: 1, alignItems: "center" },
+  seritAyirac: { width: 1, height: 30, backgroundColor: "rgba(255,255,255,.09)" },
   kume: { gap: 10 },
   kart: {
     flexDirection: "row", alignItems: "center", gap: 11,
@@ -233,6 +380,11 @@ const styles = StyleSheet.create({
     flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
     borderRadius: 16, paddingVertical: 14,
     backgroundColor: C.kart, borderWidth: 1, borderColor: "rgba(232,179,65,.22)",
+  },
+  dipSecili: { backgroundColor: "rgba(232,179,65,.13)", borderColor: "rgba(232,179,65,.4)" },
+  sebep: {
+    paddingVertical: 13, paddingHorizontal: 14, borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,.05)",
   },
   menu: {
     backgroundColor: C.card, borderRadius: 20, padding: 14,

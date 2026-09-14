@@ -1627,7 +1627,18 @@ export default function PartiOda() {
           const acildi = await engelDegistir(engelAnahtari(k));
           setBildirim(cevir(acildi ? "kisi.engellendi" : "kisi.engelKalkti", k.ad));
         }}
-        onRaporla={() => setBildirim(cevir("kisi.baglanmadi"))}
+        onRaporla={(k) => router.push({
+          pathname: "/kisi",
+          params: {
+            id: k.dbId != null ? String(k.dbId) : "",
+            ad: k.ad,
+            kullaniciAdi: k.kullaniciAdi ?? "",
+            foto: k.foto ?? "",
+            tip: k.ozelIdTip ?? "",
+            tema: k.ozelIdTema ?? "",
+            bildir: "1",
+          },
+        })}
         onProfil={(k) => router.push({
           pathname: "/kisi",
           params: {
