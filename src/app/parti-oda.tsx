@@ -49,6 +49,7 @@ import {
   devralanBenMiyim,
   type DevirZamanlayici,
 } from "@/parti/devir";
+import { engelliMi, useEngellenenler } from "@/lib/engellenenler";
 import { baloncukRengi } from "@/parti/baloncuk";
 import { usePartiGiris } from "@/parti/giris";
 import { usePartiIzleme } from "@/parti/izleme";
@@ -420,6 +421,11 @@ export default function PartiOda() {
   const [kurallar, setKurallar] = useState(false);
   const [kartKisisi, setKartKisisi] = useState<KartKisisi | null>(null);
   const [sohbetKapalilar, setSohbetKapalilar] = useState<Record<string, boolean>>({});
+  const engelListesi = useEngellenenler((s) => s.liste);
+  const engelDegistir = useEngellenenler((s) => s.degistir);
+  const engelAnahtari = useCallback((k: KartKisisi) => (
+    k.dbId != null ? `u${k.dbId}` : (k.kullaniciAdi || k.ad)
+  ), []);
 
   useEffect(() => {
     let acik = true;
@@ -1210,11 +1216,21 @@ export default function PartiOda() {
   }, [agKisileri, sistemKisi]);
 
   const ogeler = useMemo(() => {
-    return ek.map((o) => {
-      if (o.tur === "simdi" && simdiSecim && o.anahtar === "s" + simdiSecim.anahtar && simdiki) return { ...o, baslik: simdiki };
-      return o;
-    });
-  }, [ek, simdiSecim, simdiki]);
+    const engelliAd = new Set(
+      agKisileri
+        .filter((k) => engelliMi(engelListesi, k.dbId != null ? `u${k.dbId}` : null, k.kullaniciAdi, k.ad))
+        .map((k) => k.ad),
+    );
+    return ek
+      .filter((o) => !(
+        (o.tur === "mesaj" && !o.benim && engelliAd.has(o.kisi))
+        || (o.tur === "sistem" && engelliMi(engelListesi, o.kisi.kullaniciAdi, o.kisi.ad))
+      ))
+      .map((o) => {
+        if (o.tur === "simdi" && simdiSecim && o.anahtar === "s" + simdiSecim.anahtar && simdiki) return { ...o, baslik: simdiki };
+        return o;
+      });
+  }, [ek, simdiSecim, simdiki, agKisileri, engelListesi]);
 
   const [katilimcilar, setKatilimcilar] = useState<OdaKatilimcisi[]>([]);
   const [sahip, setSahip] = useState<OdaSahibi | null>(null);
@@ -1606,6 +1622,12 @@ export default function PartiOda() {
       <KullaniciKarti
         kisi={kartKisisi}
         onKapat={() => setKartKisisi(null)}
+        engelli={!!kartKisisi && engelliMi(engelListesi, engelAnahtari(kartKisisi))}
+        onEngelle={async (k) => {
+          const acildi = await engelDegistir(engelAnahtari(k));
+          setBildirim(cevir(acildi ? "kisi.engellendi" : "kisi.engelKalkti", k.ad));
+        }}
+        onRaporla={() => setBildirim(cevir("kisi.baglanmadi"))}
         onProfil={(k) => router.push({
           pathname: "/kisi",
           params: {

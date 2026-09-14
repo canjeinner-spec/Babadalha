@@ -52,19 +52,20 @@ function Kutucuk({ deger, etiket, vurgu }: { deger: string; etiket: string; vurg
   );
 }
 
-function Eylem({ simge, etiket, altYazi, onBas }: {
+function Eylem({ simge, etiket, altYazi, renk, onBas }: {
   simge: IconName;
   etiket: string;
   altYazi?: string;
+  renk?: string;
   onBas: () => void;
 }) {
   return (
     <Pressable style={styles.eylem} onPress={onBas}>
-      <View style={styles.eylemSimge}>
-        <Icon name={simge} size={17} sw={2} color={C.gold2} />
+      <View style={[styles.eylemSimge, !!renk && { backgroundColor: renk + "1a", borderColor: renk + "3d" }]}>
+        <Icon name={simge} size={17} sw={2} color={renk ?? C.gold2} />
       </View>
       <View style={{ flex: 1, minWidth: 0 }}>
-        <Txt weight="bold" size={14} color="#fff">{etiket}</Txt>
+        <Txt weight="bold" size={14} color={renk ?? "#fff"}>{etiket}</Txt>
         {!!altYazi && <Txt size={11.5} color={C.dim} style={{ marginTop: 2 }}>{altYazi}</Txt>}
       </View>
       <Icon name="chev" size={17} sw={2.2} color={C.dim2} />
@@ -72,10 +73,13 @@ function Eylem({ simge, etiket, altYazi, onBas }: {
   );
 }
 
-export function KullaniciKarti({ kisi, onKapat, onProfil }: {
+export function KullaniciKarti({ kisi, onKapat, onProfil, onEngelle, onRaporla, engelli }: {
   kisi: KartKisisi | null;
   onKapat: () => void;
   onProfil?: (kisi: KartKisisi) => void;
+  onEngelle?: (kisi: KartKisisi) => void;
+  onRaporla?: (kisi: KartKisisi) => void;
+  engelli?: boolean;
 }) {
   const t = useCeviri();
   const insets = useSafeAreaInsets();
@@ -199,6 +203,22 @@ export function KullaniciKarti({ kisi, onKapat, onProfil }: {
                   altYazi={t("kart.profilineGitAlt")}
                   onBas={() => { haptic.select(); onKapat(); onProfil?.(g); }}
                 />
+                {!!onEngelle && (
+                  <Eylem
+                    simge="blockuser"
+                    etiket={t(engelli ? "kisi.engeliKaldir" : "kisi.engelle")}
+                    renk={C.red}
+                    onBas={() => { haptic.select(); onKapat(); onEngelle(g); }}
+                  />
+                )}
+                {!!onRaporla && (
+                  <Eylem
+                    simge="flag"
+                    etiket={t("kisi.raporla")}
+                    renk={C.red}
+                    onBas={() => { haptic.select(); onKapat(); onRaporla(g); }}
+                  />
+                )}
               </View>
             </ScrollView>
           </Animated.View>

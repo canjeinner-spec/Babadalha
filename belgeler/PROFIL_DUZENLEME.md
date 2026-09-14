@@ -88,3 +88,56 @@ Sonra `Profile` tipine, `SELF_COLS`'a ve `updateMyProfile` yamasına eklenir;
 adı çizen yerler (sohbet mesajı, sistem mesajı, oda listesi, kişi paneli)
 `gorunen_ad ?? kullanici_adi` okuyacak biçimde bağlanır. `useGorunenAd`
 o zaman kaldırılır.
+
+## Arkadaşlık, takip ve bildirme sunucuda yok
+
+Kişi profilinde "Arkadaş ekle" ve "Takip et" düğmeleri, kartta ve profilde
+"Kullanıcıyı bildir" var; üçünün de arkasında tablo yok. Basınca çalışmıyormuş
+gibi yapmıyorlar, "bu özellik henüz sunucuya bağlanmadı" diyorlar.
+
+Engelleme çalışıyor ama **yalnız cihazda**: `src/lib/engellenenler.ts`
+AsyncStorage'a yazıyor, engellenen kişinin sohbet ve sistem mesajları odada
+gizleniyor. Karşı taraf engellendiğini bilmiyor ve başka cihazına taşınmıyor.
+
+Gerekli şema:
+
+```sql
+create table if not exists public.engellemeler (
+  engelleyen_id bigint not null references public.kullanicilar(id) on delete cascade,
+  engellenen_id bigint not null references public.kullanicilar(id) on delete cascade,
+  tarih timestamptz not null default now(),
+  primary key (engelleyen_id, engellenen_id)
+);
+
+create table if not exists public.arkadasliklar (
+  isteyen_id bigint not null references public.kullanicilar(id) on delete cascade,
+  istenen_id bigint not null references public.kullanicilar(id) on delete cascade,
+  durum text not null default 'bekliyor',
+  tarih timestamptz not null default now(),
+  primary key (isteyen_id, istenen_id)
+);
+
+create table if not exists public.takipler (
+  takipci_id bigint not null references public.kullanicilar(id) on delete cascade,
+  takip_edilen_id bigint not null references public.kullanicilar(id) on delete cascade,
+  tarih timestamptz not null default now(),
+  primary key (takipci_id, takip_edilen_id)
+);
+
+create table if not exists public.bildirimler (
+  id bigserial primary key,
+  bildiren_id bigint not null references public.kullanicilar(id) on delete cascade,
+  bildirilen_id bigint not null references public.kullanicilar(id) on delete cascade,
+  oda_id bigint,
+  mesaj_id bigint,
+  sebep text not null,
+  aciklama text,
+  durum text not null default 'yeni',
+  tarih timestamptz not null default now()
+);
+```
+
+Her birine satır sahibini sınırlayan RLS kuralı gerekiyor. `bildirimler`
+Apple 1.2 için şart: kullanıcı içeriği barındıran uygulamada bildirme yolu
+olmadan mağazaya çıkılmıyor, Kullanım Koşullarımız da "her kullanıcıyı
+bildirebilirsin" diye yazıyor.

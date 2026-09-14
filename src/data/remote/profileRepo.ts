@@ -120,6 +120,7 @@ export type PublicProfile = {
   deneyim_puani: number;
   durum: string;
   ekonomi_rolu: string;
+  olusturulma_tarihi: string | null;
   ozel_id: string | null;
   ozel_id_tip: "premium" | "kapsul" | null;
   ozel_id_tema: string | null;
@@ -127,7 +128,7 @@ export type PublicProfile = {
 };
 
 const PUBLIC_COLS =
-  "id, public_id, kullanici_adi, profil_resmi, biyografi, cinsiyet, ulke, sehir, seviye_id, deneyim_puani, durum, ekonomi_rolu, ozel_id, ozel_id_tip, ozel_id_tema, kusanilan_rozet";
+  "id, public_id, kullanici_adi, profil_resmi, biyografi, cinsiyet, ulke, sehir, seviye_id, deneyim_puani, durum, ekonomi_rolu, olusturulma_tarihi, ozel_id, ozel_id_tip, ozel_id_tema, kusanilan_rozet";
 
 export async function getPublicProfile(publicId: string): Promise<PublicProfile | null> {
   const sb = requireSupabase();
