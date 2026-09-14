@@ -1170,7 +1170,7 @@ export default function PartiOda() {
     setKartKisisi(k
       ? {
           anahtar: k.anahtar, ad: k.ad, kullaniciAdi: k.kullaniciAdi, foto: k.foto,
-          dbId: k.dbId, rol: k.rol, sahip: k.sahip, mikrofonIzni: k.mikrofonIzni,
+          dbId: k.dbId, rol: k.rol, sahip: k.sahip, mikrofonIzni: k.mikrofonIzni, yayinda: k.yayinda,
           ozelIdTip: k.ozelIdTip, ozelIdTema: k.ozelIdTema,
         }
       : { anahtar: anahtar ?? ad, ad });

@@ -408,6 +408,11 @@ export const METINLER = {
   "kart.konum": { tr: "{0}", en: "{0}" },
   "kart.biyografiYok": { tr: "Hakkında bir şey yazmamış.", en: "They haven't written anything about themselves." },
   "kart.kapat": { tr: "Kapat", en: "Close" },
+  "kart.seviyeKisa": { tr: "SEVİYE", en: "LEVEL" },
+  "kart.deneyim": { tr: "DENEYİM", en: "XP" },
+  "kart.rolKisa": { tr: "ODADA", en: "IN ROOM" },
+  "kart.mikAcik": { tr: "Mikrofonu açık", en: "Mic is on" },
+  "kart.mikKapali": { tr: "Mikrofonu kapalı", en: "Mic is off" },
   "kart.sen": { tr: "Sen", en: "You" },
 
   "panel.odadakiler": { tr: "Odadakiler", en: "In the room" },
