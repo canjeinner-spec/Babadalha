@@ -419,6 +419,7 @@ export default function PartiOda() {
   const [cikisOnayi, setCikisOnayi] = useState(false);
   const [kurallar, setKurallar] = useState(false);
   const [kartKisisi, setKartKisisi] = useState<KartKisisi | null>(null);
+  const [sohbetKapalilar, setSohbetKapalilar] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     let acik = true;
@@ -453,6 +454,7 @@ export default function PartiOda() {
   const [sahipAnahtari, setSahipAnahtari] = useState<string | null>(null);
   const sahipAnahtariRef = useRef<string | null>(null);
   const agKisileriRef = useRef<PartiKisi[]>([]);
+  const sohbetKapaliRef = useRef(false);
   const devirRef = useRef<DevirZamanlayici | null>(null);
   const bekleyenAyrilanRef = useRef<string | null>(null);
   const [dbRol, setDbRol] = useState<PartiRol | null>(null);
@@ -644,6 +646,7 @@ export default function PartiOda() {
   useEffect(() => { benSahipRef.current = benSahip; }, [benSahip]);
   useEffect(() => { sahipAnahtariRef.current = sahipAnahtari; }, [sahipAnahtari]);
   useEffect(() => { agKisileriRef.current = agKisileri; }, [agKisileri]);
+  useEffect(() => { sohbetKapaliRef.current = !!sohbetKapalilar[benimAnahtar]; }, [sohbetKapalilar, benimAnahtar]);
 
   const devriUstlen = useCallback((ayrilanAnahtar: string) => {
     const karar = devirKarari(
@@ -764,8 +767,28 @@ export default function PartiOda() {
       setOdaAyari(odaAyariCoz(o.ayar));
     } else if (o.tur === "mikrofonIzin") {
       setMikrofonIzinleri((m) => ({ ...m, [o.anahtar]: o.acik }));
+      const hedef = agKisileriRef.current.find((k) => k.anahtar === o.anahtar);
+      const veren = agKisileriRef.current.find((k) => k.anahtar === o.veren);
+      if (hedef) {
+        sistemEkle(
+          sistemKisi(hedef),
+          { cesit: "mikrofon", acik: o.acik, veren: veren ? sistemKisi(veren) : undefined },
+          o.anahtar === benimAnahtarRef.current,
+        );
+      }
       if (o.anahtar === benimAnahtarRef.current) {
         setBildirim(o.acik ? cevir("odaEkran.mikAcildi") : cevir("odaEkran.mikKapatildi"));
+      }
+    } else if (o.tur === "sohbetIzin") {
+      setSohbetKapalilar((m) => ({ ...m, [o.anahtar]: !o.acik }));
+      const hedef = agKisileriRef.current.find((k) => k.anahtar === o.anahtar);
+      const veren = agKisileriRef.current.find((k) => k.anahtar === o.veren);
+      if (hedef) {
+        sistemEkle(
+          sistemKisi(hedef),
+          { cesit: "sohbet", acik: o.acik, veren: veren ? sistemKisi(veren) : undefined },
+          o.anahtar === benimAnahtarRef.current,
+        );
       }
     } else if (o.tur === "baglanti" && o.acik) {
       setEk((e) => (
@@ -1132,6 +1155,10 @@ export default function PartiOda() {
   }, [davetAdresi]);
 
   const mesajGonder = useCallback((metin: string) => {
+    if (sohbetKapaliRef.current) {
+      setBildirim(cevir("odaEkran.sohbetinKapali"));
+      return;
+    }
     if (!sohbetYazabilirMi(benimRolRef.current, odaAyariRef.current)) {
       setBildirim(cevir("odaEkran.sohbetKapali"));
       return;
@@ -1171,10 +1198,11 @@ export default function PartiOda() {
       ? {
           anahtar: k.anahtar, ad: k.ad, kullaniciAdi: k.kullaniciAdi, foto: k.foto,
           dbId: k.dbId, rol: k.rol, sahip: k.sahip, mikrofonIzni: k.mikrofonIzni, yayinda: k.yayinda,
+          sohbetKapali: !!sohbetKapalilar[k.anahtar],
           ozelIdTip: k.ozelIdTip, ozelIdTema: k.ozelIdTema,
         }
       : { anahtar: anahtar ?? ad, ad });
-  }, [agKisileri]);
+  }, [agKisileri, sohbetKapalilar]);
 
   const kisiCoz = useCallback((anahtar: string): SistemKisi | undefined => {
     const k = agKisileri.find((x) => x.anahtar === anahtar);
@@ -1230,9 +1258,26 @@ export default function PartiOda() {
   const mikrofonIzniDegistir = useCallback((hedef: PartiKisi, acik: boolean) => {
     if (!yetkiVar(benimRolRef.current, "mikrofonAyar")) return;
     setMikrofonIzinleri((m) => ({ ...m, [hedef.anahtar]: acik }));
-    kanalRef.current?.mikrofonIzniYayinla(hedef.anahtar, acik);
-    setBildirim(acik ? cevir("odaEkran.mikIzinVerildi", hedef.ad) : cevir("odaEkran.mikIzinAlindi", hedef.ad));
-  }, []);
+    kanalRef.current?.mikrofonIzniYayinla(hedef.anahtar, acik, benimAnahtarRef.current);
+    const veren = agKisileriRef.current.find((k) => k.anahtar === benimAnahtarRef.current);
+    sistemEkle(sistemKisi(hedef), {
+      cesit: "mikrofon",
+      acik,
+      veren: veren ? sistemKisi(veren) : undefined,
+    });
+  }, [sistemEkle, sistemKisi]);
+
+  const sohbetIzniDegistir = useCallback((hedef: PartiKisi, acik: boolean) => {
+    if (!yetkiVar(benimRolRef.current, "sohbetKilit")) return;
+    setSohbetKapalilar((m) => ({ ...m, [hedef.anahtar]: !acik }));
+    kanalRef.current?.sohbetIzniYayinla(hedef.anahtar, acik, benimAnahtarRef.current);
+    const veren = agKisileriRef.current.find((k) => k.anahtar === benimAnahtarRef.current);
+    sistemEkle(sistemKisi(hedef), {
+      cesit: "sohbet",
+      acik,
+      veren: veren ? sistemKisi(veren) : undefined,
+    });
+  }, [sistemEkle, sistemKisi]);
 
   useEffect(() => {
     kanalRef.current?.kendiniGuncelle({
@@ -1539,7 +1584,7 @@ export default function PartiOda() {
             mikAcilir={mikAcilir}
             mikAcik={mikYayinda}
             onMik={() => setMikIstek((v) => !v)}
-            sohbetAcik={sohbetYazabilirMi(benimRol, odaAyari)}
+            sohbetAcik={!sohbetKapalilar[benimAnahtar] && sohbetYazabilirMi(benimRol, odaAyari)}
             kilitDegistir={
               yetkiVar(benimRol, "sohbetKilit")
                 ? () => odaAyariDegistir({ sohbetKilit: !odaAyari.sohbetKilit })
@@ -1570,6 +1615,10 @@ export default function PartiOda() {
           onMikrofon: (k, acik) => {
             const hedef = agKisileri.find((x) => x.anahtar === k.anahtar);
             if (hedef) mikrofonIzniDegistir(hedef, acik);
+          },
+          onSohbet: (k, acik) => {
+            const hedef = agKisileri.find((x) => x.anahtar === k.anahtar);
+            if (hedef) sohbetIzniDegistir(hedef, acik);
           },
           onAt: (k) => {
             const hedef = agKisileri.find((x) => x.anahtar === k.anahtar);

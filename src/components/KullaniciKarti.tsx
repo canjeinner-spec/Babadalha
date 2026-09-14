@@ -29,6 +29,7 @@ export type KartKisisi = {
   sahip?: boolean;
   mikrofonIzni?: boolean;
   yayinda?: boolean;
+  sohbetKapali?: boolean;
   ozelId?: string | null;
   ozelIdTip?: "premium" | "kapsul" | null;
   ozelIdTema?: string | null;
@@ -39,6 +40,7 @@ export type KartYetkileri = {
   benimRol: PartiRol;
   onYetki: (kisi: KartKisisi, rol: PartiRol) => void;
   onMikrofon: (kisi: KartKisisi, acik: boolean) => void;
+  onSohbet: (kisi: KartKisisi, acik: boolean) => void;
   onAt: (kisi: KartKisisi) => void;
 };
 
@@ -134,7 +136,8 @@ export function KullaniciKarti({ kisi, yetkiler, onKapat }: {
   const rolVerilir = !!yetkiler && !kendim && rolVerebilirMi(yetkiler.benimRol, rol);
   const atilir = !!yetkiler && !kendim && atabilirMi(yetkiler.benimRol, rol);
   const mikVar = !!yetkiler && !kendim && yetkiVar(yetkiler.benimRol, "mikrofonAyar");
-  const eylemVar = rolVerilir || atilir || mikVar;
+  const sohbetVar = !!yetkiler && !kendim && yetkiVar(yetkiler.benimRol, "sohbetKilit");
+  const eylemVar = rolVerilir || atilir || mikVar || sohbetVar;
 
   const sec = (isi: () => void) => () => { haptic.select(); isi(); onKapat(); };
 
@@ -216,6 +219,13 @@ export function KullaniciKarti({ kisi, yetkiler, onKapat }: {
                       simge={g.mikrofonIzni ? "micOff" : "mic"}
                       etiket={g.mikrofonIzni ? t("panel.mikKapat") : t("panel.mikAc")}
                       onBas={sec(() => yetkiler!.onMikrofon(g, !g.mikrofonIzni))}
+                    />
+                  )}
+                  {sohbetVar && (
+                    <Eylem
+                      simge="chat"
+                      etiket={g.sohbetKapali ? t("panel.sohbetAc") : t("panel.sohbetKapat")}
+                      onBas={sec(() => yetkiler!.onSohbet(g, !!g.sohbetKapali))}
                     />
                   )}
                   {atilir && (

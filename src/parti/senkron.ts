@@ -54,7 +54,8 @@ export type SenkronOlay =
   | { tur: "yetki"; anahtar: string; rol: PartiRol; veren: string }
   | { tur: "atildi"; anahtar: string; atan: string; atanRol: PartiRol }
   | { tur: "odaAyari"; ayar: OdaAyari }
-  | { tur: "mikrofonIzin"; anahtar: string; acik: boolean }
+  | { tur: "mikrofonIzin"; anahtar: string; acik: boolean; veren?: string }
+  | { tur: "sohbetIzin"; anahtar: string; acik: boolean; veren?: string }
   | { tur: "devir"; eskiSahip: string; yeniSahip: string }
   | { tur: "saatIstek"; soran: string; t0: number }
   | { tur: "saatYanit"; t0: number; t1: number }
@@ -68,7 +69,8 @@ export type PartiKanali = {
   yetkiYayinla: (anahtar: string, rol: PartiRol, veren: string) => void;
   atmaYayinla: (anahtar: string, atan: string, atanRol: PartiRol) => void;
   odaAyariYayinla: (ayar: OdaAyari) => void;
-  mikrofonIzniYayinla: (anahtar: string, acik: boolean) => void;
+  mikrofonIzniYayinla: (anahtar: string, acik: boolean, veren?: string) => void;
+  sohbetIzniYayinla: (anahtar: string, acik: boolean, veren?: string) => void;
   devirYayinla: (eskiSahip: string, yeniSahip: string) => void;
   saatIsteYolla: (soran: string, t0: number) => void;
   saatYanitYolla: (soran: string, t0: number, t1: number) => void;
@@ -139,6 +141,7 @@ export function partiKanaliAc({ odaId, ben, onOlay }: Acilis): PartiKanali {
       atmaYayinla: () => {},
       odaAyariYayinla: () => {},
       mikrofonIzniYayinla: () => {},
+      sohbetIzniYayinla: () => {},
       devirYayinla: () => {},
       saatIsteYolla: () => {},
       saatYanitYolla: () => {},
@@ -264,9 +267,15 @@ export function partiKanaliAc({ odaId, ben, onOlay }: Acilis): PartiKanali {
         onOlay({ tur: "saatYanit", t0: p.t0, t1: p.t1 });
       }
     })
+    .on("broadcast", { event: "sohbetIzin" }, ({ payload }) => {
+      const p = payload as { anahtar?: string; acik?: boolean; veren?: string } | null;
+      if (!kapandi && p?.anahtar) {
+        onOlay({ tur: "sohbetIzin", anahtar: String(p.anahtar), acik: !!p.acik, veren: p.veren });
+      }
+    })
     .on("broadcast", { event: "mikrofonIzin" }, ({ payload }) => {
-      const p = payload as { anahtar?: string; acik?: boolean } | null;
-      if (!kapandi && p?.anahtar) onOlay({ tur: "mikrofonIzin", anahtar: String(p.anahtar), acik: !!p.acik });
+      const p = payload as { anahtar?: string; acik?: boolean; veren?: string } | null;
+      if (!kapandi && p?.anahtar) onOlay({ tur: "mikrofonIzin", anahtar: String(p.anahtar), acik: !!p.acik, veren: p.veren });
     })
     .subscribe((durum) => {
       if (kapandi) return;
@@ -304,7 +313,8 @@ export function partiKanaliAc({ odaId, ben, onOlay }: Acilis): PartiKanali {
     yetkiYayinla: (anahtar, rol, veren) => gonder("yetki", { anahtar, rol, veren }),
     atmaYayinla: (anahtar, atan, atanRol) => gonder("atildi", { anahtar, atan, atanRol }),
     odaAyariYayinla: (ayar) => gonder("odaAyari", ayar),
-    mikrofonIzniYayinla: (anahtar, acik) => gonder("mikrofonIzin", { anahtar, acik }),
+    mikrofonIzniYayinla: (anahtar, acik, veren) => gonder("mikrofonIzin", { anahtar, acik, veren }),
+    sohbetIzniYayinla: (anahtar, acik, veren) => gonder("sohbetIzin", { anahtar, acik, veren }),
     devirYayinla: (eskiSahip, yeniSahip) => gonder("devir", { eskiSahip, yeniSahip }),
     saatIsteYolla: (soran, t0) => gonder("saatIstek", { soran, t0 }),
     saatYanitYolla: (soran, t0, t1) => gonder("saatYanit", { soran, t0, t1 }),

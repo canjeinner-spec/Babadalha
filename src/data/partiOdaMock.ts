@@ -76,6 +76,18 @@ export function mockOdaAkisi(benimAd: string, benimAnahtar: string): PartiSohbet
       tur: "sistem", anahtar: "mk-8", kisi: kisi(MELIS),
       olay: { cesit: "rol", veren: ben, rol: "uye" },
     },
+    {
+      tur: "sistem", anahtar: "mk-9a", kisi: kisi(ENDER),
+      olay: { cesit: "mikrofon", acik: false, veren: kisi(DENIZ) },
+    },
+    {
+      tur: "sistem", anahtar: "mk-9b", kisi: kisi(RUYA),
+      olay: { cesit: "sohbet", acik: false, veren: kisi(DENIZ) },
+    },
+    {
+      tur: "sistem", anahtar: "mk-9c", kisi: kisi(RUYA),
+      olay: { cesit: "sohbet", acik: true, veren: ben },
+    },
     { tur: "sistem", anahtar: "mk-9", kisi: kisi(ENDER), olay: { cesit: "ayrildi" } },
     {
       tur: "sistem", anahtar: "mk-10", kisi: ben,
@@ -85,6 +97,16 @@ export function mockOdaAkisi(benimAd: string, benimAnahtar: string): PartiSohbet
     {
       tur: "sistem", anahtar: "mk-11", kisi: ben,
       olay: { cesit: "rol", veren: kisi(DENIZ), rol: "uye" },
+      benim: true,
+    },
+    {
+      tur: "sistem", anahtar: "mk-11a", kisi: ben,
+      olay: { cesit: "mikrofon", acik: true, veren: kisi(DENIZ) },
+      benim: true,
+    },
+    {
+      tur: "sistem", anahtar: "mk-11b", kisi: ben,
+      olay: { cesit: "sohbet", acik: false, veren: kisi(DENIZ) },
       benim: true,
     },
     { tur: "mesaj", anahtar: "mm-5", kisi: benimAd, metin: "hazırım, açıyorum", benim: true },

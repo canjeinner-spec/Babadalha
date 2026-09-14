@@ -248,6 +248,43 @@ export const METINLER = {
     en: "{0} was removed from the party by {1}.",
   },
 
+  "sistem.mikrofonAcildi": {
+    tr: "{0} kullanıcısının mikrofonu {1} tarafından açıldı.",
+    en: "{0}'s microphone was turned on by {1}.",
+  },
+  "sistem.mikrofonKapandi": {
+    tr: "{0} kullanıcısının mikrofonu {1} tarafından kapatıldı.",
+    en: "{0}'s microphone was turned off by {1}.",
+  },
+  "sistem.mikrofonAcildiAdsiz": { tr: "{0} kullanıcısının mikrofonu açıldı.", en: "{0}'s microphone was turned on." },
+  "sistem.mikrofonKapandiAdsiz": { tr: "{0} kullanıcısının mikrofonu kapatıldı.", en: "{0}'s microphone was turned off." },
+  "sistem.mikrofonAcildiBen": { tr: "{0} mikrofonunu açtı.", en: "{0} turned your microphone on." },
+  "sistem.mikrofonKapandiBen": { tr: "{0} mikrofonunu kapattı.", en: "{0} turned your microphone off." },
+  "sistem.mikrofonAcildiBenAdsiz": { tr: "Mikrofonun açıldı.", en: "Your microphone was turned on." },
+  "sistem.mikrofonKapandiBenAdsiz": { tr: "Mikrofonun kapatıldı.", en: "Your microphone was turned off." },
+
+  "sistem.sohbetAcildi": {
+    tr: "{0} kullanıcısının sohbeti {1} tarafından açıldı.",
+    en: "{0}'s chat was turned on by {1}.",
+  },
+  "sistem.sohbetKapandi": {
+    tr: "{0} kullanıcısının sohbeti {1} tarafından kapatıldı.",
+    en: "{0}'s chat was turned off by {1}.",
+  },
+  "sistem.sohbetAcildiAdsiz": { tr: "{0} kullanıcısının sohbeti açıldı.", en: "{0}'s chat was turned on." },
+  "sistem.sohbetKapandiAdsiz": { tr: "{0} kullanıcısının sohbeti kapatıldı.", en: "{0}'s chat was turned off." },
+  "sistem.sohbetAcildiBen": { tr: "{0} sohbetini açtı.", en: "{0} turned your chat on." },
+  "sistem.sohbetKapandiBen": { tr: "{0} sohbetini kapattı.", en: "{0} turned your chat off." },
+  "sistem.sohbetAcildiBenAdsiz": { tr: "Sohbetin açıldı.", en: "Your chat was turned on." },
+  "sistem.sohbetKapandiBenAdsiz": { tr: "Sohbetin kapatıldı.", en: "Your chat was turned off." },
+
+  "odaEkran.sohbetinKapali": {
+    tr: "Bu odada sohbetin kapatıldı",
+    en: "Your chat is turned off in this room",
+  },
+  "panel.sohbetKapat": { tr: "Sohbetini kapat", en: "Turn their chat off" },
+  "panel.sohbetAc": { tr: "Sohbetini aç", en: "Turn their chat on" },
+
   "odaEkran.davetLinki": { tr: "Davet linki: ", en: "Invite link: " },
   "odaEkran.simdiOynatiliyor": { tr: " oynatılıyor", en: " is playing" },
   "odaEkran.baglaniyor": { tr: "Partiye bağlanılıyor…", en: "Connecting to the party…" },
