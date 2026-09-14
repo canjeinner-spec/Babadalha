@@ -3,6 +3,11 @@ import { getMyProfile } from "@/data/remote/profileRepo";
 
 export class TabloYok extends Error {}
 
+export const ARKADASLIK_BEKLIYOR = "bekliyor";
+export const ARKADASLIK_KABUL = "kabul";
+export const ARKADASLIK_RED = "red";
+export const SIKAYET_TIPI = "kullanici";
+
 const YOK_KODLARI = new Set(["42P01", "42501", "PGRST205", "PGRST301"]);
 
 function hataCevir(hata: unknown): never {
@@ -47,14 +52,14 @@ export async function arkadaslikDurumu(hedefId: number): Promise<ArkadaslikDurum
   const ben = await benimId();
   const { data, error } = await sb
     .from("arkadasliklar")
-    .select("isteyen_id, istenen_id, durum")
+    .select("id, isteyen_id, istenen_id, durum")
     .or(`and(isteyen_id.eq.${ben},istenen_id.eq.${hedefId}),and(isteyen_id.eq.${hedefId},istenen_id.eq.${ben})`)
     .maybeSingle();
   if (error) hataCevir(error);
-  const r = data as { isteyen_id: number; istenen_id: number; durum: string } | null;
+  const r = data as { isteyen_id: number; durum: string } | null;
   if (!r) return "yok";
-  if (r.durum === "kabul") return "arkadas";
-  if (r.durum === "red") return "yok";
+  if (r.durum === ARKADASLIK_KABUL) return "arkadas";
+  if (r.durum === ARKADASLIK_RED) return "yok";
   return r.isteyen_id === ben ? "bekliyor" : "gelen";
 }
 
@@ -63,7 +68,7 @@ export async function arkadaslikIste(hedefId: number): Promise<void> {
   const ben = await benimId();
   const { error } = await sb
     .from("arkadasliklar")
-    .upsert({ isteyen_id: ben, istenen_id: hedefId, durum: "bekliyor" }, { onConflict: "isteyen_id,istenen_id" });
+    .insert({ isteyen_id: ben, istenen_id: hedefId, durum: ARKADASLIK_BEKLIYOR });
   if (error) hataCevir(error);
 }
 
@@ -71,7 +76,8 @@ export async function arkadasligiKabulEt(isteyenId: number): Promise<void> {
   const sb = requireSupabase();
   const ben = await benimId();
   const { error } = await sb
-    .from("arkadasliklar").update({ durum: "kabul" })
+    .from("arkadasliklar")
+    .update({ durum: ARKADASLIK_KABUL, yanit_tarihi: new Date().toISOString() })
     .eq("isteyen_id", isteyenId).eq("istenen_id", ben);
   if (error) hataCevir(error);
 }
@@ -125,14 +131,17 @@ export async function kullaniciyiBildir(
   hedefId: number,
   sebep: BildirimSebebi,
   odaId?: number | null,
+  detay?: string | null,
 ): Promise<void> {
   const sb = requireSupabase();
   const ben = await benimId();
-  const { error } = await sb.from("bildirimler").insert({
-    bildiren_id: ben,
-    bildirilen_id: hedefId,
-    sebep,
-    oda_id: odaId ?? null,
+  const { error } = await sb.from("sikayetler").insert({
+    tip: SIKAYET_TIPI,
+    raporlayan_id: ben,
+    hedef_kullanici_id: hedefId,
+    hedef_oda_id: odaId ?? null,
+    neden: sebep,
+    detay: detay ?? null,
   });
   if (error) hataCevir(error);
 }
