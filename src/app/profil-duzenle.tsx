@@ -17,6 +17,7 @@ import { adKilidiKalan } from "@/lib/adKilidi";
 import { useGorunenAd } from "@/lib/gorunenAd";
 import { geriDon } from "@/lib/gezinme";
 import { haptic } from "@/lib/haptics";
+import { basariUyar, hataUyar } from "@/lib/uyari";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { useApp } from "@/store/appStore";
 import { C } from "@/theme/colors";
@@ -71,8 +72,6 @@ export default function ProfilDuzenle() {
   const [biyografi, setBiyografi] = useState("");
   const [ulke, setUlke] = useState("");
   const [sehir, setSehir] = useState("");
-  const [bildirim, setBildirim] = useState("");
-  const [hata, setHata] = useState("");
   const bakmaRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [kilitKalan, setKilitKalan] = useState(0);
   const [avatarMesgul, setAvatarMesgul] = useState(false);
@@ -86,7 +85,7 @@ export default function ProfilDuzenle() {
     if (!isSupabaseConfigured) {
       queueMicrotask(() => {
         if (!acik) return;
-        setHata(t("duzenle.sunucuYok"));
+        hataUyar(t("duzenle.sunucuYok"));
         setYukleniyor(false);
       });
       return () => { acik = false; };
@@ -99,7 +98,7 @@ export default function ProfilDuzenle() {
         setUlke(p.ulke ?? "");
         setSehir(p.sehir ?? "");
       })
-      .catch(() => { if (acik) setHata(t("duzenle.hata")); })
+      .catch(() => { if (acik) hataUyar(t("duzenle.hata")); })
       .finally(() => { if (acik) setYukleniyor(false); });
     return () => { acik = false; };
   }, [t]);
@@ -118,9 +117,8 @@ export default function ProfilDuzenle() {
   const avatarSec = useCallback(async () => {
     if (avatarMesgul) return;
     haptic.select();
-    setHata("");
     const izin = await GorselSecici.requestMediaLibraryPermissionsAsync();
-    if (!izin.granted) { setHata(t("duzenle.avatarIzni")); return; }
+    if (!izin.granted) { hataUyar(t("duzenle.avatarIzni")); return; }
     const secim = await GorselSecici.launchImageLibraryAsync({
       mediaTypes: ["images"],
       allowsEditing: true,
@@ -131,7 +129,7 @@ export default function ProfilDuzenle() {
     const yerel = secim.assets[0].uri;
     if (!baglandi) {
       setUserPhoto(yerel);
-      setBildirim(t("duzenle.kaydedildi"));
+      basariUyar(t("duzenle.kaydedildi"));
       return;
     }
     setAvatarMesgul(true);
@@ -139,9 +137,9 @@ export default function ProfilDuzenle() {
       const adres = await avatarYukle(yerel);
       await updateMyProfile({ profil_resmi: adres });
       setUserPhoto(adres);
-      setBildirim(t("duzenle.kaydedildi"));
+      basariUyar(t("duzenle.kaydedildi"));
     } catch {
-      setHata(t("duzenle.avatarHatasi"));
+      hataUyar(t("duzenle.avatarHatasi"));
     } finally {
       setAvatarMesgul(false);
     }
@@ -161,18 +159,13 @@ export default function ProfilDuzenle() {
       setOzelIdKimlik(ozelId, "premium", yeni);
     } catch {
       setRenk(onceki);
-      setHata(t("duzenle.hata"));
+      hataUyar(t("duzenle.hata"));
     }
   }, [premiumMi, baglandi, ozelId, renk, setOzelIdKimlik, t]);
 
 
   useEffect(() => () => { if (bakmaRef.current) clearTimeout(bakmaRef.current); }, []);
 
-  useEffect(() => {
-    if (!bildirim) return;
-    const zamanlayici = setTimeout(() => setBildirim(""), 1800);
-    return () => clearTimeout(zamanlayici);
-  }, [bildirim]);
 
 
 
@@ -299,20 +292,11 @@ export default function ProfilDuzenle() {
 
 
 
-              {hata !== "" && (
-                <Txt size={12} color={C.red} lh={1.45} style={{ marginTop: 14 }}>{hata}</Txt>
-              )}
-
             </ScrollView>
           </KeyboardAware>
         )}
       </SafeAreaView>
 
-      {bildirim !== "" && (
-        <View style={styles.bildirim}>
-          <Txt weight="bold" size={12.5} color="#fff">{bildirim}</Txt>
-        </View>
-      )}
     </View>
   );
 }
@@ -370,10 +354,4 @@ const styles = StyleSheet.create({
     paddingVertical: 16, borderRadius: 16, backgroundColor: C.gold2,
   },
   sonuk: { opacity: 0.45 },
-  bildirim: {
-    position: "absolute", alignSelf: "center", bottom: 34,
-    backgroundColor: "rgba(20,16,10,.95)", borderRadius: 14,
-    paddingHorizontal: 16, paddingVertical: 10,
-    borderWidth: 1, borderColor: "rgba(232,179,65,.25)",
-  },
 });

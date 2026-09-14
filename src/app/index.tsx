@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -26,7 +26,6 @@ export default function AnaSayfa() {
   const userPhoto = useApp((s) => s.userPhoto);
   const { ic, renk } = useTema();
   const temali = !!ic?.ustGorsel;
-  const [bildirim, setBildirim] = useState("");
 
   useEffect(() => {
     let acik = true;
@@ -46,11 +45,6 @@ export default function AnaSayfa() {
     return () => { acik = false; };
   }, [router]);
 
-  useEffect(() => {
-    if (!bildirim) return;
-    const zamanlayici = setTimeout(() => setBildirim(""), 1600);
-    return () => clearTimeout(zamanlayici);
-  }, [bildirim]);
 
   return (
     <View style={styles.kok}>
@@ -131,11 +125,6 @@ export default function AnaSayfa() {
         </ScrollView>
       </SafeAreaView>
 
-      {bildirim !== "" && (
-        <View style={[styles.bildirim, { bottom: CUBUK_YUKSEKLIGI + 16 }]}>
-          <Txt weight="bold" size={12.5} color="#fff">{bildirim}</Txt>
-        </View>
-      )}
 
       <AltCubuk />
     </View>
@@ -158,10 +147,4 @@ const styles = StyleSheet.create({
   kilitNotu: { marginTop: 4 },
   bolumBaslik: { marginTop: 26, marginBottom: 10, marginLeft: 2 },
   bolumAlt: { marginTop: -6, marginBottom: 18, marginLeft: 2 },
-  bildirim: {
-    position: "absolute", alignSelf: "center",
-    backgroundColor: "rgba(20,16,10,.95)", borderRadius: 14,
-    paddingHorizontal: 16, paddingVertical: 10,
-    borderWidth: 1, borderColor: "rgba(232,179,65,.25)",
-  },
 });

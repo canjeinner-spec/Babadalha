@@ -12,6 +12,7 @@ import { useCeviri } from "@/lib/ceviri";
 import { geriDon } from "@/lib/gezinme";
 import { useGorunenAd } from "@/lib/gorunenAd";
 import { haptic } from "@/lib/haptics";
+import { hataUyar } from "@/lib/uyari";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { kalanSureYaz } from "@/lib/sureYazim";
 import { useApp } from "@/store/appStore";
@@ -52,7 +53,6 @@ export default function ProfilAlan() {
   const [ilk, setIlk] = useState("");
   const [yukleniyor, setYukleniyor] = useState(hangi !== "ad");
   const [kaydediliyor, setKaydediliyor] = useState(false);
-  const [hata, setHata] = useState("");
   const [adDurumu, setAdDurumu] = useState<AdDurumu>("bos");
   const [kilitKalan, setKilitKalan] = useState(0);
   const bakmaRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -88,7 +88,7 @@ export default function ProfilAlan() {
         setDeger(v);
         setIlk(v);
       })
-      .catch(() => { if (acik) setHata(t("duzenle.hata")); })
+      .catch(() => { if (acik) hataUyar(t("duzenle.hata")); })
       .finally(() => { if (acik) setYukleniyor(false); });
     return () => { acik = false; };
   }, [hangi, baglandi, gorunenAd, userName, t]);
@@ -108,7 +108,6 @@ export default function ProfilAlan() {
   useEffect(() => () => { if (bakmaRef.current) clearTimeout(bakmaRef.current); }, []);
 
   const yaz = useCallback((ham: string) => {
-    setHata("");
     if (hangi !== "kullaniciAdi") {
       setDeger(ham.slice(0, ayar.azami));
       return;
@@ -138,7 +137,6 @@ export default function ProfilAlan() {
     if (!kaydedilebilir) return;
     haptic.select();
     setKaydediliyor(true);
-    setHata("");
     try {
       if (hangi === "ad") {
         await gorunenAdYaz(deger);
@@ -162,7 +160,7 @@ export default function ProfilAlan() {
       }
       router.back();
     } catch {
-      setHata(t("duzenle.hata"));
+      hataUyar(t("duzenle.hata"));
       setKaydediliyor(false);
     }
   }, [kaydedilebilir, hangi, deger, baglandi, gorunenAdYaz, setUserName, router, t]);
@@ -227,10 +225,6 @@ export default function ProfilAlan() {
 
               {!!ipucu && (
                 <Txt size={12} color={C.dim} lh={1.5} style={{ marginTop: 14 }}>{ipucu}</Txt>
-              )}
-
-              {hata !== "" && (
-                <Txt size={12} color={C.red} lh={1.45} style={{ marginTop: 12 }}>{hata}</Txt>
               )}
 
               <Pressable

@@ -7,6 +7,7 @@ import { Platform, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider, initialWindowMetrics } from "react-native-safe-area-context";
 
+import { UyariKatmani } from "@/components/UyariKatmani";
 import { engellilerim } from "@/data/remote/sosyalRepo";
 import { useDil } from "@/lib/dil";
 import { useEngellenenler } from "@/lib/engellenenler";
@@ -73,6 +74,7 @@ export default function KokYerlesim() {
                 fullScreenGestureEnabled: Platform.OS === "ios",
               }}
             />
+            <UyariKatmani />
           </View>
         </TemaSaglayici>
       </SafeAreaProvider>

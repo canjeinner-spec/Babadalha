@@ -19,6 +19,7 @@ import { Icon } from "@/icons/Icon";
 import { useCeviri } from "@/lib/ceviri";
 import { geriDon } from "@/lib/gezinme";
 import { haptic } from "@/lib/haptics";
+import { hataUyar, uyar, type UyariCesidi } from "@/lib/uyari";
 import { useApp } from "@/store/appStore";
 import { C } from "@/theme/colors";
 
@@ -111,7 +112,6 @@ export default function Arkadaslar() {
   const [yukleniyor, setYukleniyor] = useState(!!oturum && !MOCK_ARKADAS_ACIK);
   const [yenileniyor, setYenileniyor] = useState(false);
   const [mesgul, setMesgul] = useState<number | null>(null);
-  const [bildirim, setBildirim] = useState("");
   const [partiOnayi, setPartiOnayi] = useState<ArkadasKisi | null>(null);
 
   const getir = useCallback(async () => {
@@ -137,12 +137,6 @@ export default function Arkadaslar() {
     return () => { acik = false; };
   }, [getir]);
 
-  useEffect(() => {
-    if (!bildirim) return;
-    const z = setTimeout(() => setBildirim(""), 2200);
-    return () => clearTimeout(z);
-  }, [bildirim]);
-
   const gelenSuzulmus = useMemo(() => suz(gelen, arama), [gelen, arama]);
   const gidenSuzulmus = useMemo(() => suz(giden, arama), [giden, arama]);
   const dostSuzulmus = useMemo(() => suz(dostlar, arama), [dostlar, arama]);
@@ -153,22 +147,22 @@ export default function Arkadaslar() {
     setYenileniyor(false);
   };
 
-  const isle = async (kisi: ArkadasKisi, isi: () => Promise<void>, mesaj: string) => {
+  const isle = async (kisi: ArkadasKisi, isi: () => Promise<void>, mesaj: string, cesit: UyariCesidi = "bilgi") => {
     if (mesgul != null) return;
     haptic.select();
     if (kisi.id < 0) {
       setGelen((l) => l.filter((k) => k.id !== kisi.id));
       setGiden((l) => l.filter((k) => k.id !== kisi.id));
-      setBildirim(mesaj);
+      uyar(mesaj, cesit);
       return;
     }
     setMesgul(kisi.id);
     try {
       await isi();
       await getir();
-      setBildirim(mesaj);
+      uyar(mesaj, cesit);
     } catch (e) {
-      setBildirim(t(e instanceof TabloYok ? "kisi.baglanmadi" : "duzenle.hata"));
+      hataUyar(t(e instanceof TabloYok ? "kisi.baglanmadi" : "duzenle.hata"));
     } finally {
       setMesgul(null);
     }
@@ -274,7 +268,7 @@ export default function Arkadaslar() {
                             etiket={t("arkadas.kabul")}
                             birincil
                             mesgul={mesgul === k.id}
-                            onPress={() => isle(k, () => arkadasligiKabulEt(k.id), t("arkadas.kabulEdildi", k.ad))}
+                            onPress={() => isle(k, () => arkadasligiKabulEt(k.id), t("arkadas.kabulEdildi", k.ad), "basari")}
                           />
                           <Dugme
                             etiket={t("arkadas.reddet")}
@@ -349,7 +343,7 @@ export default function Arkadaslar() {
                   setPartiOnayi(null);
                   if (!hedef?.oda) return;
                   haptic.select();
-                  if (hedef.id < 0) { setBildirim(t("arkadas.mockParti")); return; }
+                  if (hedef.id < 0) { uyar(t("arkadas.mockParti")); return; }
                   router.push({ pathname: "/parti-oda", params: { id: hedef.oda.kimlik } });
                 }}
               >
@@ -359,11 +353,6 @@ export default function Arkadaslar() {
           </View>
         </CenterModal>
 
-        {bildirim !== "" && (
-          <View style={styles.bildirim}>
-            <Txt size={12.5} color="#fff" align="center">{bildirim}</Txt>
-          </View>
-        )}
       </SafeAreaView>
     </View>
   );
@@ -421,10 +410,5 @@ const styles = StyleSheet.create({
   bosSimge: {
     width: 52, height: 52, borderRadius: 18, alignItems: "center", justifyContent: "center",
     backgroundColor: "rgba(255,255,255,.05)", borderWidth: 1, borderColor: C.line, marginBottom: 14,
-  },
-  bildirim: {
-    position: "absolute", left: 20, right: 20, bottom: 26,
-    paddingVertical: 11, paddingHorizontal: 16, borderRadius: 14,
-    backgroundColor: "rgba(20,16,12,.96)", borderWidth: 1, borderColor: C.line,
   },
 });

@@ -23,6 +23,7 @@ import { useDil } from "@/lib/dil";
 import { engelliMi, useEngellenenler } from "@/lib/engellenenler";
 import { geriDon } from "@/lib/gezinme";
 import { haptic } from "@/lib/haptics";
+import { basariUyar, hataUyar, uyar } from "@/lib/uyari";
 import { platformBul } from "@/oda/platform";
 import { C } from "@/theme/colors";
 import { Gradient } from "@/theme/Gradient";
@@ -68,7 +69,6 @@ export default function Kisi() {
   const dbId = gelenId ?? cozulenId;
   const [yukleniyor, setYukleniyor] = useState(!!gelenId || !!(p.kullaniciAdi ?? "").trim());
   const [menu, setMenu] = useState(false);
-  const [bildirim, setBildirim] = useState("");
   const engelListesi = useEngellenenler((s) => s.liste);
   const engelDegistir = useEngellenenler((s) => s.degistir);
   const oturum = useApp((s) => s.session);
@@ -113,12 +113,6 @@ export default function Kisi() {
     return () => clearTimeout(z);
   }, [p.bildir]);
 
-  useEffect(() => {
-    if (!bildirim) return;
-    const z = setTimeout(() => setBildirim(""), 2000);
-    return () => clearTimeout(z);
-  }, [bildirim]);
-
   const tazele = useCallback(async () => {
     if (!dbId) return;
     const [e, a, tk, sy] = await Promise.all([
@@ -153,15 +147,15 @@ export default function Kisi() {
 
   const sunucuIsi = async (isi: () => Promise<void>, basari?: string) => {
     if (mesgul) return false;
-    if (!oturum) { setBildirim(t("kisi.girisGerek")); return false; }
-    if (!dbId) { setBildirim(t("kisi.kimlikYok")); return false; }
+    if (!oturum) { hataUyar(t("kisi.girisGerek")); return false; }
+    if (!dbId) { hataUyar(t("kisi.kimlikYok")); return false; }
     setMesgul(true);
     try {
       await isi();
-      if (basari) setBildirim(basari);
+      if (basari) basariUyar(basari);
       return true;
     } catch (e) {
-      setBildirim(t(e instanceof TabloYok ? "kisi.baglanmadi" : "duzenle.hata"));
+      hataUyar(t(e instanceof TabloYok ? "kisi.baglanmadi" : "duzenle.hata"));
       return false;
     } finally {
       setMesgul(false);
@@ -176,19 +170,19 @@ export default function Kisi() {
       const oldu = await sunucuIsi(() => (yeni ? sunucuEngelle(dbId) : sunucuEngeliKaldir(dbId)));
       if (oldu) {
         setSunucuEngelli(yeni);
-        setBildirim(t(yeni ? "kisi.engellendi" : "kisi.engelKalkti", ad));
+        uyar(t(yeni ? "kisi.engellendi" : "kisi.engelKalkti", ad));
       }
       return;
     }
     const anahtar = dbId ? `u${dbId}` : (p.kullaniciAdi || p.ad || "");
     if (!anahtar) return;
     const acildi = await engelDegistir(anahtar);
-    setBildirim(t(acildi ? "kisi.engellendi" : "kisi.engelKalkti", ad));
+    uyar(t(acildi ? "kisi.engellendi" : "kisi.engelKalkti", ad));
   };
 
   const arkadasBas = async () => {
     haptic.select();
-    if (!dbId) { setBildirim(t(oturum ? "kisi.kimlikYok" : "kisi.girisGerek")); return; }
+    if (!dbId) { hataUyar(t(oturum ? "kisi.kimlikYok" : "kisi.girisGerek")); return; }
     if (arkadaslik === "gelen") {
       if (await sunucuIsi(() => arkadasligiKabulEt(dbId))) await tazele();
       return;
@@ -202,7 +196,7 @@ export default function Kisi() {
 
   const takipBas = async () => {
     haptic.select();
-    if (!dbId) { setBildirim(t(oturum ? "kisi.kimlikYok" : "kisi.girisGerek")); return; }
+    if (!dbId) { hataUyar(t(oturum ? "kisi.kimlikYok" : "kisi.girisGerek")); return; }
     const yeni = !takipte;
     if (await sunucuIsi(() => (yeni ? takipEt(dbId) : takibiBirak(dbId)))) {
       setTakipte(yeni);
@@ -214,7 +208,7 @@ export default function Kisi() {
   const bildirBas = async (sebep: BildirimSebebi) => {
     haptic.select();
     setBildirAcik(false);
-    if (!dbId) { setBildirim(t(oturum ? "kisi.kimlikYok" : "kisi.girisGerek")); return; }
+    if (!dbId) { hataUyar(t(oturum ? "kisi.kimlikYok" : "kisi.girisGerek")); return; }
     await sunucuIsi(() => kullaniciyiBildir(dbId, sebep, odaDbId), t("kisi.bildirildi"));
   };
 
@@ -366,11 +360,6 @@ export default function Kisi() {
         </View>
       </CenterModal>
 
-      {bildirim !== "" && (
-        <View style={styles.bildirim}>
-          <Txt weight="bold" size={12.5} color="#fff" align="center" lh={1.4}>{bildirim}</Txt>
-        </View>
-      )}
     </View>
   );
 }

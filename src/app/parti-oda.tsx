@@ -79,6 +79,7 @@ import { icerikAnahtari } from "@/parti/icerik";
 import { Icon } from "@/icons/Icon";
 import { geriDon } from "@/lib/gezinme";
 import { haptic } from "@/lib/haptics";
+import { basariUyar, hataUyar, uyar } from "@/lib/uyari";
 import { useApp } from "@/store/appStore";
 import { C } from "@/theme/colors";
 import { Gradient } from "@/theme/Gradient";
@@ -408,7 +409,6 @@ export default function PartiOda() {
   const [primeDrm, setPrimeDrm] = useState<{ lisansUrl: string; videoId: string; cerezler: string; marketplaceId: string; altyazilar?: { kod: string; ad: string; url: string }[] } | null>(null);
   const primeYerelYukleniyor = useRef(false);
   const [ek, setEk] = useState<PartiSohbetOgesi[]>([]);
-  const [bildirim, setBildirim] = useState("");
   const [atilma, setAtilma] = useState<PartiRol | null>(null);
   const [cikisOnayi, setCikisOnayi] = useState(false);
   const [kurallar, setKurallar] = useState(false);
@@ -658,7 +658,7 @@ export default function PartiOda() {
     sahipAnahtariRef.current = benimAnahtarRef.current;
     setSahipAnahtari(benimAnahtarRef.current);
     setCanliRol("sahip");
-    setBildirim(cevir("odaEkran.sahiplikSana"));
+    basariUyar(cevir("odaEkran.sahiplikSana"));
     kanalRef.current?.devirYayinla(ayrilanAnahtar, benimAnahtarRef.current);
   }, [gunluk]);
 
@@ -726,10 +726,10 @@ export default function PartiOda() {
       saatRef.current?.basla();
       if (o.yeniSahip === benimAnahtarRef.current) {
         setCanliRol("sahip");
-        setBildirim(cevir("odaEkran.sahiplikSana"));
+        basariUyar(cevir("odaEkran.sahiplikSana"));
       } else {
         const yeni = agKisileriRef.current.find((k) => k.anahtar === o.yeniSahip);
-        setBildirim(yeni ? cevir("odaEkran.sahipOldu", yeni.ad) : cevir("odaEkran.sahipDegisti"));
+        uyar(yeni ? cevir("odaEkran.sahipOldu", yeni.ad) : cevir("odaEkran.sahipDegisti"));
       }
     } else if (o.tur === "saatIstek") {
       if (benSahipRef.current) kanalRef.current?.saatYanitYolla(o.soran, o.t0, Date.now());
@@ -776,7 +776,7 @@ export default function PartiOda() {
         );
       }
       if (o.anahtar === benimAnahtarRef.current) {
-        setBildirim(o.acik ? cevir("odaEkran.mikAcildi") : cevir("odaEkran.mikKapatildi"));
+        uyar(o.acik ? cevir("odaEkran.mikAcildi") : cevir("odaEkran.mikKapatildi"));
       }
     } else if (o.tur === "sohbetIzin") {
       setSohbetKapalilar((m) => ({ ...m, [o.anahtar]: !o.acik }));
@@ -1150,16 +1150,16 @@ export default function PartiOda() {
   const davetKopyala = useCallback(() => {
     haptic.select();
     Clipboard.setStringAsync(`https://${davetAdresi}`).catch(() => {});
-    setBildirim(cevir("odaEkran.davetKopyalandi"));
+    basariUyar(cevir("odaEkran.davetKopyalandi"));
   }, [davetAdresi]);
 
   const mesajGonder = useCallback((metin: string) => {
     if (sohbetKapaliRef.current) {
-      setBildirim(cevir("odaEkran.sohbetinKapali"));
+      hataUyar(cevir("odaEkran.sohbetinKapali"));
       return;
     }
     if (!sohbetYazabilirMi(benimRolRef.current, odaAyariRef.current)) {
-      setBildirim(cevir("odaEkran.sohbetKapali"));
+      hataUyar(cevir("odaEkran.sohbetKapali"));
       return;
     }
     const anahtar = "m" + Date.now();
@@ -1173,11 +1173,6 @@ export default function PartiOda() {
     });
   }, [userName, userPhoto, ozelIdTip, ozelIdTema]);
 
-  useEffect(() => {
-    if (!bildirim) return;
-    const zamanlayici = setTimeout(() => setBildirim(""), 1600);
-    return () => clearTimeout(zamanlayici);
-  }, [bildirim]);
 
   useEffect(() => {
     if (!__DEV__) return;
@@ -1238,7 +1233,7 @@ export default function PartiOda() {
     if (ben) sistemEkle(sistemKisi(hedef), { cesit: "rol", veren: sistemKisi(ben), rol: yeniRol });
     if (dbId != null && hedef.dbId != null) {
       try { await setRoomMemberRole(dbId, hedef.dbId, yeniRol === "yardimci" ? "yardimci" : "uye"); }
-      catch { setBildirim(cevir("odaEkran.rolHatasi")); }
+      catch { hataUyar(cevir("odaEkran.rolHatasi")); }
     }
   }, [dbId, sistemEkle, sistemKisi]);
 
@@ -1251,7 +1246,7 @@ export default function PartiOda() {
       try {
         await banRoomUser(dbId, hedef.dbId);
         await removeRoomMember(dbId, hedef.dbId);
-      } catch { setBildirim(cevir("odaEkran.yasakHatasi")); }
+      } catch { hataUyar(cevir("odaEkran.yasakHatasi")); }
     }
   }, [dbId, sistemEkle, sistemKisi]);
 
@@ -1339,7 +1334,7 @@ export default function PartiOda() {
     amIBannedFromRoom(dbId)
       .then((yasakli) => {
         if (iptal || !yasakli) return;
-        setBildirim(cevir("odaEkran.girisKapali"));
+        hataUyar(cevir("odaEkran.girisKapali"));
         setTimeout(() => cikRef.current(), 1200);
       })
       .catch(() => {});
@@ -1621,7 +1616,7 @@ export default function PartiOda() {
           if (k.dbId != null && myDbId != null) {
             await (acildi ? sunucuEngelle(k.dbId) : sunucuEngeliKaldir(k.dbId)).catch(() => {});
           }
-          setBildirim(cevir(acildi ? "kisi.engellendi" : "kisi.engelKalkti", k.ad));
+          uyar(cevir(acildi ? "kisi.engellendi" : "kisi.engelKalkti", k.ad));
         }}
         onRaporla={(k) => router.push({
           pathname: "/kisi",
@@ -1722,11 +1717,6 @@ export default function PartiOda() {
         </View>
       </CenterModal>
 
-      {bildirim !== "" && (
-        <View style={[styles.bildirim, { bottom: insets.bottom + 90 }]} pointerEvents="none">
-          <Txt weight="extrabold" size={12.5} color="#fff">{bildirim}</Txt>
-        </View>
-      )}
       <AyiklamaKatmani />
     </View>
   );
@@ -1816,11 +1806,6 @@ const styles = StyleSheet.create({
   gonderDugme: {
     width: 38, height: 38, borderRadius: 19, alignItems: "center", justifyContent: "center",
     backgroundColor: C.gold2,
-  },
-  bildirim: {
-    position: "absolute", alignSelf: "center",
-    paddingVertical: 9, paddingHorizontal: 18, borderRadius: 999,
-    backgroundColor: "rgba(20,19,26,.96)", borderWidth: 1, borderColor: "rgba(255,255,255,.14)",
   },
   gizliOnYukleme: { width: 1, height: 1, opacity: 0, position: "absolute" },
 });

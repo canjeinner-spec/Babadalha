@@ -15,6 +15,7 @@ import { useCeviri } from "@/lib/ceviri";
 import { useGorunenAd } from "@/lib/gorunenAd";
 import { geriDon } from "@/lib/gezinme";
 import { haptic } from "@/lib/haptics";
+import { hataUyar } from "@/lib/uyari";
 import { useApp } from "@/store/appStore";
 import { C } from "@/theme/colors";
 
@@ -64,7 +65,6 @@ export default function PartiProfil() {
   const [cikisOnayi, setCikisOnayi] = useState(false);
   const [misafirUyarisi, setMisafirUyarisi] = useState(false);
   const [cikiliyor, setCikiliyor] = useState(false);
-  const [hata, setHata] = useState("");
 
 
 
@@ -171,9 +171,6 @@ export default function PartiProfil() {
             )}
           </View>
 
-          {hata !== "" && (
-            <Txt size={11.5} color={C.red} align="center" style={{ marginTop: 14, paddingHorizontal: 12 }}>{hata}</Txt>
-          )}
         </ScrollView>
       </SafeAreaView>
 
@@ -218,14 +215,13 @@ export default function PartiProfil() {
               disabled={cikiliyor}
               onPress={async () => {
                 setCikiliyor(true);
-                setHata("");
                 try {
                   await signOutApp();
                   setCikisOnayi(false);
                   router.replace("/");
                 } catch {
                   setCikisOnayi(false);
-                  setHata(t("profil.cikisHatasi"));
+                  hataUyar(t("profil.cikisHatasi"));
                 } finally {
                   setCikiliyor(false);
                 }
