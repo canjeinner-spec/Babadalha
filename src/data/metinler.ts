@@ -474,6 +474,7 @@ export const METINLER = {
   "kisi.sebepSpam": { tr: "Spam veya dolandırıcılık", en: "Spam or fraud" },
   "kisi.sebepSiddet": { tr: "Şiddet veya tehdit", en: "Violence or threats" },
   "kisi.sebepDiger": { tr: "Başka bir sebep", en: "Another reason" },
+  "kisi.kimlikYok": { tr: "Bu kişinin hesabı bulunamadı.", en: "This person's account could not be found." },
   "kisi.girisGerek": { tr: "Bunun için giriş yapman gerekiyor.", en: "You need to sign in for this." },
   "kisi.baglanmadi": {
     tr: "Sosyal tablolar henüz kurulmadı.",

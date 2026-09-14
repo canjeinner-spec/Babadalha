@@ -8,7 +8,7 @@ import { Portrait } from "@/components/Portrait";
 import { RenkliAd } from "@/components/RenkliAd";
 import { Txt } from "@/components/Txt";
 import { partiIstatistiklerim, sureYaz, type PartiIstatistik } from "@/data/remote/partiRepo";
-import { getPublicProfileById, type PublicProfile } from "@/data/remote/profileRepo";
+import { getPublicProfile, getPublicProfileById, type PublicProfile } from "@/data/remote/profileRepo";
 import {
   arkadaslikDurumu, arkadaslikIste, arkadasligiKabulEt, arkadasligiSil,
   BILDIRIM_SEBEPLERI, engelle as sunucuEngelle, engeliKaldir as sunucuEngeliKaldir,
@@ -59,12 +59,14 @@ export default function Kisi() {
     id?: string; ad?: string; kullaniciAdi?: string; foto?: string; tip?: string; tema?: string;
     oda?: string; bildir?: string;
   }>();
-  const dbId = p.id ? Number(p.id) : null;
+  const gelenId = p.id && !Number.isNaN(Number(p.id)) ? Number(p.id) : null;
   const odaDbId = p.oda && !Number.isNaN(Number(p.oda)) ? Number(p.oda) : null;
 
   const [profil, setProfil] = useState<PublicProfile | null>(null);
   const [istatistik, setIstatistik] = useState<PartiIstatistik | null>(null);
-  const [yukleniyor, setYukleniyor] = useState(!!dbId);
+  const [cozulenId, setCozulenId] = useState<number | null>(null);
+  const dbId = gelenId ?? cozulenId;
+  const [yukleniyor, setYukleniyor] = useState(!!gelenId || !!(p.kullaniciAdi ?? "").trim());
   const [menu, setMenu] = useState(false);
   const [bildirim, setBildirim] = useState("");
   const engelListesi = useEngellenenler((s) => s.liste);
@@ -78,18 +80,26 @@ export default function Kisi() {
   const [mesgul, setMesgul] = useState(false);
   const engelli = sunucuEngelli ?? engelliMi(engelListesi, dbId ? `u${dbId}` : null, p.kullaniciAdi || null);
 
-  useEffect(() => {
-    if (!dbId || Number.isNaN(dbId)) return;
-    let acik = true;
-    getPublicProfileById(dbId)
-      .then((r) => { if (acik) setProfil(r); })
-      .catch(() => {})
-      .finally(() => { if (acik) setYukleniyor(false); });
-    return () => { acik = false; };
-  }, [dbId]);
+  const kullaniciAdiParam = (p.kullaniciAdi ?? "").trim();
 
   useEffect(() => {
-    if (!dbId || Number.isNaN(dbId)) return;
+    let acik = true;
+    const yakala = (r: PublicProfile | null) => {
+      if (!acik) return;
+      setProfil(r);
+      if (r) setCozulenId(r.id);
+      setYukleniyor(false);
+    };
+    if (gelenId) {
+      getPublicProfileById(gelenId).then(yakala).catch(() => { if (acik) setYukleniyor(false); });
+    } else if (kullaniciAdiParam) {
+      getPublicProfile(kullaniciAdiParam).then(yakala).catch(() => { if (acik) setYukleniyor(false); });
+    }
+    return () => { acik = false; };
+  }, [gelenId, kullaniciAdiParam]);
+
+  useEffect(() => {
+    if (!dbId) return;
     let acik = true;
     partiIstatistiklerim(dbId)
       .then((r) => { if (acik) setIstatistik(r); })
@@ -110,7 +120,7 @@ export default function Kisi() {
   }, [bildirim]);
 
   const tazele = useCallback(async () => {
-    if (!dbId || Number.isNaN(dbId)) return;
+    if (!dbId) return;
     const [e, a, tk, sy] = await Promise.all([
       oturum ? engellilerim().then((l) => l.includes(dbId)).catch(() => null) : Promise.resolve(null),
       oturum ? arkadaslikDurumu(dbId).catch(() => "yok" as ArkadaslikDurumu) : Promise.resolve("yok" as ArkadaslikDurumu),
@@ -124,7 +134,7 @@ export default function Kisi() {
   }, [dbId, oturum]);
 
   useEffect(() => {
-    if (!dbId || Number.isNaN(dbId)) return;
+    if (!dbId) return;
     let acik = true;
     Promise.all([
       oturum ? engellilerim().then((l) => l.includes(dbId)).catch(() => null) : Promise.resolve(null),
@@ -143,7 +153,8 @@ export default function Kisi() {
 
   const sunucuIsi = async (isi: () => Promise<void>, basari?: string) => {
     if (mesgul) return false;
-    if (!dbId || !oturum) { setBildirim(t("kisi.girisGerek")); return false; }
+    if (!oturum) { setBildirim(t("kisi.girisGerek")); return false; }
+    if (!dbId) { setBildirim(t("kisi.kimlikYok")); return false; }
     setMesgul(true);
     try {
       await isi();
@@ -177,7 +188,7 @@ export default function Kisi() {
 
   const arkadasBas = async () => {
     haptic.select();
-    if (!dbId) { setBildirim(t("kisi.girisGerek")); return; }
+    if (!dbId) { setBildirim(t(oturum ? "kisi.kimlikYok" : "kisi.girisGerek")); return; }
     if (arkadaslik === "gelen") {
       if (await sunucuIsi(() => arkadasligiKabulEt(dbId))) await tazele();
       return;
@@ -191,7 +202,7 @@ export default function Kisi() {
 
   const takipBas = async () => {
     haptic.select();
-    if (!dbId) { setBildirim(t("kisi.girisGerek")); return; }
+    if (!dbId) { setBildirim(t(oturum ? "kisi.kimlikYok" : "kisi.girisGerek")); return; }
     const yeni = !takipte;
     if (await sunucuIsi(() => (yeni ? takipEt(dbId) : takibiBirak(dbId)))) {
       setTakipte(yeni);
@@ -203,7 +214,7 @@ export default function Kisi() {
   const bildirBas = async (sebep: BildirimSebebi) => {
     haptic.select();
     setBildirAcik(false);
-    if (!dbId) { setBildirim(t("kisi.girisGerek")); return; }
+    if (!dbId) { setBildirim(t(oturum ? "kisi.kimlikYok" : "kisi.girisGerek")); return; }
     await sunucuIsi(() => kullaniciyiBildir(dbId, sebep, odaDbId), t("kisi.bildirildi"));
   };
 
