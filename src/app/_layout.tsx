@@ -12,6 +12,7 @@ import { engellilerim } from "@/data/remote/sosyalRepo";
 import { useDil } from "@/lib/dil";
 import { useEngellenenler } from "@/lib/engellenenler";
 import { useGorunenAd } from "@/lib/gorunenAd";
+import { useJeton } from "@/lib/jeton";
 import { raveTokeniYukle } from "@/lib/rave";
 import { useApp } from "@/store/appStore";
 import { C } from "@/theme/colors";
@@ -32,6 +33,7 @@ export default function KokYerlesim() {
   const dilYukle = useDil((s) => s.yukle);
   const adYukle = useGorunenAd((s) => s.yukle);
   const engelYukle = useEngellenenler((s) => s.yukle);
+  const jetonYukle = useJeton((s) => s.yukle);
   const engelBirlestir = useEngellenenler((s) => s.birlestir);
   const oturum = useApp((s) => s.session);
   const bootstrapped = useApp((s) => s.bootstrapped);
@@ -41,8 +43,9 @@ export default function KokYerlesim() {
     dilYukle();
     adYukle();
     engelYukle();
+    jetonYukle();
     raveTokeniYukle().catch(() => {});
-  }, [initAuth, dilYukle, adYukle, engelYukle]);
+  }, [initAuth, dilYukle, adYukle, engelYukle, jetonYukle]);
 
   useEffect(() => {
     if (!oturum) return;

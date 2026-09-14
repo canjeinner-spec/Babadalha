@@ -14,6 +14,8 @@ import { useDil } from "@/lib/dil";
 import { haptic } from "@/lib/haptics";
 import { useApp } from "@/store/appStore";
 import { premiumuIsaretle } from "@/lib/ilkAcilis";
+import { premiumSatinAl, satinAlmaHazirMi, satinAlmalariGeriYukle } from "@/lib/satinalma";
+import { basariUyar, hataUyar, uyar } from "@/lib/uyari";
 import { C } from "@/theme/colors";
 import { Gradient } from "@/theme/Gradient";
 
@@ -69,6 +71,7 @@ export default function Premium() {
   const ornekAdi = kendiAdi && kendiAdi !== "Sen" ? kendiAdi : t("premium.ornekAd");
   const [paket, setPaket] = useState<Paket>("yillik");
   const [not, setNot] = useState("");
+  const [mesgul, setMesgul] = useState(false);
 
   const kapat = useCallback(async () => {
     haptic.select();
@@ -76,10 +79,43 @@ export default function Premium() {
     router.replace("/hazir");
   }, [router]);
 
-  const basla = useCallback(() => {
+  const basla = useCallback(async () => {
+    if (mesgul) return;
     haptic.select();
-    setNot(t("premium.yakinda"));
-  }, [t]);
+    if (!satinAlmaHazirMi()) {
+      setNot(t("premium.magazaYok"));
+      return;
+    }
+    setMesgul(true);
+    const sonuc = await premiumSatinAl(paket);
+    setMesgul(false);
+    if (sonuc === "alindi") {
+      await premiumuIsaretle();
+      basariUyar(t("premium.satinAlindi"));
+      router.replace("/hazir");
+      return;
+    }
+    if (sonuc === "iptal") return;
+    hataUyar(t(sonuc === "hazirDegil" ? "premium.magazaYok" : "premium.satinAlinamadi"));
+  }, [mesgul, paket, router, t]);
+
+  const geriYukleBas = useCallback(async () => {
+    if (mesgul) return;
+    haptic.select();
+    if (!satinAlmaHazirMi()) {
+      setNot(t("premium.magazaYok"));
+      return;
+    }
+    setMesgul(true);
+    const oldu = await satinAlmalariGeriYukle();
+    setMesgul(false);
+    if (oldu) {
+      await premiumuIsaretle();
+      basariUyar(t("premium.geriYuklendi"));
+      return;
+    }
+    uyar(t("premium.geriYuklenemedi"));
+  }, [mesgul, t]);
 
   const virgulluDil = kod === "tr";
   const yillikAylik = (() => {
@@ -190,11 +226,14 @@ export default function Premium() {
               {not}
             </Txt>
           )}
-          <Pressable style={styles.dugme} onPress={basla}>
+          <Pressable style={[styles.dugme, mesgul && { opacity: 0.6 }]} onPress={basla} disabled={mesgul}>
             <Txt weight="extrabold" size={15.5} color="#241A05">{t("premium.basla")}</Txt>
           </Pressable>
           <Pressable onPress={kapat} hitSlop={8} style={styles.gecDugmesi}>
             <Txt weight="bold" size={13.5} color="rgba(255,255,255,.72)">{t("premium.simdiDegil")}</Txt>
+          </Pressable>
+          <Pressable onPress={geriYukleBas} hitSlop={8} style={styles.geriYukleDugmesi}>
+            <Txt weight="bold" size={12} color={C.dim}>{t("premium.geriYukle")}</Txt>
           </Pressable>
           <Txt size={10.5} color={C.dim2} align="center" lh={1.45} style={{ paddingHorizontal: 14 }}>
             {t("premium.iptalNotu")}
@@ -249,5 +288,6 @@ const styles = StyleSheet.create({
     alignItems: "center", justifyContent: "center",
     paddingVertical: 16, borderRadius: 16, backgroundColor: C.gold2,
   },
+  geriYukleDugmesi: { alignItems: "center", justifyContent: "center", paddingVertical: 6 },
   gecDugmesi: { alignItems: "center", justifyContent: "center", paddingVertical: 6 },
 });
