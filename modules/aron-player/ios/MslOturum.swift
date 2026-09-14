@@ -246,11 +246,14 @@ final class MslOturum {
 enum MslHatasi: Error, LocalizedError {
   case kripto(String)
   case protokol(String)
+  case netflix(kod: Int, icKod: Int, mesaj: String)
 
   var errorDescription: String? {
     switch self {
     case .kripto(let m): return "MSL kripto: \(m)"
     case .protokol(let m): return "MSL: \(m)"
+    case .netflix(let kod, let icKod, let m):
+      return "Netflix MSL hatasi: errorcode=\(kod) internalcode=\(icKod) msg=\(m)"
     }
   }
 }
