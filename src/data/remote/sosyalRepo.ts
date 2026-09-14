@@ -90,6 +90,120 @@ export async function arkadasligiSil(hedefId: number): Promise<void> {
   if (error) hataCevir(error);
 }
 
+export type ArkadasKisi = {
+  id: number;
+  publicId: string;
+  ad: string;
+  foto?: string;
+  ozelId: string | null;
+  ozelIdTip: "premium" | "kapsul" | null;
+  ozelIdTema: string | null;
+  tarih: string | null;
+};
+
+type KisiSatiri = {
+  id: number;
+  public_id: string;
+  kullanici_adi: string;
+  profil_resmi: string | null;
+  ozel_id: string | null;
+  ozel_id_tip: "premium" | "kapsul" | null;
+  ozel_id_tema: string | null;
+};
+
+const KISI_ALANLARI = "id, public_id, kullanici_adi, profil_resmi, ozel_id, ozel_id_tip, ozel_id_tema";
+
+async function kisileriGetir(idler: number[]): Promise<Map<number, KisiSatiri>> {
+  const harita = new Map<number, KisiSatiri>();
+  if (!idler.length) return harita;
+  const sb = requireSupabase();
+  const { data } = await sb.from("profiller").select(KISI_ALANLARI).in("id", idler);
+  for (const k of (data as KisiSatiri[]) ?? []) harita.set(k.id, k);
+  return harita;
+}
+
+function kisiYap(k: KisiSatiri | undefined, id: number, tarih: string | null): ArkadasKisi {
+  return {
+    id,
+    publicId: k?.public_id ?? "",
+    ad: k?.kullanici_adi || "Kullanıcı",
+    foto: k?.profil_resmi || undefined,
+    ozelId: k?.ozel_id ?? null,
+    ozelIdTip: k?.ozel_id_tip ?? null,
+    ozelIdTema: k?.ozel_id_tema ?? null,
+    tarih,
+  };
+}
+
+type BagSatiri = { isteyen_id: number; istenen_id: number; istek_tarihi: string | null; yanit_tarihi: string | null };
+
+async function baglariCoz(satirlar: BagSatiri[], ben: number, tarihAlani: "istek" | "yanit"): Promise<ArkadasKisi[]> {
+  const eslesme = satirlar.map((r) => ({
+    id: r.isteyen_id === ben ? r.istenen_id : r.isteyen_id,
+    tarih: tarihAlani === "yanit" ? (r.yanit_tarihi ?? r.istek_tarihi) : r.istek_tarihi,
+  }));
+  const kisiler = await kisileriGetir(eslesme.map((e) => e.id));
+  return eslesme.map((e) => kisiYap(kisiler.get(e.id), e.id, e.tarih));
+}
+
+export async function arkadaslarim(): Promise<ArkadasKisi[]> {
+  const sb = requireSupabase();
+  const ben = await benimId();
+  const { data, error } = await sb
+    .from("arkadasliklar")
+    .select("isteyen_id, istenen_id, istek_tarihi, yanit_tarihi")
+    .eq("durum", ARKADASLIK_KABUL)
+    .or(`isteyen_id.eq.${ben},istenen_id.eq.${ben}`)
+    .order("yanit_tarihi", { ascending: false });
+  if (error) hataCevir(error);
+  return baglariCoz((data as BagSatiri[]) ?? [], ben, "yanit");
+}
+
+export async function gelenIstekler(): Promise<ArkadasKisi[]> {
+  const sb = requireSupabase();
+  const ben = await benimId();
+  const { data, error } = await sb
+    .from("arkadasliklar")
+    .select("isteyen_id, istenen_id, istek_tarihi, yanit_tarihi")
+    .eq("durum", ARKADASLIK_BEKLIYOR)
+    .eq("istenen_id", ben)
+    .order("istek_tarihi", { ascending: false });
+  if (error) hataCevir(error);
+  return baglariCoz((data as BagSatiri[]) ?? [], ben, "istek");
+}
+
+export async function gidenIstekler(): Promise<ArkadasKisi[]> {
+  const sb = requireSupabase();
+  const ben = await benimId();
+  const { data, error } = await sb
+    .from("arkadasliklar")
+    .select("isteyen_id, istenen_id, istek_tarihi, yanit_tarihi")
+    .eq("durum", ARKADASLIK_BEKLIYOR)
+    .eq("isteyen_id", ben)
+    .order("istek_tarihi", { ascending: false });
+  if (error) hataCevir(error);
+  return baglariCoz((data as BagSatiri[]) ?? [], ben, "istek");
+}
+
+export async function arkadasligiReddet(isteyenId: number): Promise<void> {
+  const sb = requireSupabase();
+  const ben = await benimId();
+  const { error } = await sb
+    .from("arkadasliklar")
+    .update({ durum: ARKADASLIK_RED, yanit_tarihi: new Date().toISOString() })
+    .eq("isteyen_id", isteyenId).eq("istenen_id", ben);
+  if (error) hataCevir(error);
+}
+
+export async function istegiGeriAl(hedefId: number): Promise<void> {
+  const sb = requireSupabase();
+  const ben = await benimId();
+  const { error } = await sb
+    .from("arkadasliklar").delete()
+    .eq("isteyen_id", ben).eq("istenen_id", hedefId).eq("durum", ARKADASLIK_BEKLIYOR);
+  if (error) hataCevir(error);
+}
+
 export async function takipEdiyorMuyum(hedefId: number): Promise<boolean> {
   const sb = requireSupabase();
   const ben = await benimId();

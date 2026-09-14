@@ -120,6 +120,13 @@ export default function PartiProfil() {
               onPress={() => { haptic.select(); router.push({ pathname: "/profil-bilgi", params: { tur: "hesap" } }); }}
             />
             <Kart
+              simge="users"
+              etiket={t("arkadas.kart")}
+              altYazi={t("arkadas.kartAlt")}
+              ok
+              onPress={() => { haptic.select(); router.push("/arkadaslar"); }}
+            />
+            <Kart
               simge="evParty"
               etiket={t("profil.partiKart")}
               altYazi={t("profil.partiKartAlt")}
