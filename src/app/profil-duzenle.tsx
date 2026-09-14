@@ -1,5 +1,6 @@
+import { useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View, type TextInputProps } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import * as GorselSecici from "expo-image-picker";
@@ -8,11 +9,11 @@ import { KeyboardAware } from "@/components/KeyboardAware";
 import { Portrait } from "@/components/Portrait";
 import { SohbetKirpmasi } from "@/components/SohbetKirpmasi";
 import { Txt } from "@/components/Txt";
-import { avatarYukle, getMyProfile, isUsernameAvailable, setOzelId, updateMyProfile } from "@/data/remote/profileRepo";
+import { avatarYukle, getMyProfile, setOzelId, updateMyProfile } from "@/data/remote/profileRepo";
 import { AMBLEM_ADI, AMBLEM_RENK, OZEL_ID_AMBLEMLERI, type OzelIdAmblemi } from "@/data/specialId";
 import { Icon } from "@/icons/Icon";
 import { useCeviri } from "@/lib/ceviri";
-import { adKilidiKalan, adKilidiKur, AD_KILIT_SURESI } from "@/lib/adKilidi";
+import { adKilidiKalan } from "@/lib/adKilidi";
 import { useGorunenAd } from "@/lib/gorunenAd";
 import { geriDon } from "@/lib/gezinme";
 import { haptic } from "@/lib/haptics";
@@ -20,76 +21,42 @@ import { isSupabaseConfigured } from "@/lib/supabase";
 import { useApp } from "@/store/appStore";
 import { C } from "@/theme/colors";
 
-const AD_KALIBI = /^[A-Za-z0-9_.çğıöşüÇĞİÖŞÜ]+$/;
-const AD_ASGARI = 3;
-const AD_AZAMI = 32;
-const BIYOGRAFI_AZAMI = 160;
-const BAKMA_GECIKMESI = 550;
 const GOKKUSAGI_ANAHTARI = "gokkusagi";
 const MOCK_OTURUMSUZ = true;
 
-type AdDurumu = "bos" | "kisa" | "gecersiz" | "bakiliyor" | "musait" | "dolu";
 
-function kalanYaz(kalan: number, t: (a: string, ...d: (string | number)[]) => string): string {
-  const saat = Math.ceil(kalan / (60 * 60 * 1000));
-  if (saat >= 24) return t("duzenle.adKilitGun", Math.ceil(saat / 24));
-  return t("duzenle.adKilitSaat", saat);
-}
 
-function Alan({ etiket, ipucu, children, sagUst }: {
+function Satir({ etiket, deger, onBas, kilitli }: {
   etiket: string;
-  ipucu?: string;
-  children: React.ReactNode;
-  sagUst?: React.ReactNode;
+  deger: string;
+  onBas: () => void;
+  kilitli?: boolean;
 }) {
   return (
-    <View style={styles.alan}>
-      <View style={styles.alanBaslik}>
+    <Pressable style={styles.satir} onPress={onBas}>
+      <View style={{ flex: 1, minWidth: 0 }}>
         <Txt weight="extrabold" size={11.5} color={C.dim2} style={{ letterSpacing: 0.7 }}>
           {etiket.toLocaleUpperCase("tr")}
         </Txt>
-        <View style={{ flex: 1 }} />
-        {sagUst}
+        <Txt
+          size={16}
+          color={deger ? "#fff" : C.dim2}
+          numberOfLines={1}
+          style={{ marginTop: 5 }}
+        >
+          {deger}
+        </Txt>
       </View>
-      {children}
-      {!!ipucu && <Txt size={11.5} color={C.dim} lh={1.45} style={{ marginTop: 8 }}>{ipucu}</Txt>}
-    </View>
-  );
-}
-
-function YaziAlani({ deger, onYaz, yerTutucu, onek, kilitli, girdiRef, ...kalan }: {
-  deger: string;
-  onYaz: (v: string) => void;
-  yerTutucu?: string;
-  onek?: string;
-  kilitli?: boolean;
-  girdiRef?: React.RefObject<TextInput | null>;
-} & Pick<TextInputProps, "autoCapitalize" | "autoCorrect" | "maxLength" | "multiline">) {
-  const kendi = useRef<TextInput>(null);
-  const ref = girdiRef ?? kendi;
-  return (
-    <Pressable style={styles.yaziSatiri} onPress={() => !kilitli && ref.current?.focus()}>
-      {!!onek && <Txt weight="displayBold" size={17} color={C.gold2}>{onek}</Txt>}
-      <TextInput
-        {...kalan}
-        ref={ref}
-        value={deger}
-        onChangeText={onYaz}
-        editable={!kilitli}
-        placeholder={yerTutucu}
-        placeholderTextColor={C.dim2}
-        style={[styles.yazi, kalan.multiline && styles.yaziCok, kilitli && styles.yaziKilitli]}
-      />
-      <Icon name="edit" size={17} sw={2} color={kilitli ? "rgba(255,255,255,.18)" : C.gold2} />
+      <Icon name={kilitli ? "lock" : "edit"} size={17} sw={2} color={kilitli ? C.dim2 : C.gold2} />
     </Pressable>
   );
 }
 
 export default function ProfilDuzenle() {
   const t = useCeviri();
+  const router = useRouter();
   const userName = useApp((s) => s.userName);
   const userPhoto = useApp((s) => s.userPhoto);
-  const setUserName = useApp((s) => s.setUserName);
   const setUserPhoto = useApp((s) => s.setUserPhoto);
   const ozelId = useApp((s) => s.ozelId);
   const ozelIdTip = useApp((s) => s.ozelIdTip);
@@ -101,12 +68,9 @@ export default function ProfilDuzenle() {
 
   const [yukleniyor, setYukleniyor] = useState(true);
   const [ad, setAd] = useState(userName);
-  const [ilkAd, setIlkAd] = useState(userName);
   const [biyografi, setBiyografi] = useState("");
   const [ulke, setUlke] = useState("");
   const [sehir, setSehir] = useState("");
-  const [adDurumu, setAdDurumu] = useState<AdDurumu>("bos");
-  const [kaydediliyor, setKaydediliyor] = useState(false);
   const [bildirim, setBildirim] = useState("");
   const [hata, setHata] = useState("");
   const bakmaRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -114,8 +78,7 @@ export default function ProfilDuzenle() {
   const [avatarMesgul, setAvatarMesgul] = useState(false);
   const [renk, setRenk] = useState<string>(ozelIdTema ?? GOKKUSAGI_ANAHTARI);
   const gorunenAd = useGorunenAd((s) => s.ad);
-  const gorunenAdYaz = useGorunenAd((s) => s.yaz);
-  const [gorunen, setGorunen] = useState(gorunenAd);
+  const gorunen = gorunenAd;
   const gosterilenAd = gorunen.trim() || ad || userName;
 
   useEffect(() => {
@@ -132,7 +95,6 @@ export default function ProfilDuzenle() {
       .then((p) => {
         if (!acik || !p) return;
         setAd(p.kullanici_adi);
-        setIlkAd(p.kullanici_adi);
         setBiyografi(p.biyografi ?? "");
         setUlke(p.ulke ?? "");
         setSehir(p.sehir ?? "");
@@ -147,6 +109,11 @@ export default function ProfilDuzenle() {
     adKilidiKalan().then((k) => { if (acik) setKilitKalan(k); }).catch(() => {});
     return () => { acik = false; };
   }, []);
+
+  const ac = useCallback((alan: string) => {
+    haptic.select();
+    router.push({ pathname: "/profil-alan", params: { alan } });
+  }, [router]);
 
   const avatarSec = useCallback(async () => {
     if (avatarMesgul) return;
@@ -198,21 +165,6 @@ export default function ProfilDuzenle() {
     }
   }, [premiumMi, baglandi, ozelId, renk, setOzelIdKimlik, t]);
 
-  const adYaz = useCallback((deger: string) => {
-    const temiz = deger.trim().slice(0, AD_AZAMI);
-    setAd(temiz);
-    setHata("");
-    if (bakmaRef.current) clearTimeout(bakmaRef.current);
-    if (temiz === ilkAd) { setAdDurumu("bos"); return; }
-    if (temiz.length < AD_ASGARI) { setAdDurumu("kisa"); return; }
-    if (!AD_KALIBI.test(temiz)) { setAdDurumu("gecersiz"); return; }
-    setAdDurumu("bakiliyor");
-    bakmaRef.current = setTimeout(() => {
-      isUsernameAvailable(temiz)
-        .then((musait) => setAdDurumu(musait ? "musait" : "dolu"))
-        .catch(() => setAdDurumu("bos"));
-    }, BAKMA_GECIKMESI);
-  }, [ilkAd]);
 
   useEffect(() => () => { if (bakmaRef.current) clearTimeout(bakmaRef.current); }, []);
 
@@ -222,53 +174,8 @@ export default function ProfilDuzenle() {
     return () => clearTimeout(zamanlayici);
   }, [bildirim]);
 
-  const kaydedilebilir = !kaydediliyor
-    && !yukleniyor
-    && isSupabaseConfigured
-    && adDurumu !== "kisa"
-    && adDurumu !== "gecersiz"
-    && adDurumu !== "dolu"
-    && adDurumu !== "bakiliyor"
-    && !(kilitKalan > 0 && ad !== ilkAd);
 
-  const kaydet = useCallback(async () => {
-    if (!kaydedilebilir) return;
-    haptic.select();
-    setKaydediliyor(true);
-    setHata("");
-    try {
-      const yama: Parameters<typeof updateMyProfile>[0] = {
-        biyografi: biyografi.trim() || null,
-        ulke: ulke.trim() || null,
-        sehir: sehir.trim() || null,
-      };
-      const adDegisti = ad !== ilkAd;
-      if (adDegisti) yama.kullanici_adi = ad;
-      const p = await updateMyProfile(yama);
-      if (adDegisti) {
-        await adKilidiKur();
-        setKilitKalan(AD_KILIT_SURESI);
-      }
-      await gorunenAdYaz(gorunen);
-      setUserName(p.kullanici_adi);
-      setIlkAd(p.kullanici_adi);
-      setAdDurumu("bos");
-      setBildirim(t("duzenle.kaydedildi"));
-    } catch {
-      setHata(t("duzenle.hata"));
-    } finally {
-      setKaydediliyor(false);
-    }
-  }, [kaydedilebilir, ad, ilkAd, biyografi, ulke, sehir, gorunen, gorunenAdYaz, setUserName, t]);
 
-  const adNotu = (() => {
-    if (adDurumu === "kisa") return { metin: t("duzenle.adKisa"), renk: C.red };
-    if (adDurumu === "gecersiz") return { metin: t("duzenle.adGecersiz"), renk: C.red };
-    if (adDurumu === "dolu") return { metin: t("duzenle.adDolu"), renk: C.red };
-    if (adDurumu === "musait") return { metin: t("duzenle.adMusait"), renk: C.gold2 };
-    if (adDurumu === "bakiliyor") return { metin: t("duzenle.adBakiliyor"), renk: C.dim };
-    return null;
-  })();
 
   return (
     <View style={styles.kok}>
@@ -300,40 +207,39 @@ export default function ProfilDuzenle() {
                 </Txt>
               </View>
 
-              <Alan etiket={t("duzenle.ad")} ipucu={t("duzenle.adIpucu")}>
-                <YaziAlani
-                  deger={gorunen}
-                  onYaz={(v) => setGorunen(v.slice(0, 32))}
-                  yerTutucu={t("duzenle.adYerTutucu")}
-                  maxLength={32}
+              <View style={styles.liste}>
+                <Satir
+                  etiket={t("duzenle.ad")}
+                  deger={gorunen || t("duzenle.bos")}
+                  onBas={() => ac("ad")}
                 />
-              </Alan>
-
-              <Alan
-                etiket={t("duzenle.kullaniciAdi")}
-                ipucu={t("duzenle.adKural")}
-                sagUst={<Txt size={11} color={C.dim2}>{ad.length}/{AD_AZAMI}</Txt>}
-              >
-                <YaziAlani
-                  deger={ad}
-                  onYaz={adYaz}
-                  onek="@"
+                <Satir
+                  etiket={t("duzenle.kullaniciAdi")}
+                  deger={`@${ad}`}
                   kilitli={kilitKalan > 0}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  maxLength={AD_AZAMI}
+                  onBas={() => ac("kullaniciAdi")}
                 />
-                {!!adNotu && (
-                  <Txt size={11.5} color={adNotu.renk} style={{ marginTop: 8 }}>{adNotu.metin}</Txt>
-                )}
-                {kilitKalan > 0 && (
-                  <Txt size={11.5} color={C.red} lh={1.45} style={{ marginTop: 8 }}>
-                    {t("duzenle.adKilit", kalanYaz(kilitKalan, t))}
-                  </Txt>
-                )}
-              </Alan>
+                <Satir
+                  etiket={t("duzenle.biyografi")}
+                  deger={biyografi || t("duzenle.bos")}
+                  onBas={() => ac("biyografi")}
+                />
+                <Satir
+                  etiket={t("duzenle.ulke")}
+                  deger={ulke || t("duzenle.bos")}
+                  onBas={() => ac("ulke")}
+                />
+                <Satir
+                  etiket={t("duzenle.sehir")}
+                  deger={sehir || t("duzenle.bos")}
+                  onBas={() => ac("sehir")}
+                />
+              </View>
 
-              <Alan etiket={t("duzenle.adRengi")} ipucu={premiumMi ? t("duzenle.adRengiIpucu") : undefined}>
+              <View style={styles.alan}>
+                <Txt weight="extrabold" size={11.5} color={C.dim2} style={{ letterSpacing: 0.7, marginBottom: 12 }}>
+                  {t("duzenle.adRengi").toLocaleUpperCase("tr")}
+                </Txt>
                 {premiumMi ? (
                   <>
                     <View style={styles.renkOnizleme}>
@@ -370,6 +276,11 @@ export default function ProfilDuzenle() {
                         </Pressable>
                       ))}
                     </View>
+                    {premiumMi && (
+                      <Txt size={12} color={C.dim} lh={1.5} style={{ marginTop: 12 }}>
+                        {t("duzenle.adRengiIpucu")}
+                      </Txt>
+                    )}
                     {!baglandi && (
                       <Txt size={11.5} color={C.dim} lh={1.45} style={{ marginTop: 10 }}>
                         {t("duzenle.adRengiDeneme")}
@@ -384,47 +295,14 @@ export default function ProfilDuzenle() {
                     </Txt>
                   </View>
                 )}
-              </Alan>
-
-              <Alan
-                etiket={t("duzenle.biyografi")}
-                ipucu={t("duzenle.biyografiIpucu")}
-                sagUst={<Txt size={11} color={C.dim2}>{biyografi.length}/{BIYOGRAFI_AZAMI}</Txt>}
-              >
-                <YaziAlani
-                  deger={biyografi}
-                  onYaz={(v) => setBiyografi(v.slice(0, BIYOGRAFI_AZAMI))}
-                  multiline
-                  maxLength={BIYOGRAFI_AZAMI}
-                />
-              </Alan>
-
-              <View style={styles.ikili}>
-                <View style={{ flex: 1 }}>
-                  <Alan etiket={t("duzenle.ulke")}>
-                    <YaziAlani deger={ulke} onYaz={setUlke} maxLength={56} />
-                  </Alan>
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Alan etiket={t("duzenle.sehir")}>
-                    <YaziAlani deger={sehir} onYaz={setSehir} maxLength={56} />
-                  </Alan>
-                </View>
               </View>
 
+
+
               {hata !== "" && (
-                <Txt size={12} color={C.red} align="center" lh={1.45} style={{ marginTop: 4 }}>{hata}</Txt>
+                <Txt size={12} color={C.red} lh={1.45} style={{ marginTop: 14 }}>{hata}</Txt>
               )}
 
-              <Pressable
-                style={[styles.kaydet, !kaydedilebilir && styles.sonuk]}
-                disabled={!kaydedilebilir}
-                onPress={kaydet}
-              >
-                <Txt weight="extrabold" size={15} color="#241A05">
-                  {kaydediliyor ? t("duzenle.kaydediliyor") : t("duzenle.kaydet")}
-                </Txt>
-              </Pressable>
             </ScrollView>
           </KeyboardAware>
         )}
@@ -454,6 +332,12 @@ const styles = StyleSheet.create({
     width: 32, height: 32, borderRadius: 16,
     alignItems: "center", justifyContent: "center",
     backgroundColor: C.gold2, borderWidth: 3, borderColor: C.bg,
+  },
+  liste: { marginBottom: 26 },
+  satir: {
+    flexDirection: "row", alignItems: "center", gap: 12,
+    paddingVertical: 14,
+    borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,.08)",
   },
   alan: { marginBottom: 18 },
   renkOnizleme: { marginBottom: 14 },

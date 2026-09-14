@@ -164,6 +164,14 @@ export const METINLER = {
     en: "Your account is not connected, your choice stays on this device for now.",
   },
   "duzenle.gokkusagi": { tr: "Gökkuşağı", en: "Rainbow" },
+  "duzenle.bos": { tr: "Eklenmedi", en: "Not set" },
+  "duzenle.adKilitTam": {
+    tr: "Yeniden değiştirebilmene {0} var.",
+    en: "You can change it again in {0}.",
+  },
+  "duzenle.adKilitGunSaat": { tr: "{0} gün {1} saat", en: "{0} d {1} h" },
+  "duzenle.adKilitSaatDakika": { tr: "{0} saat {1} dakika", en: "{0} h {1} min" },
+  "duzenle.adKilitDakika": { tr: "{0} dakika", en: "{0} min" },
   "duzenle.adKilit": {
     tr: "Kullanıcı adını 7 günde bir değiştirebilirsin. Kalan: {0}",
     en: "You can change your username once every 7 days. Remaining: {0}",
