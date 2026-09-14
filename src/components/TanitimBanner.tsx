@@ -16,7 +16,6 @@ type Slayt = {
   etiket: string;
   baslik: string;
   altYazi: string;
-  hedef: "/parti-platform" | "/partiler" | "/premium";
   renkler: [string, string];
 };
 
@@ -25,21 +24,18 @@ const SLAYTLAR: Slayt[] = [
     etiket: "banner.yeni",
     baslik: "banner.baslik",
     altYazi: "banner.altYazi",
-    hedef: "/parti-platform",
     renkler: ["#2E1F45", "#171029"],
   },
   {
     etiket: "banner.gelisimEtiket",
     baslik: "banner.gelisimBaslik",
     altYazi: "banner.gelisimAltYazi",
-    hedef: "/partiler",
     renkler: ["#1C3040", "#101C26"],
   },
   {
     etiket: "banner.premiumEtiket",
     baslik: "banner.premiumBaslik",
     altYazi: "banner.premiumAltYazi",
-    hedef: "/premium",
     renkler: ["#3A2A10", "#1E1608"],
   },
 ];
@@ -59,7 +55,7 @@ export function TanitimBanner() {
   return (
     <Pressable
       style={styles.banner}
-      onPress={() => { haptic.select(); router.push(slayt.hedef); }}
+      onPress={() => { haptic.select(); router.push("/duyuru"); }}
     >
       <Animated.View key={sira} entering={FadeIn.duration(380)} style={StyleSheet.absoluteFill}>
         <Gradient colors={slayt.renkler} deg={125} style={StyleSheet.absoluteFill} />
@@ -104,7 +100,7 @@ export function TanitimBanner() {
 
       <View style={styles.noktalar} pointerEvents="none">
         {SLAYTLAR.map((s, i) => (
-          <View key={s.hedef} style={[styles.nokta, i === sira && styles.noktaAcik]} />
+          <View key={s.baslik} style={[styles.nokta, i === sira && styles.noktaAcik]} />
         ))}
       </View>
     </Pressable>

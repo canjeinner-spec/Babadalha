@@ -585,6 +585,35 @@ export const METINLER = {
   "panel.sahiplikDevri": { tr: "Sahiplik devri", en: "Host transfer" },
   "panel.odadanAt": { tr: "Odadan at", en: "Remove from room" },
 
+  "duyuru.baslik": { tr: "Aron Parti", en: "Aron Party" },
+  "duyuru.giris": {
+    tr: "Aron Parti, arkadaşlarınla aynı filmi aynı saniyede izlemen için yapıldı. Odayı sen kurarsın, bağlantını paylaşırsın, oynat dediğinde herkeste aynı anda başlar. Sesli sohbet ve yazışma izlerken açık kalır.",
+    en: "Aron Party is built so you can watch the same film with friends on the same second. You set up the room, share your link, and when you hit play it starts for everyone at once. Voice chat and messages stay open while you watch.",
+  },
+  "duyuru.platformBaslik": { tr: "Desteklediğimiz platformlar", en: "Platforms we support" },
+  "duyuru.platformMetin": {
+    tr: "Hesabın hangisindeyse onu aç. Aron hesabını istemez, senin oturumunla açılır.",
+    en: "Open whichever one you have an account on. Aron never asks for your account, it opens with your own session.",
+  },
+  "duyuru.nasilBaslik": { tr: "Üç adımda parti", en: "A party in three steps" },
+  "duyuru.adim1": { tr: "Platformu seç, odanı kur.", en: "Pick a platform, set up your room." },
+  "duyuru.adim2": { tr: "Bağlantını arkadaşlarına yolla.", en: "Send your link to your friends." },
+  "duyuru.adim3": { tr: "Oynat. Herkeste aynı saniyede başlar.", en: "Hit play. It starts on the same second for everyone." },
+  "duyuru.gelisimBaslik": { tr: "Her gün biraz daha iyi", en: "A little better every day" },
+  "duyuru.gelisimMetin": {
+    tr: "Aron yeni yayında ve durmadan yazılıyor. Son haftalarda Netflix'i Android'de yerel oynatıcıya taşıdık, YouTube canlı yayınını ekledik, arkadaşlık ve engelleme sistemini kurduk, profil ve oda ekranlarını baştan yazdık.",
+    en: "Aron is brand new and being written non-stop. In recent weeks we moved Netflix to the native player on Android, added YouTube Live, built the friends and blocking system, and rewrote the profile and room screens.",
+  },
+  "duyuru.yolBaslik": { tr: "Sırada ne var", en: "What is next" },
+  "duyuru.yol1": { tr: "Kullanıcı arama ve doğrudan arkadaş ekleme", en: "User search and adding friends directly" },
+  "duyuru.yol2": { tr: "Arkadaşın hangi partide olduğunu görme", en: "Seeing which party a friend is in" },
+  "duyuru.yol3": { tr: "Daha fazla platform ve daha iyi altyazı desteği", en: "More platforms and better subtitle support" },
+  "duyuru.geriBildirim": {
+    tr: "Eksik gördüğün, bozuk bulduğun ne varsa yaz. Bu liste çoğunlukla kullanıcıların yazdıklarından çıkıyor.",
+    en: "Tell us whatever looks missing or broken. This list mostly comes from what users write to us.",
+  },
+  "duyuru.surum": { tr: "Sürüm {0}", en: "Version {0}" },
+
   "banner.yeni": { tr: "YENİ", en: "NEW" },
   "banner.baslik": { tr: "Birlikte izlemek artık burada", en: "Watching together is here" },
   "banner.altYazi": {
