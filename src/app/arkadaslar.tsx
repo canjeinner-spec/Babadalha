@@ -8,6 +8,9 @@ import { Portrait } from "@/components/Portrait";
 import { RenkliAd } from "@/components/RenkliAd";
 import { Txt } from "@/components/Txt";
 import {
+  MOCK_ARKADAS_ACIK, MOCK_ARKADASLAR, MOCK_GELEN_ISTEKLER, MOCK_GIDEN_ISTEKLER,
+} from "@/data/arkadasMock";
+import {
   arkadaslarim, arkadasligiKabulEt, arkadasligiReddet, gelenIstekler, gidenIstekler,
   istegiGeriAl, TabloYok, type ArkadasKisi,
 } from "@/data/remote/sosyalRepo";
@@ -75,10 +78,10 @@ export default function Arkadaslar() {
   const oturum = useApp((s) => s.session);
 
   const [sekme, setSekme] = useState<Sekme>("istek");
-  const [gelen, setGelen] = useState<ArkadasKisi[]>([]);
-  const [giden, setGiden] = useState<ArkadasKisi[]>([]);
-  const [dostlar, setDostlar] = useState<ArkadasKisi[]>([]);
-  const [yukleniyor, setYukleniyor] = useState(!!oturum);
+  const [gelen, setGelen] = useState<ArkadasKisi[]>(MOCK_ARKADAS_ACIK ? MOCK_GELEN_ISTEKLER : []);
+  const [giden, setGiden] = useState<ArkadasKisi[]>(MOCK_ARKADAS_ACIK ? MOCK_GIDEN_ISTEKLER : []);
+  const [dostlar, setDostlar] = useState<ArkadasKisi[]>(MOCK_ARKADAS_ACIK ? MOCK_ARKADASLAR : []);
+  const [yukleniyor, setYukleniyor] = useState(!!oturum && !MOCK_ARKADAS_ACIK);
   const [yenileniyor, setYenileniyor] = useState(false);
   const [mesgul, setMesgul] = useState<number | null>(null);
   const [bildirim, setBildirim] = useState("");
@@ -90,9 +93,9 @@ export default function Arkadaslar() {
       gidenIstekler().catch(() => null),
       arkadaslarim().catch(() => null),
     ]);
-    if (a) setGelen(a);
-    if (b) setGiden(b);
-    if (c) setDostlar(c);
+    if (a) setGelen(MOCK_ARKADAS_ACIK ? [...a, ...MOCK_GELEN_ISTEKLER] : a);
+    if (b) setGiden(MOCK_ARKADAS_ACIK ? [...b, ...MOCK_GIDEN_ISTEKLER] : b);
+    if (c) setDostlar(MOCK_ARKADAS_ACIK ? [...c, ...MOCK_ARKADASLAR] : c);
   }, [oturum]);
 
   useEffect(() => {
@@ -121,6 +124,12 @@ export default function Arkadaslar() {
   const isle = async (kisi: ArkadasKisi, isi: () => Promise<void>, mesaj: string) => {
     if (mesgul != null) return;
     haptic.select();
+    if (kisi.id < 0) {
+      setGelen((l) => l.filter((k) => k.id !== kisi.id));
+      setGiden((l) => l.filter((k) => k.id !== kisi.id));
+      setBildirim(mesaj);
+      return;
+    }
     setMesgul(kisi.id);
     try {
       await isi();
@@ -135,6 +144,7 @@ export default function Arkadaslar() {
 
   const profilAc = (kisi: ArkadasKisi) => {
     haptic.select();
+    if (kisi.id < 0) return;
     router.push({
       pathname: "/kisi",
       params: {
@@ -179,7 +189,7 @@ export default function Arkadaslar() {
           })}
         </View>
 
-        {!oturum ? (
+        {!oturum && !MOCK_ARKADAS_ACIK ? (
           <Bos baslik={t("arkadas.girisGerek")} />
         ) : yukleniyor ? (
           <View style={styles.orta}><ActivityIndicator color={C.gold2} /></View>
