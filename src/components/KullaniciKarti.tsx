@@ -13,7 +13,7 @@ import { Icon } from "@/icons/Icon";
 import { type IconName } from "@/icons/paths";
 import { useCeviri } from "@/lib/ceviri";
 import { haptic } from "@/lib/haptics";
-import { atabilirMi, rolAdi, rolVerebilirMi, yetkiVar, type PartiRol } from "@/parti/yetki";
+import { rolAdi, type PartiRol } from "@/parti/yetki";
 import { C } from "@/theme/colors";
 import { Gradient } from "@/theme/Gradient";
 
@@ -35,15 +35,6 @@ export type KartKisisi = {
   ozelIdTema?: string | null;
 };
 
-export type KartYetkileri = {
-  benimAnahtar: string;
-  benimRol: PartiRol;
-  onYetki: (kisi: KartKisisi, rol: PartiRol) => void;
-  onMikrofon: (kisi: KartKisisi, acik: boolean) => void;
-  onSohbet: (kisi: KartKisisi, acik: boolean) => void;
-  onAt: (kisi: KartKisisi) => void;
-};
-
 function sayiYaz(n: number): string {
   if (n >= 1000000) return `${(n / 1000000).toFixed(1).replace(".0", "")}M`;
   if (n >= 1000) return `${(n / 1000).toFixed(1).replace(".0", "")}K`;
@@ -61,27 +52,30 @@ function Kutucuk({ deger, etiket, vurgu }: { deger: string; etiket: string; vurg
   );
 }
 
-function Eylem({ simge, etiket, renk, onBas }: {
+function Eylem({ simge, etiket, altYazi, onBas }: {
   simge: IconName;
   etiket: string;
-  renk?: string;
+  altYazi?: string;
   onBas: () => void;
 }) {
   return (
     <Pressable style={styles.eylem} onPress={onBas}>
-      <View style={[styles.eylemSimge, !!renk && { backgroundColor: renk + "1a", borderColor: renk + "3d" }]}>
-        <Icon name={simge} size={17} sw={2} color={renk ?? C.gold2} />
+      <View style={styles.eylemSimge}>
+        <Icon name={simge} size={17} sw={2} color={C.gold2} />
       </View>
-      <Txt weight="bold" size={14} color={renk ?? "#fff"} style={{ flex: 1 }}>{etiket}</Txt>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Txt weight="bold" size={14} color="#fff">{etiket}</Txt>
+        {!!altYazi && <Txt size={11.5} color={C.dim} style={{ marginTop: 2 }}>{altYazi}</Txt>}
+      </View>
       <Icon name="chev" size={17} sw={2.2} color={C.dim2} />
     </Pressable>
   );
 }
 
-export function KullaniciKarti({ kisi, yetkiler, onKapat }: {
+export function KullaniciKarti({ kisi, onKapat, onProfil }: {
   kisi: KartKisisi | null;
-  yetkiler?: KartYetkileri;
   onKapat: () => void;
+  onProfil?: (kisi: KartKisisi) => void;
 }) {
   const t = useCeviri();
   const insets = useSafeAreaInsets();
@@ -126,20 +120,12 @@ export function KullaniciKarti({ kisi, yetkiler, onKapat }: {
 
   const g = gorunen;
   const rol: PartiRol = g.rol ?? (g.sahip ? "sahip" : "uye");
-  const kendim = !!yetkiler && g.anahtar === yetkiler.benimAnahtar;
   const ozelId = g.ozelId ?? profil?.ozel_id ?? null;
   const tip = g.ozelIdTip ?? profil?.ozel_id_tip ?? null;
   const tema = g.ozelIdTema ?? profil?.ozel_id_tema ?? null;
   const kullaniciAdi = (g.kullaniciAdi ?? profil?.kullanici_adi ?? "").trim();
   const konum = [profil?.sehir, profil?.ulke].filter(Boolean).join(", ");
 
-  const rolVerilir = !!yetkiler && !kendim && rolVerebilirMi(yetkiler.benimRol, rol);
-  const atilir = !!yetkiler && !kendim && atabilirMi(yetkiler.benimRol, rol);
-  const mikVar = !!yetkiler && !kendim && yetkiVar(yetkiler.benimRol, "mikrofonAyar");
-  const sohbetVar = !!yetkiler && !kendim && yetkiVar(yetkiler.benimRol, "sohbetKilit");
-  const eylemVar = rolVerilir || atilir || mikVar || sohbetVar;
-
-  const sec = (isi: () => void) => () => { haptic.select(); isi(); onKapat(); };
 
   return (
     <Modal visible transparent animationType="none" statusBarTranslucent navigationBarTranslucent onRequestClose={onKapat}>
@@ -206,33 +192,14 @@ export function KullaniciKarti({ kisi, yetkiler, onKapat }: {
                 </Txt>
               )}
 
-              {eylemVar && (
-                <View style={styles.eylemler}>
-                  {rolVerilir && rol !== "yardimci" && (
-                    <Eylem simge="shield" etiket={t("panel.yardimciYap")} onBas={sec(() => yetkiler!.onYetki(g, "yardimci"))} />
-                  )}
-                  {rolVerilir && rol === "yardimci" && (
-                    <Eylem simge="shield" etiket={t("panel.yardimciAl")} onBas={sec(() => yetkiler!.onYetki(g, "uye"))} />
-                  )}
-                  {mikVar && (
-                    <Eylem
-                      simge={g.mikrofonIzni ? "micOff" : "mic"}
-                      etiket={g.mikrofonIzni ? t("panel.mikKapat") : t("panel.mikAc")}
-                      onBas={sec(() => yetkiler!.onMikrofon(g, !g.mikrofonIzni))}
-                    />
-                  )}
-                  {sohbetVar && (
-                    <Eylem
-                      simge="chat"
-                      etiket={g.sohbetKapali ? t("panel.sohbetAc") : t("panel.sohbetKapat")}
-                      onBas={sec(() => yetkiler!.onSohbet(g, !!g.sohbetKapali))}
-                    />
-                  )}
-                  {atilir && (
-                    <Eylem simge="ban" etiket={t("panel.odadanAt")} renk={C.red} onBas={sec(() => yetkiler!.onAt(g))} />
-                  )}
-                </View>
-              )}
+              <View style={styles.eylemler}>
+                <Eylem
+                  simge="user"
+                  etiket={t("kart.profilineGit")}
+                  altYazi={t("kart.profilineGitAlt")}
+                  onBas={() => { haptic.select(); onKapat(); onProfil?.(g); }}
+                />
+              </View>
             </ScrollView>
           </Animated.View>
         </View>

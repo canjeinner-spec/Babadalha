@@ -1366,6 +1366,7 @@ export default function PartiOda() {
         sahip: k.sahip,
         rol: k.rol,
         mikrofonIzni: !!mikrofonIzinleri[k.anahtar],
+        sohbetKapali: !!sohbetKapalilar[k.anahtar],
         yayinda: !!k.yayinda,
         ozelIdTip: k.ozelIdTip ?? undefined,
         ozelIdTema: k.ozelIdTema ?? undefined,
@@ -1399,7 +1400,7 @@ export default function PartiOda() {
       liste.push({ anahtar: "k" + ad, ad, foto: PEOPLE[ad]?.photo });
     }
     return liste;
-  }, [agKisileri, mikrofonIzinleri, dbId, sahip, oda.ownerId, oda.host, oda.crowd, katilimcilar, myDbId, userName, userPhoto, ozelIdTip, ozelIdTema, id]);
+  }, [agKisileri, mikrofonIzinleri, sohbetKapalilar, dbId, sahip, oda.ownerId, oda.host, oda.crowd, katilimcilar, myDbId, userName, userPhoto, ozelIdTip, ozelIdTema, id]);
 
   return (
     <View style={styles.root}>
@@ -1605,26 +1606,17 @@ export default function PartiOda() {
       <KullaniciKarti
         kisi={kartKisisi}
         onKapat={() => setKartKisisi(null)}
-        yetkiler={{
-          benimAnahtar,
-          benimRol,
-          onYetki: (k, yeniRol) => {
-            const hedef = agKisileri.find((x) => x.anahtar === k.anahtar);
-            if (hedef) rolDegistir(hedef, yeniRol);
+        onProfil={(k) => router.push({
+          pathname: "/kisi",
+          params: {
+            id: k.dbId != null ? String(k.dbId) : "",
+            ad: k.ad,
+            kullaniciAdi: k.kullaniciAdi ?? "",
+            foto: k.foto ?? "",
+            tip: k.ozelIdTip ?? "",
+            tema: k.ozelIdTema ?? "",
           },
-          onMikrofon: (k, acik) => {
-            const hedef = agKisileri.find((x) => x.anahtar === k.anahtar);
-            if (hedef) mikrofonIzniDegistir(hedef, acik);
-          },
-          onSohbet: (k, acik) => {
-            const hedef = agKisileri.find((x) => x.anahtar === k.anahtar);
-            if (hedef) sohbetIzniDegistir(hedef, acik);
-          },
-          onAt: (k) => {
-            const hedef = agKisileri.find((x) => x.anahtar === k.anahtar);
-            if (hedef) odadanAt(hedef);
-          },
-        }}
+        })}
       />
 
       <KullaniciYanPanel
@@ -1647,6 +1639,10 @@ export default function PartiOda() {
           onMikrofon: (k, acik) => {
             const hedef = agKisileri.find((x) => x.anahtar === k.anahtar);
             if (hedef) mikrofonIzniDegistir(hedef, acik);
+          },
+          onSohbet: (k, acik) => {
+            const hedef = agKisileri.find((x) => x.anahtar === k.anahtar);
+            if (hedef) sohbetIzniDegistir(hedef, acik);
           },
           otomatikDevir: odaAyari.otomatikDevir,
           onOtomatikDevir: benSahip

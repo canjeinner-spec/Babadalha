@@ -18,6 +18,7 @@ export type YanPanelKisisi = {
   sahip?: boolean;
   rol?: PartiRol;
   mikrofonIzni?: boolean;
+  sohbetKapali?: boolean;
   yayinda?: boolean;
   ozelIdTip?: "premium" | "kapsul" | null;
   ozelIdTema?: string | null;
@@ -29,6 +30,7 @@ export type YanPanelYetkileri = {
   onYetki: (kisi: YanPanelKisisi, yeniRol: PartiRol) => void;
   onAt: (kisi: YanPanelKisisi) => void;
   onMikrofon: (kisi: YanPanelKisisi, acik: boolean) => void;
+  onSohbet: (kisi: YanPanelKisisi, acik: boolean) => void;
   otomatikDevir?: boolean;
   onOtomatikDevir?: (acik: boolean) => void;
 };
@@ -149,7 +151,8 @@ function YetkiMenusu({ kisi, yetkiler, onKapat }: {
   const rolVerilir = !kendim && rolVerebilirMi(yetkiler.benimRol, hedefRol);
   const atilir = !kendim && atabilirMi(yetkiler.benimRol, hedefRol);
   const mikVar = !kendim && yetkiVar(yetkiler.benimRol, "mikrofonAyar");
-  const hicbiri = !rolVerilir && !atilir && !mikVar;
+  const sohbetVar = !kendim && yetkiVar(yetkiler.benimRol, "sohbetKilit");
+  const hicbiri = !rolVerilir && !atilir && !mikVar && !sohbetVar;
 
   const sec = (isi: () => void) => () => { isi(); onKapat(); };
 
@@ -177,6 +180,13 @@ function YetkiMenusu({ kisi, yetkiler, onKapat }: {
             <Pressable style={styles.menuOge} onPress={sec(() => yetkiler.onMikrofon(kisi, !kisi.mikrofonIzni))}>
               <Txt weight="extrabold" size={14} color={METIN}>
                 {kisi.mikrofonIzni ? t("panel.mikKapat") : t("panel.mikAc")}
+              </Txt>
+            </Pressable>
+          )}
+          {sohbetVar && (
+            <Pressable style={styles.menuOge} onPress={sec(() => yetkiler.onSohbet(kisi, !!kisi.sohbetKapali))}>
+              <Txt weight="extrabold" size={14} color={METIN}>
+                {kisi.sohbetKapali ? t("panel.sohbetAc") : t("panel.sohbetKapat")}
               </Txt>
             </Pressable>
           )}
