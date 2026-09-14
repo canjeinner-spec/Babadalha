@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { OzelIdGosterim } from "@/components/OzelId";
@@ -23,20 +23,31 @@ import { C } from "@/theme/colors";
 
 type Sekme = "istek" | "arkadas";
 
-function Satir({ kisi, onAc, sag }: { kisi: ArkadasKisi; onAc: () => void; sag: React.ReactNode }) {
+function suz(liste: ArkadasKisi[], arama: string): ArkadasKisi[] {
+  const a = arama.trim().toLocaleLowerCase("tr");
+  if (!a) return liste;
+  return liste.filter((k) =>
+    k.ad.toLocaleLowerCase("tr").includes(a)
+    || k.publicId.toLocaleLowerCase("tr").includes(a)
+    || (k.ozelId ?? "").toLocaleLowerCase("tr").includes(a));
+}
+
+function Satir({ kisi, onAc, sag }: { kisi: ArkadasKisi; onAc: () => void; sag?: React.ReactNode }) {
+  const t = useCeviri();
   return (
     <View style={styles.satir}>
-      <Pressable style={styles.kimlik} onPress={onAc} hitSlop={4}>
-        <Portrait name={kisi.ad} photo={kisi.foto} size={44} />
-        <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
-          <RenkliAd ad={kisi.ad} tip={kisi.ozelIdTip} tema={kisi.ozelIdTema} size={14.5} />
-          {kisi.ozelId ? (
-            <View style={{ alignSelf: "flex-start" }}>
+      <Pressable style={styles.kimlik} onPress={onAc}>
+        <Portrait name={kisi.ad} photo={kisi.foto} size={54} />
+        <View style={{ flex: 1, minWidth: 0, gap: 5 }}>
+          <View style={styles.adSatiri}>
+            <RenkliAd ad={kisi.ad} tip={kisi.ozelIdTip} tema={kisi.ozelIdTema} size={15.5} />
+            {!!kisi.ozelId && (
               <OzelIdGosterim id={kisi.ozelId} tip={kisi.ozelIdTip} tema={kisi.ozelIdTema} punto={11} kapsulSize={9} />
-            </View>
-          ) : kisi.publicId ? (
-            <Txt size={11.5} color={C.dim} numberOfLines={1}>{`@${kisi.publicId}`}</Txt>
-          ) : null}
+            )}
+          </View>
+          <Txt size={12.5} color={kisi.biyografi ? C.dim : C.dim2} numberOfLines={1}>
+            {kisi.biyografi ?? t("arkadas.aciklamaYok")}
+          </Txt>
         </View>
       </Pressable>
       {sag}
@@ -77,7 +88,8 @@ export default function Arkadaslar() {
   const router = useRouter();
   const oturum = useApp((s) => s.session);
 
-  const [sekme, setSekme] = useState<Sekme>("istek");
+  const [sekme, setSekme] = useState<Sekme>("arkadas");
+  const [arama, setArama] = useState("");
   const [gelen, setGelen] = useState<ArkadasKisi[]>(MOCK_ARKADAS_ACIK ? MOCK_GELEN_ISTEKLER : []);
   const [giden, setGiden] = useState<ArkadasKisi[]>(MOCK_ARKADAS_ACIK ? MOCK_GIDEN_ISTEKLER : []);
   const [dostlar, setDostlar] = useState<ArkadasKisi[]>(MOCK_ARKADAS_ACIK ? MOCK_ARKADASLAR : []);
@@ -114,6 +126,10 @@ export default function Arkadaslar() {
     const z = setTimeout(() => setBildirim(""), 2200);
     return () => clearTimeout(z);
   }, [bildirim]);
+
+  const gelenSuzulmus = useMemo(() => suz(gelen, arama), [gelen, arama]);
+  const gidenSuzulmus = useMemo(() => suz(giden, arama), [giden, arama]);
+  const dostSuzulmus = useMemo(() => suz(dostlar, arama), [dostlar, arama]);
 
   const yenile = async () => {
     setYenileniyor(true);
@@ -158,6 +174,11 @@ export default function Arkadaslar() {
     });
   };
 
+  const istekSekmesi = sekme === "istek";
+  const sayac = istekSekmesi
+    ? t("arkadas.istekSayac", gelenSuzulmus.length + gidenSuzulmus.length)
+    : t("arkadas.sayac", dostSuzulmus.length);
+
   return (
     <View style={styles.kok}>
       <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
@@ -165,28 +186,45 @@ export default function Arkadaslar() {
           <Pressable onPress={() => geriDon()} hitSlop={10} style={styles.geri}>
             <Icon name="back" size={22} color="#fff" />
           </Pressable>
-          <Txt weight="displayBold" size={17} color="#fff">{t("arkadas.baslik")}</Txt>
+          <View style={styles.sekmeler}>
+            {(["istek", "arkadas"] as Sekme[]).map((s) => {
+              const secili = sekme === s;
+              return (
+                <Pressable key={s} onPress={() => { haptic.select(); setSekme(s); }} hitSlop={8}>
+                  <View style={styles.sekme}>
+                    <Txt
+                      weight={secili ? "displayBold" : "bold"}
+                      size={17}
+                      color={secili ? "#fff" : C.dim2}
+                    >
+                      {t(s === "istek" ? "arkadas.sekmeIstek" : "arkadas.sekmeArkadas")}
+                    </Txt>
+                    {s === "istek" && gelen.length > 0 && <View style={styles.nokta} />}
+                  </View>
+                </Pressable>
+              );
+            })}
+          </View>
           <View style={{ width: 30 }} />
         </View>
 
-        <View style={styles.sekmeCubugu}>
-          {(["istek", "arkadas"] as Sekme[]).map((s) => {
-            const secili = sekme === s;
-            const sayi = s === "istek" ? gelen.length : dostlar.length;
-            return (
-              <Pressable key={s} style={styles.sekme} onPress={() => { haptic.select(); setSekme(s); }}>
-                <View style={styles.sekmeIc}>
-                  <Txt weight={secili ? "extrabold" : "bold"} size={13.5} color={secili ? "#fff" : C.dim}>
-                    {t(s === "istek" ? "arkadas.sekmeIstek" : "arkadas.sekmeArkadas")}
-                  </Txt>
-                  {sayi > 0 && (
-                    <Txt weight="extrabold" size={11.5} color={secili ? C.gold2 : C.dim2}>{String(sayi)}</Txt>
-                  )}
-                </View>
-                <View style={[styles.sekmeCizgi, secili && styles.sekmeCizgiAcik]} />
-              </Pressable>
-            );
-          })}
+        <View style={styles.aramaKutusu}>
+          <Icon name="search" size={17} sw={2} color={C.dim2} />
+          <TextInput
+            value={arama}
+            onChangeText={setArama}
+            placeholder={t("arkadas.ara")}
+            placeholderTextColor={C.dim2}
+            style={styles.aramaGirdi}
+            autoCapitalize="none"
+            autoCorrect={false}
+            returnKeyType="search"
+          />
+          {arama !== "" && (
+            <Pressable onPress={() => setArama("")} hitSlop={8}>
+              <Icon name="x" size={16} sw={2.2} color={C.dim2} />
+            </Pressable>
+          )}
         </View>
 
         {!oturum && !MOCK_ARKADAS_ACIK ? (
@@ -197,78 +235,71 @@ export default function Arkadaslar() {
           <ScrollView
             contentContainerStyle={styles.govde}
             showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
             refreshControl={
               <RefreshControl refreshing={yenileniyor} onRefresh={yenile} tintColor={C.gold2} colors={[C.gold2]} />
             }
           >
-            {sekme === "istek" ? (
+            <Txt size={12.5} color={C.dim} style={styles.sayac}>{sayac}</Txt>
+
+            {istekSekmesi ? (
               <>
-                {gelen.length === 0 && giden.length === 0 ? (
-                  <Bos baslik={t("arkadas.bosIstek")} />
+                {gelenSuzulmus.length === 0 && gidenSuzulmus.length === 0 ? (
+                  <Bos baslik={arama ? t("arkadas.aramaBos") : t("arkadas.bosIstek")} />
                 ) : (
-                  <View style={styles.kume}>
-                    {gelen.map((k) => (
+                  gelenSuzulmus.map((k) => (
+                    <Satir
+                      key={k.id}
+                      kisi={k}
+                      onAc={() => profilAc(k)}
+                      sag={
+                        <View style={styles.dugmeler}>
+                          <Dugme
+                            etiket={t("arkadas.kabul")}
+                            birincil
+                            mesgul={mesgul === k.id}
+                            onPress={() => isle(k, () => arkadasligiKabulEt(k.id), t("arkadas.kabulEdildi", k.ad))}
+                          />
+                          <Dugme
+                            etiket={t("arkadas.reddet")}
+                            mesgul={mesgul === k.id}
+                            onPress={() => isle(k, () => arkadasligiReddet(k.id), t("arkadas.reddedildi"))}
+                          />
+                        </View>
+                      }
+                    />
+                  ))
+                )}
+
+                {gidenSuzulmus.length > 0 && (
+                  <>
+                    <Txt weight="extrabold" size={12} color={C.dim2} style={styles.bolumBaslik}>
+                      {t("arkadas.gonderildi")}
+                    </Txt>
+                    {gidenSuzulmus.map((k) => (
                       <Satir
                         key={k.id}
                         kisi={k}
                         onAc={() => profilAc(k)}
                         sag={
-                          <View style={styles.dugmeler}>
-                            <Dugme
-                              etiket={t("arkadas.kabul")}
-                              birincil
-                              mesgul={mesgul === k.id}
-                              onPress={() => isle(k, () => arkadasligiKabulEt(k.id), t("arkadas.kabulEdildi", k.ad))}
-                            />
-                            <Dugme
-                              etiket={t("arkadas.reddet")}
-                              mesgul={mesgul === k.id}
-                              onPress={() => isle(k, () => arkadasligiReddet(k.id), t("arkadas.reddedildi"))}
-                            />
-                          </View>
+                          <Dugme
+                            etiket={t("arkadas.geriAl")}
+                            mesgul={mesgul === k.id}
+                            onPress={() => isle(k, () => istegiGeriAl(k.id), t("arkadas.geriAlindi"))}
+                          />
                         }
                       />
                     ))}
-                  </View>
-                )}
-
-                {giden.length > 0 && (
-                  <>
-                    <Txt weight="extrabold" size={12} color={C.dim2} style={styles.bolumBaslik}>
-                      {t("arkadas.gonderildi")}
-                    </Txt>
-                    <View style={styles.kume}>
-                      {giden.map((k) => (
-                        <Satir
-                          key={k.id}
-                          kisi={k}
-                          onAc={() => profilAc(k)}
-                          sag={
-                            <Dugme
-                              etiket={t("arkadas.geriAl")}
-                              mesgul={mesgul === k.id}
-                              onPress={() => isle(k, () => istegiGeriAl(k.id), t("arkadas.geriAlindi"))}
-                            />
-                          }
-                        />
-                      ))}
-                    </View>
                   </>
                 )}
               </>
-            ) : dostlar.length === 0 ? (
-              <Bos baslik={t("arkadas.bosArkadas")} alt={t("arkadas.bosArkadasAlt")} />
+            ) : dostSuzulmus.length === 0 ? (
+              <Bos
+                baslik={arama ? t("arkadas.aramaBos") : t("arkadas.bosArkadas")}
+                alt={arama ? undefined : t("arkadas.bosArkadasAlt")}
+              />
             ) : (
-              <View style={styles.kume}>
-                {dostlar.map((k) => (
-                  <Satir
-                    key={k.id}
-                    kisi={k}
-                    onAc={() => profilAc(k)}
-                    sag={<Icon name="chev" size={17} sw={2.2} color={C.dim2} />}
-                  />
-                ))}
-              </View>
+              dostSuzulmus.map((k) => <Satir key={k.id} kisi={k} onAc={() => profilAc(k)} />)
             )}
           </ScrollView>
         )}
@@ -290,29 +321,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, paddingTop: 6, paddingBottom: 12,
   },
   geri: { width: 30, height: 30, alignItems: "center", justifyContent: "center" },
-  sekmeCubugu: {
-    flexDirection: "row", marginHorizontal: 16, marginBottom: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.line,
+  sekmeler: { flexDirection: "row", alignItems: "center", gap: 18 },
+  sekme: { flexDirection: "row", alignItems: "flex-start", gap: 4 },
+  nokta: { width: 6, height: 6, borderRadius: 3, backgroundColor: C.gold2, marginTop: 3 },
+  aramaKutusu: {
+    flexDirection: "row", alignItems: "center", gap: 9,
+    marginHorizontal: 16, marginBottom: 6, paddingHorizontal: 13, height: 42,
+    borderRadius: 21, backgroundColor: "rgba(255,255,255,.055)",
+    borderWidth: 1, borderColor: C.line,
   },
-  sekme: { flex: 1 },
-  sekmeIc: {
-    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 11,
+  aramaGirdi: {
+    flex: 1, color: "#fff", fontSize: 14, padding: 0,
+    includeFontPadding: false,
   },
-  sekmeCizgi: { height: 2, borderRadius: 2, backgroundColor: "transparent", marginBottom: -StyleSheet.hairlineWidth },
-  sekmeCizgiAcik: { backgroundColor: C.gold2 },
   govde: { paddingHorizontal: 16, paddingBottom: 40 },
-  kume: { gap: 8 },
-  satir: {
-    flexDirection: "row", alignItems: "center", gap: 10,
-    borderRadius: 16, paddingVertical: 10, paddingHorizontal: 12,
-    backgroundColor: C.kart, borderWidth: 1, borderColor: C.line,
-  },
-  kimlik: { flex: 1, minWidth: 0, flexDirection: "row", alignItems: "center", gap: 11 },
+  sayac: { marginTop: 10, marginBottom: 4, marginLeft: 2 },
+  satir: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 11 },
+  kimlik: { flex: 1, minWidth: 0, flexDirection: "row", alignItems: "center", gap: 12 },
+  adSatiri: { flexDirection: "row", alignItems: "center", gap: 7, flexWrap: "wrap" },
   dugmeler: { flexDirection: "row", gap: 6 },
   dugme: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 11 },
   dugmeBirincil: { backgroundColor: C.gold2 },
   dugmeIkincil: { backgroundColor: "rgba(255,255,255,.07)", borderWidth: 1, borderColor: C.line },
-  bolumBaslik: { marginTop: 22, marginBottom: 9, marginLeft: 4, letterSpacing: 0.6 },
+  bolumBaslik: { marginTop: 20, marginBottom: 4, marginLeft: 2, letterSpacing: 0.6 },
   orta: { flex: 1, alignItems: "center", justifyContent: "center" },
   bos: { alignItems: "center", justifyContent: "center", paddingHorizontal: 32, paddingVertical: 54 },
   bosSimge: {

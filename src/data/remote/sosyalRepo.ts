@@ -95,6 +95,7 @@ export type ArkadasKisi = {
   publicId: string;
   ad: string;
   foto?: string;
+  biyografi: string | null;
   ozelId: string | null;
   ozelIdTip: "premium" | "kapsul" | null;
   ozelIdTema: string | null;
@@ -106,12 +107,13 @@ type KisiSatiri = {
   public_id: string;
   kullanici_adi: string;
   profil_resmi: string | null;
+  biyografi: string | null;
   ozel_id: string | null;
   ozel_id_tip: "premium" | "kapsul" | null;
   ozel_id_tema: string | null;
 };
 
-const KISI_ALANLARI = "id, public_id, kullanici_adi, profil_resmi, ozel_id, ozel_id_tip, ozel_id_tema";
+const KISI_ALANLARI = "id, public_id, kullanici_adi, profil_resmi, biyografi, ozel_id, ozel_id_tip, ozel_id_tema";
 
 async function kisileriGetir(idler: number[]): Promise<Map<number, KisiSatiri>> {
   const harita = new Map<number, KisiSatiri>();
@@ -128,6 +130,7 @@ function kisiYap(k: KisiSatiri | undefined, id: number, tarih: string | null): A
     publicId: k?.public_id ?? "",
     ad: k?.kullanici_adi || "Kullanıcı",
     foto: k?.profil_resmi || undefined,
+    biyografi: k?.biyografi?.trim() || null,
     ozelId: k?.ozel_id ?? null,
     ozelIdTip: k?.ozel_id_tip ?? null,
     ozelIdTema: k?.ozel_id_tema ?? null,
