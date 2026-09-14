@@ -588,8 +588,20 @@ export const METINLER = {
   "banner.yeni": { tr: "YENİ", en: "NEW" },
   "banner.baslik": { tr: "Birlikte izlemek artık burada", en: "Watching together is here" },
   "banner.altYazi": {
-    tr: "Odanı kur, bağlantını paylaş, aynı sahneyi aynı anda izleyin. Sesli sohbet açık.",
-    en: "Set up your room, share your link, watch the same scene at the same time. Voice chat is on.",
+    tr: "Netflix, Prime Video, YouTube ve dahası aynı saniyede. Odanı kur, bağlantını paylaş.",
+    en: "Netflix, Prime Video, YouTube and more, on the same second. Set up your room, share your link.",
+  },
+  "banner.gelisimEtiket": { tr: "GÜNCEL", en: "LIVE" },
+  "banner.gelisimBaslik": { tr: "Her gün biraz daha iyi", en: "A little better every day" },
+  "banner.gelisimAltYazi": {
+    tr: "Aron yeni yayında. Her hafta yeni platform ve özellik ekliyoruz; bugün eksik gördüğün yarın yerinde olabilir.",
+    en: "Aron is brand new. Every week we add platforms and features; what is missing today may be here tomorrow.",
+  },
+  "banner.premiumEtiket": { tr: "PREMIUM", en: "PREMIUM" },
+  "banner.premiumBaslik": { tr: "Reklamsız izle, adını renklendir", en: "Watch ad-free, colour your name" },
+  "banner.premiumAltYazi": {
+    tr: "İzlemek hep ücretsiz. Premium, Aron'un yarın da açık olmasını sağlıyor.",
+    en: "Watching is always free. Premium keeps Aron running tomorrow too.",
   },
 
   "girisGerekli.baslik": { tr: "Giriş gerekli", en: "Sign-in required" },
