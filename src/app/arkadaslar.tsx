@@ -3,6 +3,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { AltinAmblem } from "@/components/AltinAmblem";
+import { CenterModal } from "@/components/CenterModal";
 import { OzelIdGosterim } from "@/components/OzelId";
 import { Portrait } from "@/components/Portrait";
 import { RenkliAd } from "@/components/RenkliAd";
@@ -32,7 +34,9 @@ function suz(liste: ArkadasKisi[], arama: string): ArkadasKisi[] {
     || (k.ozelId ?? "").toLocaleLowerCase("tr").includes(a));
 }
 
-function Satir({ kisi, onAc, sag }: { kisi: ArkadasKisi; onAc: () => void; sag?: React.ReactNode }) {
+function Satir({ kisi, onAc, onParti, sag }: {
+  kisi: ArkadasKisi; onAc: () => void; onParti?: () => void; sag?: React.ReactNode;
+}) {
   const t = useCeviri();
   return (
     <View style={styles.satir}>
@@ -50,6 +54,11 @@ function Satir({ kisi, onAc, sag }: { kisi: ArkadasKisi; onAc: () => void; sag?:
           </Txt>
         </View>
       </Pressable>
+      {!!kisi.oda && !!onParti && (
+        <Pressable style={styles.partiDugmesi} onPress={onParti} hitSlop={6}>
+          <AltinAmblem ad="parti" yedek="evParty" boyut={22} />
+        </Pressable>
+      )}
       {sag}
     </View>
   );
@@ -97,6 +106,7 @@ export default function Arkadaslar() {
   const [yenileniyor, setYenileniyor] = useState(false);
   const [mesgul, setMesgul] = useState<number | null>(null);
   const [bildirim, setBildirim] = useState("");
+  const [partiOnayi, setPartiOnayi] = useState<ArkadasKisi | null>(null);
 
   const getir = useCallback(async () => {
     if (!oturum) return;
@@ -299,10 +309,49 @@ export default function Arkadaslar() {
                 alt={arama ? undefined : t("arkadas.bosArkadasAlt")}
               />
             ) : (
-              dostSuzulmus.map((k) => <Satir key={k.id} kisi={k} onAc={() => profilAc(k)} />)
+              dostSuzulmus.map((k) => (
+                <Satir
+                  key={k.id}
+                  kisi={k}
+                  onAc={() => profilAc(k)}
+                  onParti={() => { haptic.select(); setPartiOnayi(k); }}
+                />
+              ))
             )}
           </ScrollView>
         )}
+
+        <CenterModal visible={partiOnayi != null} onClose={() => setPartiOnayi(null)}>
+          <View style={styles.onayKart}>
+            <Txt weight="displayBold" size={16} color="#fff" align="center">{t("arkadas.partiOnayBaslik")}</Txt>
+            <Txt size={13} color={C.dim} align="center" lh={1.45} style={{ marginTop: 8 }}>
+              {t("arkadas.partiOnayMetin", partiOnayi?.publicId ? `@${partiOnayi.publicId}` : (partiOnayi?.ad ?? ""))}
+            </Txt>
+            {!!partiOnayi?.oda?.ad && (
+              <Txt weight="extrabold" size={13.5} color={C.gold2} align="center" style={{ marginTop: 10 }}>
+                {partiOnayi.oda.ad}
+              </Txt>
+            )}
+            <View style={styles.onayDugmeler}>
+              <Pressable style={styles.onayIkincil} onPress={() => setPartiOnayi(null)}>
+                <Txt weight="extrabold" size={13} color="#fff">{t("genel.vazgec")}</Txt>
+              </Pressable>
+              <Pressable
+                style={styles.onayBirincil}
+                onPress={() => {
+                  const hedef = partiOnayi;
+                  setPartiOnayi(null);
+                  if (!hedef?.oda) return;
+                  haptic.select();
+                  if (hedef.id < 0) { setBildirim(t("arkadas.mockParti")); return; }
+                  router.push({ pathname: "/parti-oda", params: { id: hedef.oda.kimlik } });
+                }}
+              >
+                <Txt weight="extrabold" size={13} color="#1a1206">{t("arkadas.partiyeGit")}</Txt>
+              </Pressable>
+            </View>
+          </View>
+        </CenterModal>
 
         {bildirim !== "" && (
           <View style={styles.bildirim}>
@@ -339,6 +388,23 @@ const styles = StyleSheet.create({
   satir: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 11 },
   kimlik: { flex: 1, minWidth: 0, flexDirection: "row", alignItems: "center", gap: 12 },
   adSatiri: { flexDirection: "row", alignItems: "center", gap: 7, flexWrap: "wrap" },
+  partiDugmesi: {
+    width: 38, height: 38, borderRadius: 19, alignItems: "center", justifyContent: "center",
+    backgroundColor: "rgba(232,179,65,.1)", borderWidth: 1, borderColor: "rgba(232,179,65,.22)",
+  },
+  onayKart: {
+    backgroundColor: C.card, borderRadius: 18, padding: 20,
+    borderWidth: 1, borderColor: C.line,
+  },
+  onayDugmeler: { flexDirection: "row", gap: 10, marginTop: 18 },
+  onayIkincil: {
+    flex: 1, alignItems: "center", justifyContent: "center", paddingVertical: 12,
+    borderRadius: 12, backgroundColor: C.kontrol,
+  },
+  onayBirincil: {
+    flex: 1, alignItems: "center", justifyContent: "center", paddingVertical: 12,
+    borderRadius: 12, backgroundColor: C.gold2,
+  },
   dugmeler: { flexDirection: "row", gap: 6 },
   dugme: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 11 },
   dugmeBirincil: { backgroundColor: C.gold2 },

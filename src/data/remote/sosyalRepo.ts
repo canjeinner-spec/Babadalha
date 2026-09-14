@@ -100,7 +100,10 @@ export type ArkadasKisi = {
   ozelIdTip: "premium" | "kapsul" | null;
   ozelIdTema: string | null;
   tarih: string | null;
+  oda: ArkadasOdasi | null;
 };
+
+export type ArkadasOdasi = { kimlik: string; ad: string };
 
 type KisiSatiri = {
   id: number;
@@ -135,7 +138,33 @@ function kisiYap(k: KisiSatiri | undefined, id: number, tarih: string | null): A
     ozelIdTip: k?.ozel_id_tip ?? null,
     ozelIdTema: k?.ozel_id_tema ?? null,
     tarih,
+    oda: null,
   };
+}
+
+async function arkadasOdalari(idler: number[]): Promise<Map<number, ArkadasOdasi>> {
+  const harita = new Map<number, ArkadasOdasi>();
+  if (!idler.length) return harita;
+  try {
+    const sb = requireSupabase();
+    const { data: uyelik } = await sb.from("oda_uyeleri").select("oda_id, kullanici_id").in("kullanici_id", idler);
+    const satirlar = (uyelik as { oda_id: number; kullanici_id: number }[]) ?? [];
+    const odaIdler = [...new Set(satirlar.map((r) => r.oda_id))];
+    if (!odaIdler.length) return harita;
+    const { data: odalar } = await sb
+      .from("odalar").select("id, public_id, ad, aktif_katilimci_sayisi").in("id", odaIdler);
+    const canli = new Map<number, ArkadasOdasi>();
+    for (const o of (odalar as { id: number; public_id: string; ad: string; aktif_katilimci_sayisi: number }[]) ?? []) {
+      if (o.aktif_katilimci_sayisi > 0) canli.set(o.id, { kimlik: o.public_id, ad: o.ad });
+    }
+    for (const r of satirlar) {
+      const o = canli.get(r.oda_id);
+      if (o && !harita.has(r.kullanici_id)) harita.set(r.kullanici_id, o);
+    }
+  } catch {
+    return harita;
+  }
+  return harita;
 }
 
 type BagSatiri = { isteyen_id: number; istenen_id: number; istek_tarihi: string | null; yanit_tarihi: string | null };
@@ -159,7 +188,9 @@ export async function arkadaslarim(): Promise<ArkadasKisi[]> {
     .or(`isteyen_id.eq.${ben},istenen_id.eq.${ben}`)
     .order("yanit_tarihi", { ascending: false });
   if (error) hataCevir(error);
-  return baglariCoz((data as BagSatiri[]) ?? [], ben, "yanit");
+  const liste = await baglariCoz((data as BagSatiri[]) ?? [], ben, "yanit");
+  const odalar = await arkadasOdalari(liste.map((k) => k.id));
+  return liste.map((k) => ({ ...k, oda: odalar.get(k.id) ?? null }));
 }
 
 export async function gelenIstekler(): Promise<ArkadasKisi[]> {

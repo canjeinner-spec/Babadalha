@@ -491,6 +491,16 @@ export const METINLER = {
   "arkadas.istekSayac": { tr: "İstekler: {0}", en: "Requests: {0}" },
   "arkadas.aciklamaYok": { tr: "Açıklama kısmı boş.", en: "No bio yet." },
   "arkadas.aramaBos": { tr: "Aramanla eşleşen kimse yok.", en: "Nobody matches your search." },
+  "arkadas.partiyeGit": { tr: "Partiye git", en: "Go to party" },
+  "arkadas.mockParti": {
+    tr: "Bu örnek bir arkadaş, gidilecek gerçek bir parti yok.",
+    en: "This is a sample friend, there is no real party to join.",
+  },
+  "arkadas.partiOnayBaslik": { tr: "Partiye katıl", en: "Join the party" },
+  "arkadas.partiOnayMetin": {
+    tr: "{0} adlı arkadaşınızın olduğu partiye gidilecektir. Onaylıyor musunuz?",
+    en: "You will be taken to the party your friend {0} is in. Do you confirm?",
+  },
   "arkadas.sekmeArkadas": { tr: "Arkadaşlar", en: "Friends" },
   "arkadas.kabul": { tr: "Kabul et", en: "Accept" },
   "arkadas.reddet": { tr: "Reddet", en: "Decline" },
