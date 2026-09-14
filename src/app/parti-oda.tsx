@@ -10,6 +10,7 @@ import { CenterModal } from "@/components/CenterModal";
 import { GirisGerekli } from "@/components/GirisGerekli";
 import { AyiklamaKatmani } from "@/components/AyiklamaKatmani";
 import { ayiklamaYaz } from "@/lib/ayiklamaGunluk";
+import { KullaniciKarti, type KartKisisi } from "@/components/KullaniciKarti";
 import { KullaniciYanPanel, type YanPanelKisisi } from "@/components/KullaniciYanPanel";
 import { PartiNativeOynatici } from "@/components/PartiNativeOynatici";
 import { PartiOynatici, type OynaticiKolu } from "@/components/PartiOynatici";
@@ -146,13 +147,14 @@ function Etiket({ kisi }: { kisi: SistemKisi }) {
   );
 }
 
-function SohbetOgesi({ oge, benimFoto, oynuyor, onOynatDurdur, onDavet, kisiCoz }: {
+function SohbetOgesi({ oge, benimFoto, oynuyor, onOynatDurdur, onDavet, kisiCoz, onKisi }: {
   oge: PartiSohbetOgesi;
   benimFoto?: string;
   oynuyor?: boolean;
   onOynatDurdur?: () => void;
   onDavet?: () => void;
   kisiCoz?: (anahtar: string) => SistemKisi | undefined;
+  onKisi?: (anahtar: string | null, ad: string) => void;
 }) {
   if (oge.tur === "sistem") {
     const parcalar = sistemParcalari(oge.kisi, oge.olay, !!oge.benim);
@@ -161,7 +163,9 @@ function SohbetOgesi({ oge, benimFoto, oynuyor, onOynatDurdur, onDavet, kisiCoz 
       <View style={[styles.sistemMetin, oge.benim && styles.sistemMetinSag]}>
         {parcalar.map((p, i) =>
           p.tur === "etiket" ? (
-            <Etiket key={i} kisi={guncel(p.kisi)} />
+            <Pressable key={i} onPress={() => onKisi?.(p.kisi.anahtar, p.kisi.ad)} hitSlop={4}>
+              <Etiket kisi={guncel(p.kisi)} />
+            </Pressable>
           ) : (
             <Txt key={i} size={14.5} color="rgba(255,255,255,.72)">{p.metin}</Txt>
           ),
@@ -170,12 +174,14 @@ function SohbetOgesi({ oge, benimFoto, oynuyor, onOynatDurdur, onDavet, kisiCoz 
     );
     const sahibi = guncel(oge.kisi);
     const yuz = (
-      <Portrait
-        name={sahibi.ad}
-        size={AVATAR}
-        photo={sahibi.foto ?? (oge.benim ? benimFoto : undefined) ?? PEOPLE[sahibi.ad]?.photo}
-        halkasiz
-      />
+      <Pressable onPress={() => onKisi?.(sahibi.anahtar, sahibi.ad)} hitSlop={6}>
+        <Portrait
+          name={sahibi.ad}
+          size={AVATAR}
+          photo={sahibi.foto ?? (oge.benim ? benimFoto : undefined) ?? PEOPLE[sahibi.ad]?.photo}
+          halkasiz
+        />
+      </Pressable>
     );
     return (
       <View style={[styles.sistemSatir, oge.benim && styles.sistemSatirSag]}>
@@ -241,23 +247,26 @@ function SohbetOgesi({ oge, benimFoto, oynuyor, onOynatDurdur, onDavet, kisiCoz 
             <Txt size={15} color="#fff" style={{ textAlign: "right" }} lh={1.35}>{oge.metin}</Txt>
           )}
         </View>
-        <Portrait name={oge.kisi} size={AVATAR} photo={benimFoto ?? PEOPLE[oge.kisi]?.photo} halkasiz />
+        <Pressable onPress={() => onKisi?.(null, oge.kisi)} hitSlop={6}>
+          <Portrait name={oge.kisi} size={AVATAR} photo={benimFoto ?? PEOPLE[oge.kisi]?.photo} halkasiz />
+        </Pressable>
       </View>
     );
   }
 
   return (
     <View style={styles.mesajSatir}>
-      <View>
+      <Pressable onPress={() => onKisi?.(null, oge.kisi)} hitSlop={6}>
         <Portrait name={oge.kisi} size={AVATAR} photo={PEOPLE[oge.kisi]?.photo} halkasiz />
         {oge.tac && (
           <View style={styles.tac}>
             <Icon name="crown" size={13} color="#fff" fill="#fff" />
           </View>
         )}
-      </View>
+      </Pressable>
 
       <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
+        <Pressable onPress={() => onKisi?.(null, oge.kisi)} hitSlop={4} style={{ alignSelf: "flex-start" }}>
         <RenkliAd
           ad={oge.kisi}
           tip={oge.ozelIdTip}
@@ -267,6 +276,7 @@ function SohbetOgesi({ oge, benimFoto, oynuyor, onOynatDurdur, onDavet, kisiCoz 
           renk="#fff"
           style={{ alignSelf: "flex-start" }}
         />
+        </Pressable>
         {baloncuk ? (
           <View style={[styles.baloncuk, styles.baloncukSol, { backgroundColor: baloncuk.arka, borderColor: baloncuk.kenar }]}>
             <Txt size={15} color="#fff" lh={1.35}>{oge.metin}</Txt>
@@ -408,6 +418,7 @@ export default function PartiOda() {
   const [atilma, setAtilma] = useState<PartiRol | null>(null);
   const [cikisOnayi, setCikisOnayi] = useState(false);
   const [kurallar, setKurallar] = useState(false);
+  const [kartKisisi, setKartKisisi] = useState<KartKisisi | null>(null);
 
   useEffect(() => {
     let acik = true;
@@ -1153,6 +1164,18 @@ export default function PartiOda() {
     return () => clearTimeout(zamanlayici);
   }, [userName, benimAnahtar]);
 
+  const kartAc = useCallback((anahtar: string | null, ad: string) => {
+    const k = agKisileri.find((x) => (anahtar ? x.anahtar === anahtar : x.ad === ad));
+    haptic.select();
+    setKartKisisi(k
+      ? {
+          anahtar: k.anahtar, ad: k.ad, kullaniciAdi: k.kullaniciAdi, foto: k.foto,
+          dbId: k.dbId, rol: k.rol, sahip: k.sahip, mikrofonIzni: k.mikrofonIzni,
+          ozelIdTip: k.ozelIdTip, ozelIdTema: k.ozelIdTema,
+        }
+      : { anahtar: anahtar ?? ad, ad });
+  }, [agKisileri]);
+
   const kisiCoz = useCallback((anahtar: string): SistemKisi | undefined => {
     const k = agKisileri.find((x) => x.anahtar === anahtar);
     return k ? sistemKisi(k) : undefined;
@@ -1503,6 +1526,7 @@ export default function PartiOda() {
                 onOynatDurdur={() => (oynuyor ? oynatici.current?.duraklat() : oynatici.current?.oynat())}
                 onDavet={davetKopyala}
                 kisiCoz={kisiCoz}
+                onKisi={kartAc}
               />
             ))}
           </ScrollView>
@@ -1533,10 +1557,32 @@ export default function PartiOda() {
         <Image source={oda.kapak} style={styles.gizliOnYukleme} contentFit="cover" transition={0} />
       )}
 
+      <KullaniciKarti
+        kisi={kartKisisi}
+        onKapat={() => setKartKisisi(null)}
+        yetkiler={{
+          benimAnahtar,
+          benimRol,
+          onYetki: (k, yeniRol) => {
+            const hedef = agKisileri.find((x) => x.anahtar === k.anahtar);
+            if (hedef) rolDegistir(hedef, yeniRol);
+          },
+          onMikrofon: (k, acik) => {
+            const hedef = agKisileri.find((x) => x.anahtar === k.anahtar);
+            if (hedef) mikrofonIzniDegistir(hedef, acik);
+          },
+          onAt: (k) => {
+            const hedef = agKisileri.find((x) => x.anahtar === k.anahtar);
+            if (hedef) odadanAt(hedef);
+          },
+        }}
+      />
+
       <KullaniciYanPanel
         acik={kisilerAcik}
         kisiler={kisiler}
         onKapat={() => setKisilerAcik(false)}
+        onKisi={(k) => { setKisilerAcik(false); kartAc(k.anahtar, k.ad); }}
         ustPay={ustYukseklik}
         yetkiler={{
           benimRol,

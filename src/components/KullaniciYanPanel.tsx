@@ -38,12 +38,13 @@ const ANDROID = Platform.OS === "android";
 const METIN = "#17141F";
 const ALTIN = "#B7791F";
 
-export function KullaniciYanPanel({ acik, kisiler, onKapat, ustPay = 0, yetkiler }: {
+export function KullaniciYanPanel({ acik, kisiler, onKapat, ustPay = 0, yetkiler, onKisi }: {
   acik: boolean;
   kisiler: YanPanelKisisi[];
   onKapat: () => void;
   ustPay?: number;
   yetkiler?: YanPanelYetkileri;
+  onKisi?: (kisi: YanPanelKisisi) => void;
 }) {
   const t = useCeviri();
   const [secili, setSecili] = useState<YanPanelKisisi | null>(null);
@@ -120,9 +121,9 @@ export function KullaniciYanPanel({ acik, kisiler, onKapat, ustPay = 0, yetkiler
         )}
 
         <ScrollView contentContainerStyle={styles.liste} showsVerticalScrollIndicator={false}>
-          {sahipler.map((x) => <Satir key={x.anahtar} kisi={x} onBasili={yetkiler ? () => setSecili(x) : undefined} />)}
+          {sahipler.map((x) => <Satir key={x.anahtar} kisi={x} onBas={onKisi ? () => onKisi(x) : undefined} onBasili={yetkiler ? () => setSecili(x) : undefined} />)}
           {sahipler.length > 0 && digerleri.length > 0 && <View style={styles.ayrac} />}
-          {digerleri.map((x) => <Satir key={x.anahtar} kisi={x} onBasili={yetkiler ? () => setSecili(x) : undefined} />)}
+          {digerleri.map((x) => <Satir key={x.anahtar} kisi={x} onBas={onKisi ? () => onKisi(x) : undefined} onBasili={yetkiler ? () => setSecili(x) : undefined} />)}
         </ScrollView>
       </Animated.View>
 
@@ -193,10 +194,20 @@ function YetkiMenusu({ kisi, yetkiler, onKapat }: {
   );
 }
 
-function Satir({ kisi, onBasili }: { kisi: YanPanelKisisi; onBasili?: () => void }) {
+function Satir({ kisi, onBas, onBasili }: {
+  kisi: YanPanelKisisi;
+  onBas?: () => void;
+  onBasili?: () => void;
+}) {
   const t = useCeviri();
   return (
-    <Pressable style={styles.satir} onLongPress={onBasili} delayLongPress={280} disabled={!onBasili}>
+    <Pressable
+      style={styles.satir}
+      onPress={onBas}
+      onLongPress={onBasili}
+      delayLongPress={280}
+      disabled={!onBas && !onBasili}
+    >
       <View>
         <Portrait name={kisi.ad} size={44} photo={kisi.foto} halkasiz />
         {kisi.sahip && (

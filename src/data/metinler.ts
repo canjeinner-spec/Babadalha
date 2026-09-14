@@ -404,6 +404,12 @@ export const METINLER = {
   "panel.mikAc": { tr: "Mikrofonu aç", en: "Turn the mic on" },
   "panel.yetkiYok": { tr: "Bu kişi için yetkin yok", en: "You have no rights over this person" },
 
+  "kart.seviye": { tr: "Seviye {0}", en: "Level {0}" },
+  "kart.konum": { tr: "{0}", en: "{0}" },
+  "kart.biyografiYok": { tr: "Hakkında bir şey yazmamış.", en: "They haven't written anything about themselves." },
+  "kart.kapat": { tr: "Kapat", en: "Close" },
+  "kart.sen": { tr: "Sen", en: "You" },
+
   "panel.odadakiler": { tr: "Odadakiler", en: "In the room" },
   "panel.sahiplikDevri": { tr: "Sahiplik devri", en: "Host transfer" },
   "panel.odadanAt": { tr: "Odadan at", en: "Remove from room" },
