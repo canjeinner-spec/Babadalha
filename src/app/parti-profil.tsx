@@ -58,6 +58,7 @@ export default function PartiProfil() {
   const gorunenAd = useGorunenAd((s) => s.ad);
   const userPhoto = useApp((s) => s.userPhoto);
   const session = useApp((s) => s.session);
+  const premiumHak = useApp((s) => s.premiumHak);
   const userBio = useApp((s) => s.userBio);
   const ozelIdTip = useApp((s) => s.ozelIdTip);
   const ozelIdTema = useApp((s) => s.ozelIdTema);
@@ -108,7 +109,30 @@ export default function PartiProfil() {
             <Icon name="chev" size={20} sw={2.2} color={C.dim2} />
           </Pressable>
 
-          <View style={[styles.kume, { marginTop: 4 }]}>
+          <Pressable
+            style={styles.premiumKart}
+            onPress={() => { haptic.select(); router.push(premiumHak ? "/abonelik" : "/premium"); }}
+          >
+            <View style={styles.premiumSimge}>
+              <Icon name="evDiamond" size={20} sw={2} color={C.gold2} />
+            </View>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Txt weight="extrabold" size={14.5} color="#fff">
+                {t(premiumHak ? "profil.premiumKart" : "profil.premiumGec")}
+              </Txt>
+              <Txt size={11.5} color={C.dim} style={{ marginTop: 3 }} numberOfLines={1}>
+                {t(premiumHak ? "profil.premiumKartAlt" : "profil.premiumGecAlt")}
+              </Txt>
+            </View>
+            {premiumHak && (
+              <View style={styles.premiumRozet}>
+                <Txt weight="extrabold" size={10.5} color={C.green}>{t("profil.premiumAktif")}</Txt>
+              </View>
+            )}
+            <Icon name="chev" size={17} sw={2.2} color={C.dim2} />
+          </Pressable>
+
+          <View style={styles.kume}>
             <Kart
               simge="idcard"
               etiket={t("profil.hesapKart")}
@@ -258,6 +282,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, paddingTop: 6, paddingBottom: 14,
   },
   geri: { width: 30, height: 30, alignItems: "center", justifyContent: "center" },
+  premiumKart: {
+    flexDirection: "row", alignItems: "center", gap: 12,
+    marginTop: 4, marginBottom: 12, paddingHorizontal: 14, paddingVertical: 14, borderRadius: 18,
+    backgroundColor: "rgba(232,179,65,.06)", borderWidth: 1, borderColor: "rgba(232,179,65,.24)",
+  },
+  premiumSimge: {
+    width: 40, height: 40, borderRadius: 14, alignItems: "center", justifyContent: "center",
+    backgroundColor: "rgba(232,179,65,.1)", borderWidth: 1, borderColor: "rgba(232,179,65,.2)",
+  },
+  premiumRozet: {
+    paddingHorizontal: 9, paddingVertical: 5, borderRadius: 9,
+    backgroundColor: "rgba(52,211,153,.1)", borderWidth: 1, borderColor: "rgba(52,211,153,.24)",
+  },
   kart: {
     flexDirection: "row",
     alignItems: "center",

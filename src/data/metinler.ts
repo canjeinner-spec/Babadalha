@@ -319,6 +319,33 @@ export const METINLER = {
     en: "You can skip the next screen without reading it. You lose nothing.",
   },
 
+  "profil.premiumGec": { tr: "Premium'a geç", en: "Go Premium" },
+  "profil.premiumGecAlt": { tr: "Reklamsız izle, adını renklendir", en: "Watch without ads, colour your name" },
+  "profil.premiumKart": { tr: "Premium üyeliğin", en: "Your Premium membership" },
+  "profil.premiumKartAlt": { tr: "Abonelik bilgilerin", en: "Your subscription details" },
+  "profil.premiumAktif": { tr: "Aktif", en: "Active" },
+
+  "abonelik.baslik": { tr: "Aboneliğin", en: "Your subscription" },
+  "abonelik.durum": { tr: "Durum", en: "Status" },
+  "abonelik.aktif": { tr: "Aktif", en: "Active" },
+  "abonelik.iptalEdildi": { tr: "Dönem sonunda bitiyor", en: "Ends at the end of the period" },
+  "abonelik.paket": { tr: "Paket", en: "Plan" },
+  "abonelik.baslangic": { tr: "Başlangıç", en: "Started" },
+  "abonelik.yenileme": { tr: "Sonraki yenileme", en: "Next renewal" },
+  "abonelik.bitis": { tr: "Bitiş", en: "Ends" },
+  "abonelik.bilinmiyor": { tr: "—", en: "—" },
+  "abonelik.magazaNotu": {
+    tr: "Abonelik bilgileri mağazandan geliyor. Paket ve yenileme tarihini görmek, planı değiştirmek ya da iptal etmek için mağaza sayfasını aç.",
+    en: "Subscription details come from your store. Open the store page to see your plan and renewal date, change the plan or cancel.",
+  },
+  "abonelik.yonet": { tr: "Aboneliği yönet", en: "Manage subscription" },
+  "abonelik.yonetilemedi": { tr: "Mağaza sayfası açılamadı.", en: "The store page could not be opened." },
+  "abonelik.avantajlar": { tr: "Premium'la neler açık", en: "What Premium gives you" },
+  "abonelik.tesekkur": {
+    tr: "Aron'u ayakta tutuyorsun. Sağ ol.",
+    en: "You are keeping Aron running. Thank you.",
+  },
+
   "premium.baslik": { tr: "ARON PREMIUM", en: "ARON PREMIUM" },
   "premium.altYazi": { tr: "İsteğe bağlı. Gerçekten.", en: "Optional. Really." },
   "premium.giris": {
