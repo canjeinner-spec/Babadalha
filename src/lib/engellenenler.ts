@@ -7,6 +7,7 @@ type EngelDurumu = {
   liste: string[];
   hazir: boolean;
   yukle: () => Promise<void>;
+  birlestir: (anahtarlar: string[]) => void;
   degistir: (anahtar: string) => Promise<boolean>;
 };
 
@@ -27,6 +28,14 @@ export const useEngellenenler = create<EngelDurumu>((set, get) => ({
       }
     } catch { /* yoksay */ }
     set({ liste, hazir: true });
+  },
+  birlestir: (anahtarlar) => {
+    const mevcut = get().liste;
+    const eklenecek = anahtarlar.filter((a) => !mevcut.includes(a));
+    if (!eklenecek.length) return;
+    const yeni = [...mevcut, ...eklenecek];
+    set({ liste: yeni });
+    yaz(yeni);
   },
   degistir: async (anahtar) => {
     const var_ = get().liste.includes(anahtar);

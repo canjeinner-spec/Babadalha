@@ -57,9 +57,11 @@ export default function Kisi() {
   const t = useCeviri();
   const dilKodu = useDil((s) => s.dil.kod);
   const p = useLocalSearchParams<{
-    id?: string; ad?: string; kullaniciAdi?: string; foto?: string; tip?: string; tema?: string; bildir?: string;
+    id?: string; ad?: string; kullaniciAdi?: string; foto?: string; tip?: string; tema?: string;
+    oda?: string; bildir?: string;
   }>();
   const dbId = p.id ? Number(p.id) : null;
+  const odaDbId = p.oda && !Number.isNaN(Number(p.oda)) ? Number(p.oda) : null;
 
   const [profil, setProfil] = useState<PublicProfile | null>(null);
   const [istatistik, setIstatistik] = useState<PartiIstatistik | null>(null);
@@ -188,7 +190,7 @@ export default function Kisi() {
     haptic.select();
     setBildirAcik(false);
     if (!dbId) { setBildirim(t("kisi.girisGerek")); return; }
-    await sunucuIsi(() => kullaniciyiBildir(dbId, sebep), t("kisi.bildirildi"));
+    await sunucuIsi(() => kullaniciyiBildir(dbId, sebep, odaDbId), t("kisi.bildirildi"));
   };
 
   const arkadasEtiketi = arkadaslik === "arkadas" ? t("kisi.arkadaslar")

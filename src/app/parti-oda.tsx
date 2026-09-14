@@ -24,6 +24,7 @@ import { etiketAdi, sistemParcalari, type SistemKisi, type SistemOlayi } from "@
 import { MOCK_KISILER, mockOdaAkisi } from "@/data/partiOdaMock";
 import { PEOPLE } from "@/data/people";
 import { amIBannedFromRoom, banRoomUser, getRoomMembers, listRooms, odaKatilimcilariGetir, odaKatilimcilariniDinle, odaSahibi, removeRoomMember, setRoomMemberRole, type OdaKatilimcisi, type OdaSahibi } from "@/data/remote/roomsRepo";
+import { engelle as sunucuEngelle, engeliKaldir as sunucuEngeliKaldir } from "@/data/remote/sosyalRepo";
 import { type Room } from "@/data/seed";
 import { useCachedResource } from "@/lib/cache";
 import { cevir, useCeviri } from "@/lib/ceviri";
@@ -1625,6 +1626,9 @@ export default function PartiOda() {
         engelli={!!kartKisisi && engelliMi(engelListesi, engelAnahtari(kartKisisi))}
         onEngelle={async (k) => {
           const acildi = await engelDegistir(engelAnahtari(k));
+          if (k.dbId != null && myDbId != null) {
+            await (acildi ? sunucuEngelle(k.dbId) : sunucuEngeliKaldir(k.dbId)).catch(() => {});
+          }
           setBildirim(cevir(acildi ? "kisi.engellendi" : "kisi.engelKalkti", k.ad));
         }}
         onRaporla={(k) => router.push({
@@ -1636,6 +1640,7 @@ export default function PartiOda() {
             foto: k.foto ?? "",
             tip: k.ozelIdTip ?? "",
             tema: k.ozelIdTema ?? "",
+            oda: oda.dbId != null ? String(oda.dbId) : "",
             bildir: "1",
           },
         })}
