@@ -413,7 +413,7 @@ export default function Kisi() {
           </Pressable>
           <Pressable
             style={styles.menuOge}
-            onPress={() => { haptic.select(); setMenu(false); setBildirAcik(true); }}
+            onPress={() => { haptic.select(); setMenu(false); setTimeout(() => setBildirAcik(true), 340); }}
           >
             <Icon name="flag" size={19} sw={2} color={C.red} />
             <Txt weight="extrabold" size={14.5} color={C.red}>{t("kisi.raporla")}</Txt>

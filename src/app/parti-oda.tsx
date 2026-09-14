@@ -1636,7 +1636,7 @@ export default function PartiOda() {
           }
           uyar(cevir(acildi ? "kisi.engellendi" : "kisi.engelKalkti", k.ad));
         }}
-        onRaporla={(k) => setBildirKisisi(k)}
+        onRaporla={(k) => { setTimeout(() => setBildirKisisi(k), 340); }}
         onProfil={(k) => router.push({
           pathname: "/kisi",
           params: {
