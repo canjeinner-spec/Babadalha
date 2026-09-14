@@ -26,8 +26,9 @@ function MarkaSeridi() {
   );
 }
 
-export function SohbetKirpmasi({ ad, tema, mesaj, ad2, mesaj2, kisiSayisi = 4 }: {
+export function SohbetKirpmasi({ ad, foto, tema, mesaj, ad2, mesaj2, kisiSayisi = 4 }: {
   ad: string;
+  foto?: string;
   tema?: string | null;
   mesaj: string;
   ad2: string;
@@ -59,7 +60,7 @@ export function SohbetKirpmasi({ ad, tema, mesaj, ad2, mesaj2, kisiSayisi = 4 }:
               <Txt size={12.5} color="#fff" lh={1.3} style={{ textAlign: "right" }}>{mesaj}</Txt>
             </View>
           </View>
-          <Portrait name={ad} size={KIRPMA_AVATAR} halkasiz />
+          <Portrait name={ad} size={KIRPMA_AVATAR} photo={foto} halkasiz />
         </View>
       </View>
 

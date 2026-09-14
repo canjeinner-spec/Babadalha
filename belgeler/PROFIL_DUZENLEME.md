@@ -60,10 +60,31 @@ Sütun ve fonksiyon açıldığında `profil-duzenle` kaydetme yolu
 `updateMyProfile` yerine bu RPC'yi çağıracak biçimde değiştirilir, cihazdaki
 bayrak da kaldırılır.
 
-## Ayrı görünen ad meselesi
+## Görünen ad şu an cihazda
 
-Şemada tek ad sütunu var: `kullanici_adi`. Hem benzersiz kimlik hem de
-odalarda görünen ad olarak o kullanılıyor. Serbestçe değişen ayrı bir
-görünen ad istenirse `kullanicilar` tablosuna yeni bir sütun açılması ve adı
-çizen her yerin (sohbet, oda listesi, sistem mesajları, profil) ona
-bağlanması gerekir.
+Kullanıcı adının üstündeki "Ad" alanı serbestçe değişiyor ve
+`src/lib/gorunenAd.ts` ile AsyncStorage'a yazılıyor. Şu an yalnız kendi
+cihazında görünüyor: profil kartında ve düzenleme önizlemesinde okunuyor,
+sohbete ve odalara gitmiyor.
+
+Gerçekten herkese görünmesi için şema ve bağlantı gerekiyor:
+
+```sql
+alter table public.kullanicilar
+  add column if not exists gorunen_ad text;
+```
+
+Görünüm de aynı sütunu yayınlamalı:
+
+```sql
+create or replace view public.profiller as
+  select id, public_id, kullanici_adi, gorunen_ad, profil_resmi, biyografi,
+         cinsiyet, ulke, sehir, seviye_id, deneyim_puani, durum, ekonomi_rolu,
+         olusturulma_tarihi, ozel_id, ozel_id_tip, ozel_id_tema, kusanilan_rozet
+    from public.kullanicilar;
+```
+
+Sonra `Profile` tipine, `SELF_COLS`'a ve `updateMyProfile` yamasına eklenir;
+adı çizen yerler (sohbet mesajı, sistem mesajı, oda listesi, kişi paneli)
+`gorunen_ad ?? kullanici_adi` okuyacak biçimde bağlanır. `useGorunenAd`
+o zaman kaldırılır.

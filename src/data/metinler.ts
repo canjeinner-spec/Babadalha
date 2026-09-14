@@ -134,6 +134,13 @@ export const METINLER = {
   },
 
   "duzenle.baslik": { tr: "Profili düzenle", en: "Edit profile" },
+  "duzenle.ad": { tr: "Ad", en: "Name" },
+  "duzenle.adIpucu": {
+    tr: "İstediğin kadar değiştirebilirsin. Boş bırakırsan kullanıcı adın görünür.",
+    en: "Change it as often as you like. Leave it empty and your username shows instead.",
+  },
+  "duzenle.adYerTutucu": { tr: "Adını yaz", en: "Write your name" },
+
   "duzenle.kullaniciAdi": { tr: "Kullanıcı adı", en: "Username" },
   "duzenle.kullaniciAdiIpucu": { tr: "Odalarda seni bu ad temsil eder", en: "This name represents you in rooms" },
   "duzenle.avatarDegistir": { tr: "Fotoğrafı değiştir", en: "Change photo" },
@@ -199,7 +206,6 @@ export const METINLER = {
     tr: "Hesabından çıkacaksın. Partilerin ve istatistiklerin silinmiyor, tekrar giriş yaptığında yerinde duruyor.",
     en: "You will be signed out. Your parties and stats are not deleted; they are still there when you sign back in.",
   },
-  "profil.kimlik": { tr: "ID {0}", en: "ID {0}" },
   "profil.bos": { tr: "—", en: "—" },
 
   "rol.sahip": { tr: "Parti Sahibi", en: "Party Host" },

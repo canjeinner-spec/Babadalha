@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View, type TextInputProps } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import * as GorselSecici from "expo-image-picker";
@@ -13,6 +13,7 @@ import { AMBLEM_ADI, AMBLEM_RENK, OZEL_ID_AMBLEMLERI, type OzelIdAmblemi } from 
 import { Icon } from "@/icons/Icon";
 import { useCeviri } from "@/lib/ceviri";
 import { adKilidiKalan, adKilidiKur, AD_KILIT_SURESI } from "@/lib/adKilidi";
+import { useGorunenAd } from "@/lib/gorunenAd";
 import { geriDon } from "@/lib/gezinme";
 import { haptic } from "@/lib/haptics";
 import { isSupabaseConfigured } from "@/lib/supabase";
@@ -44,15 +45,43 @@ function Alan({ etiket, ipucu, children, sagUst }: {
   return (
     <View style={styles.alan}>
       <View style={styles.alanBaslik}>
-        <Txt weight="extrabold" size={12} color={C.dim2} style={{ letterSpacing: 0.6 }}>
+        <Txt weight="extrabold" size={11.5} color={C.dim2} style={{ letterSpacing: 0.7 }}>
           {etiket.toLocaleUpperCase("tr")}
         </Txt>
         <View style={{ flex: 1 }} />
         {sagUst}
       </View>
       {children}
-      {!!ipucu && <Txt size={11.5} color={C.dim} style={{ marginTop: 7 }}>{ipucu}</Txt>}
+      {!!ipucu && <Txt size={11.5} color={C.dim} lh={1.45} style={{ marginTop: 8 }}>{ipucu}</Txt>}
     </View>
+  );
+}
+
+function YaziAlani({ deger, onYaz, yerTutucu, onek, kilitli, girdiRef, ...kalan }: {
+  deger: string;
+  onYaz: (v: string) => void;
+  yerTutucu?: string;
+  onek?: string;
+  kilitli?: boolean;
+  girdiRef?: React.RefObject<TextInput | null>;
+} & Pick<TextInputProps, "autoCapitalize" | "autoCorrect" | "maxLength" | "multiline">) {
+  const kendi = useRef<TextInput>(null);
+  const ref = girdiRef ?? kendi;
+  return (
+    <Pressable style={styles.yaziSatiri} onPress={() => !kilitli && ref.current?.focus()}>
+      {!!onek && <Txt weight="displayBold" size={17} color={C.gold2}>{onek}</Txt>}
+      <TextInput
+        {...kalan}
+        ref={ref}
+        value={deger}
+        onChangeText={onYaz}
+        editable={!kilitli}
+        placeholder={yerTutucu}
+        placeholderTextColor={C.dim2}
+        style={[styles.yazi, kalan.multiline && styles.yaziCok, kilitli && styles.yaziKilitli]}
+      />
+      <Icon name="edit" size={17} sw={2} color={kilitli ? "rgba(255,255,255,.18)" : C.gold2} />
+    </Pressable>
   );
 }
 
@@ -84,6 +113,10 @@ export default function ProfilDuzenle() {
   const [kilitKalan, setKilitKalan] = useState(0);
   const [avatarMesgul, setAvatarMesgul] = useState(false);
   const [renk, setRenk] = useState<string>(ozelIdTema ?? GOKKUSAGI_ANAHTARI);
+  const gorunenAd = useGorunenAd((s) => s.ad);
+  const gorunenAdYaz = useGorunenAd((s) => s.yaz);
+  const [gorunen, setGorunen] = useState(gorunenAd);
+  const gosterilenAd = gorunen.trim() || ad || userName;
 
   useEffect(() => {
     let acik = true;
@@ -216,6 +249,7 @@ export default function ProfilDuzenle() {
         await adKilidiKur();
         setKilitKalan(AD_KILIT_SURESI);
       }
+      await gorunenAdYaz(gorunen);
       setUserName(p.kullanici_adi);
       setIlkAd(p.kullanici_adi);
       setAdDurumu("bos");
@@ -225,7 +259,7 @@ export default function ProfilDuzenle() {
     } finally {
       setKaydediliyor(false);
     }
-  }, [kaydedilebilir, ad, ilkAd, biyografi, ulke, sehir, setUserName, t]);
+  }, [kaydedilebilir, ad, ilkAd, biyografi, ulke, sehir, gorunen, gorunenAdYaz, setUserName, t]);
 
   const adNotu = (() => {
     if (adDurumu === "kisa") return { metin: t("duzenle.adKisa"), renk: C.red };
@@ -254,7 +288,7 @@ export default function ProfilDuzenle() {
             <ScrollView contentContainerStyle={styles.govde} showsVerticalScrollIndicator={false}>
               <View style={styles.yuz}>
                 <Pressable onPress={avatarSec} disabled={avatarMesgul}>
-                  <Portrait name={ad || userName} size={96} photo={userPhoto ?? undefined} halkasiz />
+                  <Portrait name={gosterilenAd} size={96} photo={userPhoto ?? undefined} halkasiz />
                   <View style={styles.yuzRozet}>
                     {avatarMesgul
                       ? <ActivityIndicator size="small" color="#241A05" />
@@ -266,26 +300,34 @@ export default function ProfilDuzenle() {
                 </Txt>
               </View>
 
+              <Alan etiket={t("duzenle.ad")} ipucu={t("duzenle.adIpucu")}>
+                <YaziAlani
+                  deger={gorunen}
+                  onYaz={(v) => setGorunen(v.slice(0, 32))}
+                  yerTutucu={t("duzenle.adYerTutucu")}
+                  maxLength={32}
+                />
+              </Alan>
+
               <Alan
                 etiket={t("duzenle.kullaniciAdi")}
                 ipucu={t("duzenle.adKural")}
                 sagUst={<Txt size={11} color={C.dim2}>{ad.length}/{AD_AZAMI}</Txt>}
               >
-                <TextInput
-                  value={ad}
-                  onChangeText={adYaz}
-                  style={styles.girdi}
-                  placeholderTextColor={C.dim2}
+                <YaziAlani
+                  deger={ad}
+                  onYaz={adYaz}
+                  onek="@"
+                  kilitli={kilitKalan > 0}
                   autoCapitalize="none"
                   autoCorrect={false}
                   maxLength={AD_AZAMI}
-                  editable={kilitKalan === 0}
                 />
                 {!!adNotu && (
-                  <Txt size={11.5} color={adNotu.renk} style={{ marginTop: 7 }}>{adNotu.metin}</Txt>
+                  <Txt size={11.5} color={adNotu.renk} style={{ marginTop: 8 }}>{adNotu.metin}</Txt>
                 )}
                 {kilitKalan > 0 && (
-                  <Txt size={11.5} color={C.red} lh={1.45} style={{ marginTop: 7 }}>
+                  <Txt size={11.5} color={C.red} lh={1.45} style={{ marginTop: 8 }}>
                     {t("duzenle.adKilit", kalanYaz(kilitKalan, t))}
                   </Txt>
                 )}
@@ -296,7 +338,8 @@ export default function ProfilDuzenle() {
                   <>
                     <View style={styles.renkOnizleme}>
                       <SohbetKirpmasi
-                        ad={ad || userName}
+                        ad={gosterilenAd}
+                        foto={userPhoto ?? undefined}
                         tema={renk}
                         mesaj={t("premium.ornekMesaj")}
                         ad2={t("premium.ornekAd2")}
@@ -348,11 +391,9 @@ export default function ProfilDuzenle() {
                 ipucu={t("duzenle.biyografiIpucu")}
                 sagUst={<Txt size={11} color={C.dim2}>{biyografi.length}/{BIYOGRAFI_AZAMI}</Txt>}
               >
-                <TextInput
-                  value={biyografi}
-                  onChangeText={(v) => setBiyografi(v.slice(0, BIYOGRAFI_AZAMI))}
-                  style={[styles.girdi, styles.cokSatir]}
-                  placeholderTextColor={C.dim2}
+                <YaziAlani
+                  deger={biyografi}
+                  onYaz={(v) => setBiyografi(v.slice(0, BIYOGRAFI_AZAMI))}
                   multiline
                   maxLength={BIYOGRAFI_AZAMI}
                 />
@@ -361,24 +402,12 @@ export default function ProfilDuzenle() {
               <View style={styles.ikili}>
                 <View style={{ flex: 1 }}>
                   <Alan etiket={t("duzenle.ulke")}>
-                    <TextInput
-                      value={ulke}
-                      onChangeText={setUlke}
-                      style={styles.girdi}
-                      placeholderTextColor={C.dim2}
-                      maxLength={56}
-                    />
+                    <YaziAlani deger={ulke} onYaz={setUlke} maxLength={56} />
                   </Alan>
                 </View>
                 <View style={{ flex: 1 }}>
                   <Alan etiket={t("duzenle.sehir")}>
-                    <TextInput
-                      value={sehir}
-                      onChangeText={setSehir}
-                      style={styles.girdi}
-                      placeholderTextColor={C.dim2}
-                      maxLength={56}
-                    />
+                    <YaziAlani deger={sehir} onYaz={setSehir} maxLength={56} />
                   </Alan>
                 </View>
               </View>
@@ -443,12 +472,14 @@ const styles = StyleSheet.create({
     backgroundColor: C.kart, borderWidth: 1, borderColor: C.line,
   },
   alanBaslik: { flexDirection: "row", alignItems: "center", marginBottom: 8, marginLeft: 2 },
-  girdi: {
-    backgroundColor: C.kart, borderRadius: 14, borderWidth: 1, borderColor: C.line,
-    paddingHorizontal: 14, paddingVertical: 13,
-    color: "#fff", fontSize: 14.5,
+  yaziSatiri: {
+    flexDirection: "row", alignItems: "center", gap: 8,
+    borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,.1)",
+    paddingBottom: 9,
   },
-  cokSatir: { minHeight: 92, textAlignVertical: "top" },
+  yazi: { flex: 1, color: "#fff", fontSize: 17, paddingVertical: 2, paddingHorizontal: 0 },
+  yaziCok: { minHeight: 66, fontSize: 15, textAlignVertical: "top", paddingTop: 2 },
+  yaziKilitli: { color: "rgba(255,255,255,.45)" },
   ikili: { flexDirection: "row", gap: 12 },
   kaydet: {
     marginTop: 10, alignItems: "center", justifyContent: "center",

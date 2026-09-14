@@ -12,6 +12,7 @@ import { Txt } from "@/components/Txt";
 import { Icon } from "@/icons/Icon";
 import { type IconName } from "@/icons/paths";
 import { useCeviri } from "@/lib/ceviri";
+import { useGorunenAd } from "@/lib/gorunenAd";
 import { geriDon } from "@/lib/gezinme";
 import { haptic } from "@/lib/haptics";
 import { useApp } from "@/store/appStore";
@@ -53,8 +54,8 @@ export default function PartiProfil() {
   const router = useRouter();
   const t = useCeviri();
   const userName = useApp((s) => s.userName);
+  const gorunenAd = useGorunenAd((s) => s.ad);
   const userPhoto = useApp((s) => s.userPhoto);
-  const publicId = useApp((s) => s.publicId);
   const session = useApp((s) => s.session);
   const ozelId = useApp((s) => s.ozelId);
   const ozelIdTip = useApp((s) => s.ozelIdTip);
@@ -87,23 +88,22 @@ export default function PartiProfil() {
               else setMisafirUyarisi(true);
             }}
           >
-            <Portrait name={userName} size={72} photo={userPhoto ?? undefined} halkasiz />
+            <Portrait name={gorunenAd.trim() || userName} size={72} photo={userPhoto ?? undefined} halkasiz />
 
             <View style={{ flex: 1, minWidth: 0, gap: 7 }}>
               <RenkliAd
-                ad={userName}
+                ad={gorunenAd.trim() || userName}
                 tip={ozelIdTip}
                 tema={ozelIdTema}
                 size={19}
                 weight="displayBold"
                 renk="#fff"
               />
+              <Txt size={12.5} color={C.dim}>@{userName}</Txt>
               {ozelId ? (
                 <View style={{ alignSelf: "flex-start" }}>
                   <OzelIdGosterim id={ozelId} tip={ozelIdTip} tema={ozelIdTema} punto={17} kapsulSize={13} />
                 </View>
-              ) : publicId ? (
-                <Txt size={12} color={C.dim}>{t("profil.kimlik", publicId)}</Txt>
               ) : null}
             </View>
 
