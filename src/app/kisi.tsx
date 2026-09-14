@@ -72,6 +72,7 @@ export default function Kisi() {
   const engelListesi = useEngellenenler((s) => s.liste);
   const engelDegistir = useEngellenenler((s) => s.degistir);
   const oturum = useApp((s) => s.session);
+  const benimDbId = useApp((s) => s.dbId);
   const [sunucuEngelli, setSunucuEngelli] = useState<boolean | null>(null);
   const [arkadaslik, setArkadaslik] = useState<ArkadaslikDurumu>("yok");
   const [takipte, setTakipte] = useState(false);
@@ -81,6 +82,7 @@ export default function Kisi() {
   const engelli = sunucuEngelli ?? engelliMi(engelListesi, dbId ? `u${dbId}` : null, p.kullaniciAdi || null);
 
   const kullaniciAdiParam = (p.kullaniciAdi ?? "").trim();
+  const benimProfilim = benimDbId != null && dbId === benimDbId;
 
   useEffect(() => {
     let acik = true;
@@ -116,24 +118,28 @@ export default function Kisi() {
   const tazele = useCallback(async () => {
     if (!dbId) return;
     const [e, a, tk, sy] = await Promise.all([
-      oturum ? engellilerim().then((l) => l.includes(dbId)).catch(() => null) : Promise.resolve(null),
-      oturum ? arkadaslikDurumu(dbId).catch(() => "yok" as ArkadaslikDurumu) : Promise.resolve("yok" as ArkadaslikDurumu),
-      oturum ? takipEdiyorMuyum(dbId).catch(() => false) : Promise.resolve(false),
+      oturum && !benimProfilim ? engellilerim().then((l) => l.includes(dbId)).catch(() => null) : Promise.resolve(null),
+      oturum && !benimProfilim
+        ? arkadaslikDurumu(dbId).catch(() => "yok" as ArkadaslikDurumu)
+        : Promise.resolve("yok" as ArkadaslikDurumu),
+      oturum && !benimProfilim ? takipEdiyorMuyum(dbId).catch(() => false) : Promise.resolve(false),
       takipSayilari(dbId).catch(() => null),
     ]);
     if (e !== null) setSunucuEngelli(e);
     setArkadaslik(a);
     setTakipte(tk);
     setSayilar(sy ?? { takipci: 0, takip: 0 });
-  }, [dbId, oturum]);
+  }, [dbId, oturum, benimProfilim]);
 
   useEffect(() => {
     if (!dbId) return;
     let acik = true;
     Promise.all([
-      oturum ? engellilerim().then((l) => l.includes(dbId)).catch(() => null) : Promise.resolve(null),
-      oturum ? arkadaslikDurumu(dbId).catch(() => "yok" as ArkadaslikDurumu) : Promise.resolve("yok" as ArkadaslikDurumu),
-      oturum ? takipEdiyorMuyum(dbId).catch(() => false) : Promise.resolve(false),
+      oturum && !benimProfilim ? engellilerim().then((l) => l.includes(dbId)).catch(() => null) : Promise.resolve(null),
+      oturum && !benimProfilim
+        ? arkadaslikDurumu(dbId).catch(() => "yok" as ArkadaslikDurumu)
+        : Promise.resolve("yok" as ArkadaslikDurumu),
+      oturum && !benimProfilim ? takipEdiyorMuyum(dbId).catch(() => false) : Promise.resolve(false),
       takipSayilari(dbId).catch(() => null),
     ]).then(([e, a, tk, sy]) => {
       if (!acik) return;
@@ -143,7 +149,7 @@ export default function Kisi() {
       setSayilar(sy ?? { takipci: 0, takip: 0 });
     });
     return () => { acik = false; };
-  }, [dbId, oturum]);
+  }, [dbId, oturum, benimProfilim]);
 
   const sunucuIsi = async (isi: () => Promise<void>, basari?: string) => {
     if (mesgul) return false;
@@ -237,9 +243,13 @@ export default function Kisi() {
             <Icon name="back" size={22} color="#fff" />
           </Pressable>
           <Txt weight="displayBold" size={17} color="#fff">{t("kisi.baslik")}</Txt>
-          <Pressable onPress={() => { haptic.select(); setMenu(true); }} hitSlop={10} style={styles.geri}>
-            <Icon name="dots" size={22} sw={2.2} color="#fff" />
-          </Pressable>
+          {benimProfilim ? (
+            <View style={{ width: 30 }} />
+          ) : (
+            <Pressable onPress={() => { haptic.select(); setMenu(true); }} hitSlop={10} style={styles.geri}>
+              <Icon name="dots" size={22} sw={2.2} color="#fff" />
+            </Pressable>
+          )}
         </View>
 
         <ScrollView contentContainerStyle={styles.govde} showsVerticalScrollIndicator={false}>
@@ -303,21 +313,23 @@ export default function Kisi() {
             </Txt>
           )}
 
-          <View style={styles.dipEylemler}>
-            <Pressable
-              style={[styles.dipDugme, arkadaslik !== "yok" && styles.dipSecili]}
-              onPress={arkadasBas}
-            >
-              <Icon name={arkadaslik === "arkadas" ? "check" : "userAdd"} size={18} sw={2} color={C.gold2} />
-              <Txt weight="extrabold" size={13} color="#fff" numberOfLines={1}>{arkadasEtiketi}</Txt>
-            </Pressable>
-            <Pressable style={[styles.dipDugme, takipte && styles.dipSecili]} onPress={takipBas}>
-              <Icon name="heart" size={18} sw={2} color={C.gold2} fill={takipte ? C.gold2 : "none"} />
-              <Txt weight="extrabold" size={13} color="#fff">
-                {takipte ? t("kisi.takiptesin") : t("kisi.takipEt")}
-              </Txt>
-            </Pressable>
-          </View>
+          {!benimProfilim && (
+            <View style={styles.dipEylemler}>
+              <Pressable
+                style={[styles.dipDugme, arkadaslik !== "yok" && styles.dipSecili]}
+                onPress={arkadasBas}
+              >
+                <Icon name={arkadaslik === "arkadas" ? "check" : "userAdd"} size={18} sw={2} color={C.gold2} />
+                <Txt weight="extrabold" size={13} color="#fff" numberOfLines={1}>{arkadasEtiketi}</Txt>
+              </Pressable>
+              <Pressable style={[styles.dipDugme, takipte && styles.dipSecili]} onPress={takipBas}>
+                <Icon name="heart" size={18} sw={2} color={C.gold2} fill={takipte ? C.gold2 : "none"} />
+                <Txt weight="extrabold" size={13} color="#fff">
+                  {takipte ? t("kisi.takiptesin") : t("kisi.takipEt")}
+                </Txt>
+              </Pressable>
+            </View>
+          )}
         </ScrollView>
       </SafeAreaView>
 
