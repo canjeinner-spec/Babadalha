@@ -12,6 +12,7 @@ import { RenkliAd } from "@/components/RenkliAd";
 import { Txt } from "@/components/Txt";
 import { gunYaz, partiIstatistiklerim, saatAraligiYaz, sureYaz, type PartiIstatistik } from "@/data/remote/partiRepo";
 import { Icon } from "@/icons/Icon";
+import { type IconName } from "@/icons/paths";
 import { useCeviri } from "@/lib/ceviri";
 import { useDil } from "@/lib/dil";
 import { geriDon } from "@/lib/gezinme";
@@ -27,23 +28,37 @@ function tarihYaz(ham: string | null | undefined, dilKodu: string): string {
   return zaman.toLocaleDateString(dilKodu, { day: "numeric", month: "long", year: "numeric" });
 }
 
-function BelgeSatiri({ etiket, onPress }: { etiket: string; onPress: () => void }) {
-  return (
-    <Pressable style={styles.satir} onPress={onPress}>
-      <Txt size={12.5} color={C.dim} style={{ flex: 1 }}>{etiket}</Txt>
-      <Icon name="chev" size={16} sw={2.2} color={C.dim2} />
-    </Pressable>
+function Kart({ simge, etiket, deger, altYazi, ok, renk, onPress }: {
+  simge: IconName;
+  etiket: string;
+  deger?: string;
+  altYazi?: string;
+  ok?: boolean;
+  renk?: string;
+  onPress?: () => void;
+}) {
+  const govde = (
+    <>
+      <View style={[styles.kartSimge, !!renk && { borderColor: renk + "3d", backgroundColor: renk + "1a" }]}>
+        <Icon name={simge} size={18} sw={2} color={renk ?? C.gold2} />
+      </View>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Txt weight="bold" size={14} color={renk ?? "#fff"}>{etiket}</Txt>
+        {!!altYazi && (
+          <Txt size={11.5} color={C.dim} style={{ marginTop: 2 }} numberOfLines={1}>{altYazi}</Txt>
+        )}
+      </View>
+      {!!deger && (
+        <Txt weight="extrabold" size={13.5} color="rgba(255,255,255,.82)" numberOfLines={1}>{deger}</Txt>
+      )}
+      {ok && <Icon name="chev" size={17} sw={2.2} color={C.dim2} />}
+    </>
   );
+  if (!onPress) return <View style={styles.kartSatiri}>{govde}</View>;
+  return <Pressable style={styles.kartSatiri} onPress={onPress}>{govde}</Pressable>;
 }
 
-function Satir({ etiket, deger }: { etiket: string; deger: string }) {
-  return (
-    <View style={styles.satir}>
-      <Txt size={12.5} color={C.dim} style={{ flex: 1 }}>{etiket}</Txt>
-      <Txt weight="extrabold" size={12.5} color="#fff" numberOfLines={1}>{deger}</Txt>
-    </View>
-  );
-}
+const MOCK_GIRIS_DUZENLEMEYE = true;
 
 export default function PartiProfil() {
   const router = useRouter();
@@ -118,80 +133,77 @@ export default function PartiProfil() {
             <Icon name="chev" size={20} sw={2.2} color={C.dim2} />
           </Pressable>
 
-          <View style={styles.kutu}>
-            <Satir etiket={t("profil.seviye")} deger={`Lv ${userLevel}`} />
-            <View style={styles.ayirac} />
-            <Satir etiket={t("profil.kayitTarihi")} deger={tarihYaz(session?.user?.created_at, dilKodu)} />
-            <View style={styles.ayirac} />
-            <Satir etiket={t("profil.hesap")} deger={session ? t("profil.dogrulanmis") : t("profil.misafir")} />
-            <View style={styles.ayirac} />
-            <DilSecici bicim="satir" />
-          </View>
-
           <Txt weight="extrabold" size={12} color={C.dim2} style={styles.bolumBaslik}>
-            {t("profil.belgeler")}
+            {t("profil.hesapBolumu")}
           </Txt>
 
-          <View style={styles.kutu}>
-            <BelgeSatiri
-              etiket={t("kurallar.kosullar")}
-              onPress={() => { haptic.select(); router.push({ pathname: "/belge", params: { tur: "kosullar" } }); }}
+          <View style={styles.kume}>
+            <Kart simge="trophy" etiket={t("profil.seviye")} deger={`Lv ${userLevel}`} />
+            <Kart simge="cal" etiket={t("profil.kayitTarihi")} deger={tarihYaz(session?.user?.created_at, dilKodu)} />
+            <Kart
+              simge="idcard"
+              etiket={t("profil.hesap")}
+              deger={session ? t("profil.dogrulanmis") : t("profil.misafir")}
             />
-            <View style={styles.ayirac} />
-            <BelgeSatiri
-              etiket={t("kurallar.gizlilik")}
-              onPress={() => { haptic.select(); router.push({ pathname: "/belge", params: { tur: "gizlilik" } }); }}
-            />
+            <DilSecici bicim="kart" />
           </View>
 
           <Txt weight="extrabold" size={12} color={C.dim2} style={styles.bolumBaslik}>
             {t("profil.partiModu")}
           </Txt>
 
-          <View style={styles.kutu}>
-            <Satir etiket={t("profil.favoriPlatform")} deger={favori} />
-            <View style={styles.ayirac} />
-            <Satir etiket={t("profil.toplamSure")} deger={sureYaz(istatistik?.toplamSaniye ?? null)} />
-            <View style={styles.ayirac} />
-            <Satir etiket={t("profil.buHafta")} deger={sureYaz(istatistik?.buHaftaSaniye ?? null)} />
-            <View style={styles.ayirac} />
-            <Satir etiket={t("profil.enUzunOturum")} deger={sureYaz(istatistik?.enUzunSaniye ?? null)} />
-            <View style={styles.ayirac} />
-            <Satir etiket={t("profil.ortalamaOturum")} deger={sureYaz(istatistik?.ortalamaSaniye ?? null)} />
-            <View style={styles.ayirac} />
-            <Satir etiket={t("profil.oturumSayisi")} deger={istatistik ? String(istatistik.oturumSayisi) : "—"} />
-            <View style={styles.ayirac} />
-            <Satir etiket={t("profil.farkliOda")} deger={istatistik ? String(istatistik.farkliOda) : "—"} />
-            <View style={styles.ayirac} />
-            <Satir etiket={t("profil.enAktifSaat")} deger={saatAraligiYaz(istatistik?.enAktifSaat ?? null)} />
-            <View style={styles.ayirac} />
-            <Satir etiket={t("profil.sonOturum")} deger={gunYaz(istatistik?.sonOturum ?? null)} />
+          <View style={styles.kume}>
+            <Kart simge="evStar" etiket={t("profil.favoriPlatform")} deger={favori} />
+            <Kart simge="bars" etiket={t("profil.toplamSure")} deger={sureYaz(istatistik?.toplamSaniye ?? null)} />
+            <Kart simge="flame" etiket={t("profil.buHafta")} deger={sureYaz(istatistik?.buHaftaSaniye ?? null)} />
+            <Kart simge="bolt" etiket={t("profil.enUzunOturum")} deger={sureYaz(istatistik?.enUzunSaniye ?? null)} />
+            <Kart simge="minimize" etiket={t("profil.ortalamaOturum")} deger={sureYaz(istatistik?.ortalamaSaniye ?? null)} />
+            <Kart simge="evParty" etiket={t("profil.oturumSayisi")} deger={istatistik ? String(istatistik.oturumSayisi) : "—"} />
+            <Kart simge="users" etiket={t("profil.farkliOda")} deger={istatistik ? String(istatistik.farkliOda) : "—"} />
+            <Kart simge="eye" etiket={t("profil.enAktifSaat")} deger={saatAraligiYaz(istatistik?.enAktifSaat ?? null)} />
+            <Kart simge="pin" etiket={t("profil.sonOturum")} deger={gunYaz(istatistik?.sonOturum ?? null)} />
           </View>
 
-          {session ? (
-            <Pressable
-              style={[styles.hesapDugmesi, styles.cikisDugmesi]}
-              onPress={() => { haptic.select(); setCikisOnayi(true); }}
-            >
-              <Txt weight="extrabold" size={14} color={C.red}>{t("profil.cikisYap")}</Txt>
-            </Pressable>
-          ) : (
-            <Pressable
-              style={[styles.hesapDugmesi, styles.girisDugmesi]}
-              onPress={() => { haptic.select(); router.push("/giris"); }}
-            >
-              <Txt weight="extrabold" size={14} color="#241A05">{t("giris.yap")}</Txt>
-            </Pressable>
-          )}
+          <Txt weight="extrabold" size={12} color={C.dim2} style={styles.bolumBaslik}>
+            {t("profil.belgeler")}
+          </Txt>
 
-          {!session && (
-            <Txt size={11.5} color={C.dim2} align="center" lh={1.5} style={styles.hesapNotu}>
-              {t("profil.misafirNotu")}
-            </Txt>
-          )}
+          <View style={styles.kume}>
+            <Kart
+              simge="clipboard"
+              etiket={t("kurallar.kosullar")}
+              ok
+              onPress={() => { haptic.select(); router.push({ pathname: "/belge", params: { tur: "kosullar" } }); }}
+            />
+            <Kart
+              simge="shield"
+              etiket={t("kurallar.gizlilik")}
+              ok
+              onPress={() => { haptic.select(); router.push({ pathname: "/belge", params: { tur: "gizlilik" } }); }}
+            />
+          </View>
+
+          <View style={[styles.kume, { marginTop: 22 }]}>
+            {session ? (
+              <Kart
+                simge="power"
+                etiket={t("profil.cikisYap")}
+                renk={C.red}
+                onPress={() => { haptic.select(); setCikisOnayi(true); }}
+              />
+            ) : (
+              <Kart
+                simge="user"
+                etiket={t("giris.yap")}
+                altYazi={t("profil.misafirNotu")}
+                ok
+                onPress={() => { haptic.select(); router.push("/giris"); }}
+              />
+            )}
+          </View>
 
           {hata !== "" && (
-            <Txt size={11.5} color={C.red} align="center" style={styles.hesapNotu}>{hata}</Txt>
+            <Txt size={11.5} color={C.red} align="center" style={{ marginTop: 14, paddingHorizontal: 12 }}>{hata}</Txt>
           )}
         </ScrollView>
       </SafeAreaView>
@@ -210,7 +222,11 @@ export default function PartiProfil() {
             </Pressable>
             <Pressable
               style={[styles.uyariBirincil, { backgroundColor: C.gold2 }]}
-              onPress={() => { haptic.select(); setMisafirUyarisi(false); router.push("/giris"); }}
+              onPress={() => {
+                haptic.select();
+                setMisafirUyarisi(false);
+                router.push(MOCK_GIRIS_DUZENLEMEYE ? "/profil-duzenle" : "/giris");
+              }}
             >
               <Txt weight="extrabold" size={13} color="#241A05">{t("giris.yap")}</Txt>
             </Pressable>
@@ -259,13 +275,6 @@ export default function PartiProfil() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
-  hesapDugmesi: {
-    marginTop: 24, alignItems: "center", justifyContent: "center",
-    paddingVertical: 14, borderRadius: 14,
-  },
-  cikisDugmesi: { backgroundColor: "rgba(248,113,113,.12)", borderWidth: 1, borderColor: "rgba(248,113,113,.28)" },
-  girisDugmesi: { backgroundColor: C.gold2 },
-  hesapNotu: { marginTop: 10, paddingHorizontal: 12 },
   uyariKart: {
     backgroundColor: C.card, borderRadius: 18, padding: 20,
     borderWidth: 1, borderColor: C.line,
@@ -297,8 +306,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255,255,255,.07)",
   },
-  kutu: { borderRadius: 16, backgroundColor: "rgba(255,255,255,.04)", paddingHorizontal: 14 },
+  kume: { gap: 10 },
+  kartSatiri: {
+    flexDirection: "row", alignItems: "center", gap: 11,
+    borderRadius: 16, paddingVertical: 13, paddingHorizontal: 13,
+    backgroundColor: C.kart, borderWidth: 1, borderColor: C.line,
+  },
+  kartSimge: {
+    width: 34, height: 34, borderRadius: 11,
+    alignItems: "center", justifyContent: "center",
+    backgroundColor: "rgba(232,179,65,.09)",
+    borderWidth: 1, borderColor: "rgba(232,179,65,.2)",
+  },
   bolumBaslik: { marginTop: 22, marginBottom: 9, marginLeft: 4, letterSpacing: 1.1 },
-  satir: { flexDirection: "row", alignItems: "center", paddingVertical: 12, gap: 12 },
-  ayirac: { height: 1, backgroundColor: "rgba(255,255,255,.06)" },
 });

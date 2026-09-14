@@ -5,11 +5,12 @@ import { CenterModal } from "@/components/CenterModal";
 import { Txt } from "@/components/Txt";
 import { HAZIR_DILLER } from "@/data/diller";
 import { Icon } from "@/icons/Icon";
+import { cevir } from "@/lib/ceviri";
 import { haptic } from "@/lib/haptics";
 import { useDil } from "@/lib/dil";
 import { C } from "@/theme/colors";
 
-type Bicim = "kapsul" | "satir";
+type Bicim = "kapsul" | "satir" | "kart";
 
 export function DilSecici({ bicim = "kapsul" }: { bicim?: Bicim }) {
   const dil = useDil((s) => s.dil);
@@ -28,6 +29,16 @@ export function DilSecici({ bicim = "kapsul" }: { bicim?: Bicim }) {
           <View style={{ transform: [{ rotate: "90deg" }] }}>
             <Icon name="chev" size={17} sw={2.2} color="rgba(255,255,255,.7)" />
           </View>
+        </Pressable>
+      ) : bicim === "kart" ? (
+        <Pressable style={styles.dilKarti} onPress={ac}>
+          <View style={styles.simge}>
+            <Icon name="globe2" size={18} sw={2} color={C.gold2} />
+          </View>
+          <Txt weight="bold" size={14} color="#fff" style={{ flex: 1 }}>{cevir("profil.dil")}</Txt>
+          <Txt size={15}>{dil.bayrak}</Txt>
+          <Txt weight="extrabold" size={13.5} color="rgba(255,255,255,.8)">{dil.ad}</Txt>
+          <Icon name="chev" size={17} sw={2.2} color={C.dim2} />
         </Pressable>
       ) : (
         <Pressable style={styles.satir} onPress={ac}>
@@ -66,6 +77,17 @@ export function DilSecici({ bicim = "kapsul" }: { bicim?: Bicim }) {
 }
 
 const styles = StyleSheet.create({
+  dilKarti: {
+    flexDirection: "row", alignItems: "center", gap: 9,
+    borderRadius: 16, paddingVertical: 13, paddingHorizontal: 13,
+    backgroundColor: C.kart, borderWidth: 1, borderColor: C.line,
+  },
+  simge: {
+    width: 34, height: 34, borderRadius: 11, marginRight: 2,
+    alignItems: "center", justifyContent: "center",
+    backgroundColor: "rgba(232,179,65,.09)",
+    borderWidth: 1, borderColor: "rgba(232,179,65,.2)",
+  },
   kapsul: {
     flexDirection: "row", alignItems: "center", gap: 8,
     paddingVertical: 10, paddingHorizontal: 20, borderRadius: 24,

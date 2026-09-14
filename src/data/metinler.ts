@@ -120,6 +120,8 @@ export const METINLER = {
   "odaEkran.rolHatasi": { tr: "Rol kaydedilemedi", en: "Could not save the role" },
   "odaEkran.yasakHatasi": { tr: "Yasaklama kaydedilemedi", en: "Could not save the ban" },
 
+  "profil.hesapBolumu": { tr: "HESAP", en: "ACCOUNT" },
+  "profil.dil": { tr: "Uygulama dili", en: "App language" },
   "profil.duzenle": { tr: "Profili düzenle", en: "Edit profile" },
   "profil.misafirBaslik": { tr: "Şu anda misafirsin", en: "You are browsing as a guest" },
   "profil.misafirMetin": {
@@ -154,8 +156,8 @@ export const METINLER = {
   "profil.belgeler": { tr: "YASAL", en: "LEGAL" },
   "profil.partiModu": { tr: "PARTİ MODU", en: "PARTY MODE" },
   "profil.misafirNotu": {
-    tr: "Misafir olarak geziyorsun. Giriş yaparsan partilerin, arkadaşların ve istatistiklerin cihaz değiştirsen de seninle kalır.",
-    en: "You are browsing as a guest. Sign in and your parties, friends and stats stay with you even if you change devices.",
+    tr: "Partilerin ve istatistiklerin cihaz değiştirsen de seninle kalsın",
+    en: "Keep your parties and stats even if you change devices",
   },
   "profil.cikisOnayNotu": {
     tr: "Hesabından çıkacaksın. Partilerin ve istatistiklerin silinmiyor, tekrar giriş yaptığında yerinde duruyor.",
