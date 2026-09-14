@@ -241,13 +241,9 @@ function SohbetOgesi({ oge, benimFoto, oynuyor, onOynatDurdur, onDavet, kisiCoz,
             weight="extrabold"
             renk="#fff"
           />
-          {baloncuk ? (
-            <View style={[styles.baloncuk, styles.baloncukSag, { backgroundColor: baloncuk.arka, borderColor: baloncuk.kenar }]}>
-              <Txt size={15} color="#fff" style={{ textAlign: "right" }} lh={1.35}>{oge.metin}</Txt>
-            </View>
-          ) : (
+          <View style={[styles.baloncuk, styles.baloncukSag, { backgroundColor: baloncuk.arka, borderColor: baloncuk.kenar }]}>
             <Txt size={15} color="#fff" style={{ textAlign: "right" }} lh={1.35}>{oge.metin}</Txt>
-          )}
+          </View>
         </View>
         <Pressable onPress={() => onKisi?.(null, oge.kisi)} hitSlop={6}>
           <Portrait name={oge.kisi} size={AVATAR} photo={benimFoto ?? PEOPLE[oge.kisi]?.photo} halkasiz />
@@ -279,13 +275,9 @@ function SohbetOgesi({ oge, benimFoto, oynuyor, onOynatDurdur, onDavet, kisiCoz,
           style={{ alignSelf: "flex-start" }}
         />
         </Pressable>
-        {baloncuk ? (
-          <View style={[styles.baloncuk, styles.baloncukSol, { backgroundColor: baloncuk.arka, borderColor: baloncuk.kenar }]}>
-            <Txt size={15} color="#fff" lh={1.35}>{oge.metin}</Txt>
-          </View>
-        ) : (
+        <View style={[styles.baloncuk, styles.baloncukSol, { backgroundColor: baloncuk.arka, borderColor: baloncuk.kenar }]}>
           <Txt size={15} color="#fff" lh={1.35}>{oge.metin}</Txt>
-        )}
+        </View>
       </View>
     </View>
   );
