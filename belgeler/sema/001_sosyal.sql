@@ -1,9 +1,10 @@
 -- Aron Parti — eksik sosyal tablolar
 -- Supabase SQL düzenleyicisine yapıştırılıp çalıştırılır. Tekrar çalıştırmak güvenli.
 --
--- Bu dosya yalnız veritabanında OLMAYAN iki tabloyu kuruyor.
+-- Bu dosya yalnız veritabanında OLMAYAN üç tabloyu kuruyor.
 -- arkadasliklar, sikayetler ve bildirimler zaten var; Aaron uygulamasıyla
--- ortak oldukları için şemalarına ve kurallarına dokunulmuyor.
+-- ortak oldukları için şemalarına ve kurallarına dokunulmuyor. Parti
+-- bildirimleri kendi tablomuza (parti_sikayetleri) yazılıyor.
 -- Oturum kimliği için mevcut benim_kullanici_id() kullanılıyor.
 
 -- ---------------------------------------------------------------- engellemeler
@@ -73,3 +74,36 @@ language sql stable security definer set search_path = public as $$
 $$;
 
 grant execute on function public.takip_sayilari(bigint) to authenticated;
+
+-- ----------------------------------------------------------- parti_sikayetleri
+
+create table if not exists public.parti_sikayetleri (
+  id bigserial primary key,
+  bildiren_id bigint not null references public.kullanicilar(id) on delete cascade,
+  bildirilen_id bigint not null references public.kullanicilar(id) on delete cascade,
+  oda_id bigint,
+  neden text not null,
+  detay text,
+  durum text not null default 'yeni',
+  tarih timestamptz not null default now(),
+  constraint parti_sikayetleri_kendini check (bildiren_id <> bildirilen_id),
+  constraint parti_sikayetleri_neden check (
+    neden in ('taciz', 'nefret', 'cinsel', 'cocuk', 'spam', 'siddet', 'diger')),
+  constraint parti_sikayetleri_durum check (durum in ('yeni', 'inceleniyor', 'kapandi'))
+);
+
+create index if not exists parti_sikayetleri_bildirilen on public.parti_sikayetleri (bildirilen_id);
+create index if not exists parti_sikayetleri_durum_ix on public.parti_sikayetleri (durum, tarih desc);
+
+alter table public.parti_sikayetleri enable row level security;
+
+drop policy if exists parti_sikayetleri_kendi_okur on public.parti_sikayetleri;
+create policy parti_sikayetleri_kendi_okur on public.parti_sikayetleri
+  for select to authenticated using (bildiren_id = public.benim_kullanici_id());
+
+drop policy if exists parti_sikayetleri_kendi_ekler on public.parti_sikayetleri;
+create policy parti_sikayetleri_kendi_ekler on public.parti_sikayetleri
+  for insert to authenticated with check (bildiren_id = public.benim_kullanici_id());
+
+grant select, insert on public.parti_sikayetleri to authenticated;
+grant usage on sequence public.parti_sikayetleri_id_seq to authenticated;

@@ -3,10 +3,9 @@ import { getMyProfile } from "@/data/remote/profileRepo";
 
 export class TabloYok extends Error {}
 
-export const ARKADASLIK_BEKLIYOR = "bekliyor";
+export const ARKADASLIK_BEKLIYOR = "beklemede";
 export const ARKADASLIK_KABUL = "kabul";
-export const ARKADASLIK_RED = "red";
-export const SIKAYET_TIPI = "kullanici";
+export const ARKADASLIK_RED = "reddedildi";
 
 const YOK_KODLARI = new Set(["42P01", "42501", "PGRST205", "PGRST301"]);
 
@@ -135,11 +134,10 @@ export async function kullaniciyiBildir(
 ): Promise<void> {
   const sb = requireSupabase();
   const ben = await benimId();
-  const { error } = await sb.from("sikayetler").insert({
-    tip: SIKAYET_TIPI,
-    raporlayan_id: ben,
-    hedef_kullanici_id: hedefId,
-    hedef_oda_id: odaId ?? null,
+  const { error } = await sb.from("parti_sikayetleri").insert({
+    bildiren_id: ben,
+    bildirilen_id: hedefId,
+    oda_id: odaId ?? null,
     neden: sebep,
     detay: detay ?? null,
   });
