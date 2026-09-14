@@ -5,7 +5,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AltCubuk, CUBUK_YUKSEKLIGI } from "@/components/AltCubuk";
 import { CenterModal } from "@/components/CenterModal";
-import { Jeton } from "@/components/JetonGorseli";
 import { DilSecici } from "@/components/DilSecici";
 import { Portrait } from "@/components/Portrait";
 import { RenkliAd } from "@/components/RenkliAd";
@@ -16,7 +15,6 @@ import { useCeviri } from "@/lib/ceviri";
 import { useGorunenAd } from "@/lib/gorunenAd";
 import { geriDon } from "@/lib/gezinme";
 import { haptic } from "@/lib/haptics";
-import { useJeton } from "@/lib/jeton";
 import { hataUyar } from "@/lib/uyari";
 import { useApp } from "@/store/appStore";
 import { C } from "@/theme/colors";
@@ -60,7 +58,6 @@ export default function PartiProfil() {
   const gorunenAd = useGorunenAd((s) => s.ad);
   const userPhoto = useApp((s) => s.userPhoto);
   const session = useApp((s) => s.session);
-  const jetonBakiyesi = useJeton((s) => s.bakiye);
   const userBio = useApp((s) => s.userBio);
   const ozelIdTip = useApp((s) => s.ozelIdTip);
   const ozelIdTema = useApp((s) => s.ozelIdTema);
@@ -79,14 +76,7 @@ export default function PartiProfil() {
             <Icon name="back" size={22} color="#fff" />
           </Pressable>
           <Txt weight="displayBold" size={17} color="#fff">{t("profil.baslik")}</Txt>
-          <Pressable
-            style={styles.jetonDugmesi}
-            onPress={() => { haptic.select(); router.push("/jetonlar"); }}
-            hitSlop={8}
-          >
-            <Jeton boyut={19} />
-            <Txt weight="extrabold" size={12.5} color={C.gold2}>{String(jetonBakiyesi)}</Txt>
-          </Pressable>
+          <View style={{ width: 30 }} />
         </View>
 
         <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: CUBUK_YUKSEKLIGI + 20 }} showsVerticalScrollIndicator={false}>
@@ -268,11 +258,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, paddingTop: 6, paddingBottom: 14,
   },
   geri: { width: 30, height: 30, alignItems: "center", justifyContent: "center" },
-  jetonDugmesi: {
-    flexDirection: "row", alignItems: "center", gap: 6,
-    paddingLeft: 6, paddingRight: 10, paddingVertical: 6, borderRadius: 15,
-    backgroundColor: "rgba(232,179,65,.09)", borderWidth: 1, borderColor: "rgba(232,179,65,.22)",
-  },
   kart: {
     flexDirection: "row",
     alignItems: "center",
