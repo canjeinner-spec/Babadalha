@@ -266,6 +266,8 @@ export default function Kisi() {
     : arkadaslik === "gelen" ? t("kisi.arkadasGelen")
     : t("kisi.arkadasEkle");
 
+  const icerikKapali = beniEngelledimi || (engelli && !benimProfilim);
+
   const ad = profil?.kullanici_adi ?? p.ad ?? "";
   const kullaniciAdi = (p.kullaniciAdi || profil?.kullanici_adi || "").trim();
   const foto = profil?.profil_resmi ?? (p.foto || undefined);
@@ -302,7 +304,7 @@ export default function Kisi() {
               <RenkliAd ad={ad} tip={tip} tema={tema} size={22} weight="displayBold" renk="#fff" />
               {!!kullaniciAdi && <Txt size={13} color={C.dim}>@{kullaniciAdi}</Txt>}
             </View>
-            {!yukleniyor && !beniEngelledimi && (
+            {!yukleniyor && !icerikKapali && (
               <Txt
                 size={13.5}
                 color={profil?.biyografi ? C.dim : C.dim2}
@@ -345,7 +347,7 @@ export default function Kisi() {
             </View>
           )}
 
-          {!!sayilar && !beniEngelledimi && (
+          {!!sayilar && !icerikKapali && (
             <View style={styles.serit}>
               <View style={styles.kutucuk}>
                 <Txt weight="displayBold" size={18} color="#fff">{sayilar.takipci}</Txt>
@@ -363,7 +365,7 @@ export default function Kisi() {
             </View>
           )}
 
-          {beniEngelledimi ? null : yukleniyor ? (
+          {icerikKapali ? null : yukleniyor ? (
             <View style={styles.ortala}><ActivityIndicator color={C.gold2} /></View>
           ) : profil ? (
             <View style={styles.kume}>
@@ -388,7 +390,7 @@ export default function Kisi() {
 
         </ScrollView>
 
-        {!benimProfilim && !beniEngelledimi && (
+        {!benimProfilim && !icerikKapali && (
           <View style={styles.dipEylemler}>
             <Pressable
               style={[styles.dipDugme, arkadaslik !== "yok" && styles.dipSecili]}
