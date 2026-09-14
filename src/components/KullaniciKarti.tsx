@@ -7,7 +7,9 @@ import { ModalKok } from "@/components/ModalKok";
 import { Portrait } from "@/components/Portrait";
 import { RenkliAd } from "@/components/RenkliAd";
 import { Txt } from "@/components/Txt";
+import { mockKisiBul } from "@/data/kisiMock";
 import { getPublicProfileById, type PublicProfile } from "@/data/remote/profileRepo";
+import { beniEngelledi as sunucudaBeniEngelledi } from "@/data/remote/sosyalRepo";
 import { Icon } from "@/icons/Icon";
 import { type IconName } from "@/icons/paths";
 import { useCeviri } from "@/lib/ceviri";
@@ -83,6 +85,7 @@ export function KullaniciKarti({ kisi, onKapat, onProfil, onEngelle, onRaporla, 
   const t = useCeviri();
   const insets = useSafeAreaInsets();
   const [profil, setProfil] = useState<PublicProfile | null>(null);
+  const [beniEngelledimi, setBeniEngelledimi] = useState(false);
   const [gorunen, setGorunen] = useState<KartKisisi | null>(null);
   const k = useSharedValue(1);
 
@@ -113,6 +116,23 @@ export function KullaniciKarti({ kisi, onKapat, onProfil, onEngelle, onRaporla, 
     return () => { acik = false; };
   }, [dbId]);
 
+  useEffect(() => {
+    const mock = mockKisiBul(dbId, kisi?.kullaniciAdi ?? null, kisi?.ad ?? null);
+    if (mock) {
+      queueMicrotask(() => setBeniEngelledimi(mock.beniEngelledi));
+      return;
+    }
+    if (!dbId) {
+      queueMicrotask(() => setBeniEngelledimi(false));
+      return;
+    }
+    let acik = true;
+    sunucudaBeniEngelledi(dbId)
+      .then((v) => { if (acik) setBeniEngelledimi(v); })
+      .catch(() => {});
+    return () => { acik = false; };
+  }, [dbId, kisi?.kullaniciAdi, kisi?.ad]);
+
   const sayfaStil = useAnimatedStyle(() => ({
     transform: [{ translateY: k.value * 640 }],
     opacity: 1 - k.value * 0.4,
@@ -127,6 +147,7 @@ export function KullaniciKarti({ kisi, onKapat, onProfil, onEngelle, onRaporla, 
   const tema = g.ozelIdTema ?? profil?.ozel_id_tema ?? null;
   const kullaniciAdi = (g.kullaniciAdi ?? profil?.kullanici_adi ?? "").trim();
   const konum = [profil?.sehir, profil?.ulke].filter(Boolean).join(", ");
+  const kapali = beniEngelledimi || !!engelli;
 
 
   return (
@@ -153,14 +174,16 @@ export function KullaniciKarti({ kisi, onKapat, onProfil, onEngelle, onRaporla, 
             <ScrollView contentContainerStyle={styles.govde} showsVerticalScrollIndicator={false}>
               <View style={styles.yuz}>
                 <Portrait name={g.ad} size={96} photo={g.foto ?? profil?.profil_resmi ?? undefined} halkasiz />
-                {(g.sahip || rol === "sahip") && (
+                {!kapali && (g.sahip || rol === "sahip") && (
                   <View style={styles.tac}>
                     <Icon name="crown" size={15} color="#241A05" fill="#241A05" />
                   </View>
                 )}
-                <View style={[styles.mikRozet, g.yayinda && styles.mikAcik]}>
-                  <Icon name={g.mikrofonIzni === false ? "micOff" : "mic"} size={13} sw={2.2} color={g.yayinda ? "#241A05" : "rgba(255,255,255,.7)"} />
-                </View>
+                {!kapali && (
+                  <View style={[styles.mikRozet, g.yayinda && styles.mikAcik]}>
+                    <Icon name={g.mikrofonIzni === false ? "micOff" : "mic"} size={13} sw={2.2} color={g.yayinda ? "#241A05" : "rgba(255,255,255,.7)"} />
+                  </View>
+                )}
               </View>
 
               <View style={{ alignItems: "center", marginTop: 14, gap: 6 }}>
@@ -168,6 +191,7 @@ export function KullaniciKarti({ kisi, onKapat, onProfil, onEngelle, onRaporla, 
                 {!!kullaniciAdi && <Txt size={13} color={C.dim}>@{kullaniciAdi}</Txt>}
               </View>
 
+              {!kapali && (
               <View style={styles.serit}>
                 <Kutucuk deger={profil?.seviye_id != null ? String(profil.seviye_id) : "—"} etiket={t("kart.seviyeKisa")} />
                 <View style={styles.ayirac} />
@@ -175,35 +199,48 @@ export function KullaniciKarti({ kisi, onKapat, onProfil, onEngelle, onRaporla, 
                 <View style={styles.ayirac} />
                 <Kutucuk deger={rolAdi(rol)} etiket={t("kart.rolKisa")} vurgu />
               </View>
+              )}
 
-              {!!konum && (
+              {!kapali && !!konum && (
                 <View style={styles.konum}>
                   <Icon name="pin" size={14} sw={2} color={C.dim2} />
                   <Txt size={12.5} color={C.dim}>{konum}</Txt>
                 </View>
               )}
 
-              {!!profil && (
+              {!kapali && !!profil && (
                 <Txt size={13} color={profil.biyografi ? C.dim : C.dim2} align="center" lh={1.5} style={styles.biyografi}>
                   {profil.biyografi || t("kart.biyografiYok")}
                 </Txt>
               )}
 
-              {engelli && (
+              {kapali && (
                 <View style={styles.engelNotu}>
-                  <Icon name="blockuser" size={15} sw={2} color={C.red} />
-                  <Txt size={12} color={C.dim} lh={1.45} style={{ flex: 1 }}>{t("kisi.engelOdaNotu")}</Txt>
+                  <View style={styles.engelSimge}>
+                    <Icon name="blockuser" size={20} sw={2} color={C.red} />
+                  </View>
+                  <Txt weight="extrabold" size={14} color="#fff" align="center">
+                    {t(beniEngelledimi ? "kisi.seniEngelledi" : "kisi.engelledinBaslik")}
+                  </Txt>
+                  <Txt size={12.5} color={C.dim} align="center" lh={1.45} style={{ marginTop: 7 }}>
+                    {t(beniEngelledimi ? "kisi.seniEngelledMetin" : "kart.engelKaldirNotu")}
+                  </Txt>
+                  <Txt size={12} color={C.dim2} align="center" lh={1.45} style={{ marginTop: 9 }}>
+                    {t("kisi.engelOdaNotu")}
+                  </Txt>
                 </View>
               )}
 
               <View style={styles.eylemler}>
+                {!kapali && (
                 <Eylem
                   simge="user"
                   etiket={t("kart.profilineGit")}
                   altYazi={t("kart.profilineGitAlt")}
                   onBas={() => { haptic.select(); onKapat(); onProfil?.(g); }}
                 />
-                {!!onEngelle && (
+                )}
+                {!!onEngelle && !beniEngelledimi && (
                   <Eylem
                     simge="blockuser"
                     etiket={t(engelli ? "kisi.engeliKaldir" : "kisi.engelle")}
@@ -275,9 +312,14 @@ const styles = StyleSheet.create({
   konum: { flexDirection: "row", alignItems: "center", gap: 6, justifyContent: "center", marginTop: 14 },
   biyografi: { marginTop: 12, paddingHorizontal: 6 },
   engelNotu: {
-    flexDirection: "row", alignItems: "center", gap: 9,
-    marginTop: 14, paddingHorizontal: 13, paddingVertical: 11, borderRadius: 14,
-    backgroundColor: "rgba(248,113,113,.07)", borderWidth: 1, borderColor: "rgba(248,113,113,.2)",
+    alignItems: "center",
+    marginTop: 18, paddingHorizontal: 18, paddingVertical: 20, borderRadius: 18,
+    backgroundColor: "rgba(248,113,113,.06)", borderWidth: 1, borderColor: "rgba(248,113,113,.2)",
+  },
+  engelSimge: {
+    width: 44, height: 44, borderRadius: 15, alignItems: "center", justifyContent: "center",
+    backgroundColor: "rgba(248,113,113,.1)", borderWidth: 1, borderColor: "rgba(248,113,113,.24)",
+    marginBottom: 13,
   },
   eylemler: { marginTop: 20, gap: 9 },
   eylem: {

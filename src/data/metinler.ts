@@ -539,6 +539,10 @@ export const METINLER = {
   "kart.rolKisa": { tr: "ODADA", en: "IN ROOM" },
   "kart.mikAcik": { tr: "Mikrofonu açık", en: "Mic is on" },
   "kart.mikKapali": { tr: "Mikrofonu kapalı", en: "Mic is off" },
+  "kart.engelKaldirNotu": {
+    tr: "Mesajlarını görmüyorsun, o da seninkileri görmüyor. Engeli aşağıdan kaldırabilirsin.",
+    en: "You do not see their messages and they do not see yours. You can unblock them below.",
+  },
   "kart.sen": { tr: "Sen", en: "You" },
 
   "panel.odadakiler": { tr: "Odadakiler", en: "In the room" },
