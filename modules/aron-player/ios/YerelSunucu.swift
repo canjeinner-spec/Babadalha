@@ -29,7 +29,7 @@ final class YerelSunucu {
   typealias Isleyici = (_ yol: String, _ sorgu: [String: String]) -> YerelYanit
 
   private var dinleyici: NWListener?
-  private let kuyruk = DispatchQueue(label: "aron.yerelsunucu", qos: .userInitiated)
+  private let kuyruk = DispatchQueue(label: "aron.yerelsunucu", qos: .userInitiated, attributes: .concurrent)
   private let isleyici: Isleyici
   private(set) var port: UInt16 = 0
 
