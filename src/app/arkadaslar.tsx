@@ -164,19 +164,16 @@ export default function Arkadaslar() {
             const secili = sekme === s;
             const sayi = s === "istek" ? gelen.length : dostlar.length;
             return (
-              <Pressable
-                key={s}
-                style={[styles.sekme, secili && styles.sekmeSecili]}
-                onPress={() => { haptic.select(); setSekme(s); }}
-              >
-                <Txt weight="extrabold" size={13} color={secili ? "#1a1206" : "rgba(255,255,255,.7)"}>
-                  {t(s === "istek" ? "arkadas.sekmeIstek" : "arkadas.sekmeArkadas")}
-                </Txt>
-                {sayi > 0 && (
-                  <View style={[styles.rozet, secili && { backgroundColor: "rgba(26,18,6,.16)" }]}>
-                    <Txt weight="extrabold" size={10.5} color={secili ? "#1a1206" : C.gold2}>{String(sayi)}</Txt>
-                  </View>
-                )}
+              <Pressable key={s} style={styles.sekme} onPress={() => { haptic.select(); setSekme(s); }}>
+                <View style={styles.sekmeIc}>
+                  <Txt weight={secili ? "extrabold" : "bold"} size={13.5} color={secili ? "#fff" : C.dim}>
+                    {t(s === "istek" ? "arkadas.sekmeIstek" : "arkadas.sekmeArkadas")}
+                  </Txt>
+                  {sayi > 0 && (
+                    <Txt weight="extrabold" size={11.5} color={secili ? C.gold2 : C.dim2}>{String(sayi)}</Txt>
+                  )}
+                </View>
+                <View style={[styles.sekmeCizgi, secili && styles.sekmeCizgiAcik]} />
               </Pressable>
             );
           })}
@@ -284,18 +281,15 @@ const styles = StyleSheet.create({
   },
   geri: { width: 30, height: 30, alignItems: "center", justifyContent: "center" },
   sekmeCubugu: {
-    flexDirection: "row", gap: 6, marginHorizontal: 16, marginBottom: 14, padding: 4,
-    borderRadius: 14, backgroundColor: C.kart, borderWidth: 1, borderColor: C.line,
+    flexDirection: "row", marginHorizontal: 16, marginBottom: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.line,
   },
-  sekme: {
-    flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6,
-    paddingVertical: 9, borderRadius: 11,
+  sekme: { flex: 1 },
+  sekmeIc: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 11,
   },
-  sekmeSecili: { backgroundColor: C.gold2 },
-  rozet: {
-    minWidth: 19, paddingHorizontal: 5, paddingVertical: 1.5, borderRadius: 7,
-    alignItems: "center", justifyContent: "center", backgroundColor: "rgba(232,179,65,.16)",
-  },
+  sekmeCizgi: { height: 2, borderRadius: 2, backgroundColor: "transparent", marginBottom: -StyleSheet.hairlineWidth },
+  sekmeCizgiAcik: { backgroundColor: C.gold2 },
   govde: { paddingHorizontal: 16, paddingBottom: 40 },
   kume: { gap: 8 },
   satir: {
