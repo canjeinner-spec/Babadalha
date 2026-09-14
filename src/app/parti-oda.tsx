@@ -1450,7 +1450,7 @@ export default function PartiOda() {
         <View
           style={[
             styles.ustZemin,
-            { paddingTop: insets.top },
+            { paddingTop: insets.top, paddingLeft: insets.left, paddingRight: insets.right },
             kip === "gezinme" && styles.ustYuzen,
           ]}
           onLayout={(e) => setUstYukseklik(e.nativeEvent.layout.height)}
@@ -1481,7 +1481,7 @@ export default function PartiOda() {
                   styles.yatayGovde,
                   { paddingLeft: insets.left, paddingRight: insets.right, paddingBottom: insets.bottom },
                 ]
-              : { flex: 1 }
+              : { flex: 1, paddingLeft: insets.left, paddingRight: insets.right }
           }
         >
         {ilkDurumBekleniyor ? (
@@ -1548,7 +1548,7 @@ export default function PartiOda() {
           style={
             buyuk
               ? [styles.yanSutun, { backgroundColor: sahneRengi ? saydam(karart(sahneRengi, 0.55), 0.86) : "rgba(12,10,18,.82)" }]
-              : { flex: 1 }
+              : { flex: 1, paddingLeft: insets.left, paddingRight: insets.right }
           }
         >
           {kurallar ? (
