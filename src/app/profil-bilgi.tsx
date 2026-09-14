@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { DilSecici } from "@/components/DilSecici";
 import { Txt } from "@/components/Txt";
 import { gunYaz, partiIstatistiklerim, saatAraligiYaz, sureYaz, type PartiIstatistik } from "@/data/remote/partiRepo";
 import { Icon } from "@/icons/Icon";
@@ -81,7 +80,6 @@ export default function ProfilBilgi() {
                 etiket={t("profil.hesap")}
                 deger={session ? t("profil.dogrulanmis") : t("profil.misafir")}
               />
-              <DilSecici bicim="kart" />
             </>
           ) : (
             <>

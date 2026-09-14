@@ -121,7 +121,7 @@ export const METINLER = {
   "odaEkran.yasakHatasi": { tr: "Yasaklama kaydedilemedi", en: "Could not save the ban" },
 
   "profil.hesapKart": { tr: "Hesap bilgilerim", en: "My account details" },
-  "profil.hesapKartAlt": { tr: "Seviye, kayıt tarihi, dil", en: "Level, member since, language" },
+  "profil.hesapKartAlt": { tr: "Seviye, kayıt tarihi, hesap durumu", en: "Level, member since, account status" },
   "profil.partiKart": { tr: "Parti modu", en: "Party mode" },
   "profil.partiKartAlt": { tr: "İzleme istatistiklerin", en: "Your watching stats" },
   "profil.hesapBolumu": { tr: "HESAP", en: "ACCOUNT" },

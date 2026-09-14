@@ -5,6 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AltCubuk, CUBUK_YUKSEKLIGI } from "@/components/AltCubuk";
 import { CenterModal } from "@/components/CenterModal";
+import { DilSecici } from "@/components/DilSecici";
 import { OzelIdGosterim } from "@/components/OzelId";
 import { Portrait } from "@/components/Portrait";
 import { RenkliAd } from "@/components/RenkliAd";
@@ -125,6 +126,7 @@ export default function PartiProfil() {
               ok
               onPress={() => { haptic.select(); router.push({ pathname: "/profil-bilgi", params: { tur: "parti" } }); }}
             />
+            <DilSecici bicim="kart" />
           </View>
 
           <Txt weight="extrabold" size={12} color={C.dim2} style={styles.bolumBaslik}>

@@ -20,6 +20,7 @@ import { UstKaplama } from "@/components/UstKaplama";
 import { PARTI_KART_TABANI, type PartiOda as PartiOdaKaydi } from "@/data/partiMock";
 import { type PartiSohbetOgesi } from "@/data/partiSohbetMock";
 import { etiketAdi, sistemParcalari, type SistemKisi, type SistemOlayi } from "@/parti/sistemMesaji";
+import { MOCK_KISILER, mockOdaAkisi } from "@/data/partiOdaMock";
 import { PEOPLE } from "@/data/people";
 import { amIBannedFromRoom, banRoomUser, getRoomMembers, listRooms, odaKatilimcilariGetir, odaKatilimcilariniDinle, odaSahibi, removeRoomMember, setRoomMemberRole, type OdaKatilimcisi, type OdaSahibi } from "@/data/remote/roomsRepo";
 import { type Room } from "@/data/seed";
@@ -1140,6 +1141,17 @@ export default function PartiOda() {
     const zamanlayici = setTimeout(() => setBildirim(""), 1600);
     return () => clearTimeout(zamanlayici);
   }, [bildirim]);
+
+  useEffect(() => {
+    if (!__DEV__) return;
+    const zamanlayici = setTimeout(() => {
+      setEk((e) => (e.some((x) => x.anahtar === "mk-1") ? e : [...mockOdaAkisi(userName, benimAnahtar), ...e]));
+      setAgKisileri((liste) => (
+        liste.some((k) => k.anahtar === "mock-deniz") ? liste : [...liste, ...MOCK_KISILER]
+      ));
+    }, 400);
+    return () => clearTimeout(zamanlayici);
+  }, [userName, benimAnahtar]);
 
   const kisiCoz = useCallback((anahtar: string): SistemKisi | undefined => {
     const k = agKisileri.find((x) => x.anahtar === anahtar);
